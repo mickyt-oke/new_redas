@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Command Dashboard - REDAS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../assets/images/nis.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        @media print {
+            body {
+                background-color: #fff !important;
+            }
+
+            /* Hide elements not meant for printing */
+            .no-print,
+            #sidebar-wrapper,
+            #menu-toggle,
+            .navbar-collapse,
+            #page-content-wrapper footer,
+            .table-responsive th:last-child, /* Hides "Actions" column header */
+            .table-responsive td:last-child { /* Hides "Actions" column cells */
+                display: none !important;
+            }
+
+            /* Reset layout for printing */
+            #wrapper { display: block; }
+            #page-content-wrapper {
+                width: 100%;
+                margin: 0;
+                padding: 0 !important;
+            }
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: #111827 !important; color: #f3f4f6; }
+        body.dark-mode .bg-light { background-color: #374151 !important; color: #f3f4f6; }
+        body.dark-mode .text-muted { color: #9ca3af !important; }
+        body.dark-mode .border-bottom { border-color: #374151 !important; }
+        body.dark-mode .table { color: #f3f4f6; }
+        body.dark-mode .table-hover tbody tr:hover { background-color: #374151; }
+        body.dark-mode .form-control { background-color: #374151; border-color: #4b5563; color: #f3f4f6; }
+        body.dark-mode .btn-outline-secondary { border-color: #6b7280; color: #d1d5db; }
+        body.dark-mode .btn-outline-secondary:hover { background-color: #6b7280; }
+        body.dark-mode .btn-outline-primary { border-color: #3b82f6; color: #3b82f6; }
+        body.dark-mode .btn-outline-primary:hover { background-color: #3b82f6; color: white; }
+        body.dark-mode .btn-outline-success { border-color: #10b981; color: #10b981; }
+        body.dark-mode .btn-outline-success:hover { background-color: #10b981; color: white; }
+        body.dark-mode .btn-outline-danger { border-color: #ef4444; color: #ef4444; }
+        body.dark-mode .btn-outline-danger:hover { background-color: #ef4444; color: white; }
+        body.dark-mode .btn-outline-warning { border-color: #f59e0b; color: #f59e0b; }
+        body.dark-mode .btn-outline-warning:hover { background-color: #f59e0b; color: black; }
+        body.dark-mode .btn-success { background-color: #10b981; border-color: #10b981; }
+        body.dark-mode .btn-success:hover { background-color: #059669; }
+        body.dark-mode .btn-primary { background-color: #3b82f6; border-color: #3b82f6; }
+        body.dark-mode .btn-primary:hover { background-color: #2563eb; }
+        body.dark-mode .btn-secondary { background-color: #6b7280; border-color: #6b7280; }
+        body.dark-mode .btn-secondary:hover { background-color: #4b5563; }
+        body.dark-mode .card { background-color: #1f2937; border-color: #374151; color: #f3f4f6; }
+        body.dark-mode .card-header { background-color: #374151; border-color: #4b5563; color: #f3f4f6; }
+        body.dark-mode .list-group-item { background-color: transparent; color: #d1d5db; }
+        body.dark-mode .badge { background-color: #6b7280; }
+        body.dark-mode .navbar { background-color: #1f2937 !important; color: #f3f4f6; }
+        body.dark-mode .modal-content { background-color: #1f2937; color: #f3f4f6; }
+        body.dark-mode .modal-header { background-color: #374151; border-color: #4b5563; }
+        body.dark-mode .modal-footer { background-color: #374151; border-color: #4b5563; }
+        body.dark-mode .alert-success { background-color: #064e3b; border-color: #065f46; color: #a7f3d0; }
+        body.dark-mode .alert-warning { background-color: #451a03; border-color: #78350f; color: #fed7aa; }
+        body.dark-mode .breadcrumb { background-color: #374151; }
+        body.dark-mode .breadcrumb-item a { color: #60a5fa; }
+        body.dark-mode .breadcrumb-item.active { color: #f3f4f6; }
+        body.dark-mode .pagination .page-link { background-color: #374151; border-color: #4b5563; color: #f3f4f6; }
+        body.dark-mode .pagination .page-link:hover { background-color: #4b5563; }
+        body.dark-mode .pagination .page-item.active .page-link { background-color: #3b82f6; border-color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-light bg-light border-bottom py-2">
+        <div class="container-fluid px-4">
+            <div>
+                <button class="btn btn-outline-secondary me-2" onclick="window.history.back()"><i class="fas fa-arrow-left me-1"></i>Back</button>
+                <a href="dashboard-hq.html" class="btn btn-outline-primary"><i class="fas fa-home me-1"></i>Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading Spinner Overlay
+    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white d-flex flex-column justify-content-center align-items-center" style="z-index: 2000; opacity: 0.95;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-3 fw-bold text-primary">Loading Dashboard Data...</div>
+    </div>-->
+
+    <!-- Fixed NIS Logo -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 40px;">
+    </div>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
+                <img src="../assets/images/nis.png" alt="Logo" class="me-2">REDAS
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard-state.html" class="list-group-item list-group-item-action bg-transparent second-text">
+                    <i class="fas fa-tachometer-alt me-2"></i>State Dashboard
+                </a>
+                <a href="data-entry.html?role=state" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-edit me-2"></i>Submit Report
+                </a>
+                <a href="report-generation.html?role=state" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-history me-2"></i>My Submissions
+                </a>
+                <a href="nominal-roll.html?role=state" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users me-2"></i>Nominal Roll
+                </a>
+                <a href="user-management.html?role=state" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users-cog me-2"></i>User Management
+                </a>
+                <a href="notifications.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-bell me-2"></i>Notifications
+                </a>
+                <a href="REDAS.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-info-circle me-2"></i>About REDAS
+                </a>
+                
+                <hr class="mx-3">
+
+                <a href="profile-settings.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-user-cog me-2"></i>Profile Settings
+                </a>
+                <a href="../index.html" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
+                    <i class="fas fa-power-off me-2"></i>Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 px-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
+                    <h2 class="fs-2 m-0" id="stateCommandTitle">State Command</h2>
+                </div>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item me-3">
+                            <select id="stateSelector" class="form-select border-primary text-primary fw-bold" onchange="if(this.value) window.location.href='?command='+this.value">
+                                <option value="" disabled>Select State...</option>
+                            </select>
+                        </li>
+                        <li class="nav-item me-2 no-print">
+                            <button class="btn btn-outline-success btn-sm mt-1" onclick="window.print()">
+                                <i class="fas fa-print me-1"></i>Print Dashboard
+                            </button>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle second-text fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-shield me-2"></i>State Comptroller
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="profile-settings.html">Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="../index.html">Logout</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="bg-light py-2 px-4 border-bottom no-print">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item active" id="breadcrumbStateName">State Dashboard</li>
+                </ol>
+            </nav>
+
+            <!-- Secondary Navigation Bar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom py-2 no-print">
+                <div class="container-fluid px-4">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#secondaryNavbar" aria-controls="secondaryNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="secondaryNavbar">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" href="dashboard-state.html">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" id="operationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Operations
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="operationsDropdown">
+                                    <li><a class="dropdown-item" href="data-entry.html?role=state"><i class="fas fa-edit me-2"></i>Submit Report</a></li>
+                                    <li><a class="dropdown-item" href="report-generation.html?role=state"><i class="fas fa-history me-2"></i>My Submissions</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" id="personnelDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Personnel
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="personnelDropdown">
+                                    <li><a class="dropdown-item" href="nominal-roll.html?role=state"><i class="fas fa-users me-2"></i>Nominal Roll</a></li>
+                                    <li><a class="dropdown-item" href="user-management.html?role=state"><i class="fas fa-users-cog me-2"></i>User Management</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" href="notifications.html"><i class="fas fa-bell me-2"></i>Communications</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" id="informationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Information
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="informationDropdown">
+                                    <li><a class="dropdown-item" href="REDAS.html"><i class="fas fa-info-circle me-2"></i>About REDAS</a></li>
+                                    <li><a class="dropdown-item" href="profile-settings.html"><i class="fas fa-user-cog me-2"></i>Profile Settings</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid px-4">
+                <!-- Reporting Info -->
+                <div class="alert alert-success mt-4 no-print" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Reports from this command are submitted to: <strong id="zonalHqDisplay" class="text-dark"></strong> for approval.
+                </div>
+
+                <!-- Zonal Announcements -->
+                <div class="row my-4 no-print">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-start border-warning border-4">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-bullhorn me-2 text-warning"></i>Zonal Announcements</span>
+                                <span class="badge bg-danger rounded-pill" id="announcementCount">0 New</span>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="list-group list-group-flush" id="announcementList">
+                                    <!-- Announcements will be loaded here -->
+                                    <div class="text-center p-3 text-muted">Loading announcements...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Analytics Charts -->
+                <div class="row my-4">
+                    <h3 class="fs-4 mb-3">Staff Analytics</h3>
+                    <!-- Summary Cards -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start border-primary border-4 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center" id="tooltipTotalStaff" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="Loading details...">
+                                    <div>
+                                        <h6 class="text-uppercase text-muted small mb-2">Total Staff</h6>
+                                        <h2 class="fs-4 fw-bold mb-0" id="summaryTotalStaff">0</h2>
+                                    </div>
+                                    <i class="fas fa-users fa-2x text-primary opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start border-info border-4 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center" id="tooltipMale" data-bs-toggle="tooltip" data-bs-placement="top" title="Loading details...">
+                                    <div>
+                                        <h6 class="text-uppercase text-muted small mb-2">Male Officers</h6>
+                                        <h2 class="fs-4 fw-bold mb-0" id="summaryMale">0</h2>
+                                    </div>
+                                    <i class="fas fa-male fa-2x text-info opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start border-danger border-4 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center" id="tooltipFemale" data-bs-toggle="tooltip" data-bs-placement="top" title="Loading details...">
+                                    <div>
+                                        <h6 class="text-uppercase text-muted small mb-2">Female Officers</h6>
+                                        <h2 class="fs-4 fw-bold mb-0" id="summaryFemale">0</h2>
+                                    </div>
+                                    <i class="fas fa-female fa-2x text-danger opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start border-warning border-4 h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center" id="tooltipReports" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="Loading details...">
+                                    <div>
+                                        <h6 class="text-uppercase text-muted small mb-2">Total Reports</h6>
+                                        <h2 class="fs-4 fw-bold mb-0" id="summaryReports">0</h2>
+                                    </div>
+                                    <i class="fas fa-file-alt fa-2x text-warning opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Command Summary Card -->
+                    <div class="col-12 mb-4">
+                        <div class="card shadow-sm border-start border-primary border-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="card-title fw-bold text-primary m-0"><i class="fas fa-chart-line me-2"></i>Command Statistical Summary</h5>
+                                    <button class="btn btn-sm btn-outline-danger no-print" onclick="exportCurrentAnalysis()">
+                                        <i class="fas fa-file-pdf me-1"></i>Export PDF
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary no-print ms-2" onclick="emailCurrentAnalysis()">
+                                        <i class="fas fa-envelope me-1"></i>Email Zonal Coord.
+                                    </button>
+                                </div>
+                                <p class="card-text text-muted fs-5" id="commandSummaryText">Loading analysis...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-chart-pie me-2"></i>Gender Distribution</span>
+                                <button class="btn btn-sm btn-outline-secondary no-print" onclick="downloadChart('stateGenderPie', 'Gender_Distribution')" title="Download Chart"><i class="fas fa-download"></i></button>
+                            </div>
+                            <div class="card-body d-flex justify-content-center align-items-center">
+                                <canvas id="stateGenderPie" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-chart-pie me-2"></i>Submissions by Type</span>
+                                <button class="btn btn-sm btn-outline-secondary no-print" onclick="downloadChart('stateSubmissionsChart', 'Submissions_Type')" title="Download Chart"><i class="fas fa-download"></i></button>
+                            </div>
+                            <div class="card-body d-flex justify-content-center align-items-center">
+                                <canvas id="stateSubmissionsChart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row my-4">
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-chart-bar me-2"></i>Ranks Distribution</span>
+                                <button class="btn btn-sm btn-outline-secondary no-print" onclick="downloadChart('stateRanksBar', 'Ranks_Distribution')" title="Download Chart"><i class="fas fa-download"></i></button>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="stateRanksBar" style="max-height: 350px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-layer-group me-2"></i>Rank Hierarchy (Pyramid)</span>
+                                <button class="btn btn-sm btn-outline-secondary no-print" onclick="downloadChart('stateRankPyramid', 'Rank_Hierarchy')" title="Download Chart"><i class="fas fa-download"></i></button>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="stateRankPyramid" style="max-height: 350px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Submission Form -->
+                <div class="row my-4 no-print">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom">
+                                <i class="fas fa-file-upload me-2"></i>Submit New Report
+                            </div>
+                            <div class="card-body">
+                                <form class="needs-validation" novalidate>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label for="reportContent" class="form-label fw-bold">Report Content / Executive Summary</label>
+                                            <div>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#templateModal">
+                                                    <i class="fas fa-eye me-1"></i> View Standard
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="generateSmartTemplate()">
+                                                    <i class="fas fa-magic me-1"></i> Auto-Generate Template
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <textarea class="form-control font-monospace" id="reportContent" rows="8" placeholder="Click 'Auto-Generate' to create a draft based on current statistics..."></textarea>
+                                        <div class="form-text text-muted">You can edit the generated text before submission.</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="reportTitle" class="form-label">Report Title</label>
+                                            <input type="text" class="form-control" id="reportTitle" placeholder="e.g., Monthly Returns - Jan 2026" required>
+                                            <div class="invalid-feedback">A report title is required.</div>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="reportFile" class="form-label">Attach Supporting Documents (Optional)</label>
+                                            <input class="form-control" type="file" id="reportFile" accept=".pdf,.docx">
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit to Zonal HQ</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submitted Reports Table -->
+                <div class="row my-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-history me-2"></i>Recent Submissions
+                                </div>
+                                <div class="w-50 w-md-25 no-print">
+                                    <input type="search" id="submissionSearch" class="form-control form-control-sm" placeholder="Search by title...">
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Filters -->
+                                <div class="row g-3 mb-3 no-print">
+                                    <div class="col-md-2">
+                                        <label for="startDate" class="form-label small fw-bold text-muted">Start Date</label>
+                                        <input type="date" id="startDate" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="endDate" class="form-label small fw-bold text-muted">End Date</label>
+                                        <input type="date" id="endDate" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="statusFilter" class="form-label small fw-bold text-muted">Status</label>
+                                        <select id="statusFilter" class="form-select form-select-sm">
+                                            <option value="">All Statuses</option>
+                                            <option value="Approved">Approved</option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="Queried">Queried</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold text-muted d-block">&nbsp;</label>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-secondary dropdown-toggle w-100" type="button" id="bulkActionsBtn" data-bs-toggle="dropdown" disabled>
+                                                Bulk Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item text-success" href="#" id="bulkApprove"><i class="fas fa-check me-2"></i>Approve Selected</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#" id="bulkDelete"><i class="fas fa-trash me-2"></i>Delete Selected</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold text-muted d-block">&nbsp;</label>
+                                        <button id="exportBtn" class="btn btn-sm btn-success w-100"><i class="fas fa-file-csv me-1"></i>Export CSV</button>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="pageSize" class="form-label small fw-bold text-muted">Items per page</label>
+                                        <select id="pageSize" class="form-select form-select-sm">
+                                            <option value="5" selected>5</option>
+                                            <option value="10">10</option>
+                                            <option value="25">25</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 40px;"><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                                                <th data-key="date" style="cursor: pointer;">Date <i class="fas fa-sort text-muted ms-1"></i></th>
+                                                <th data-key="title" style="cursor: pointer;">Report Title <i class="fas fa-sort text-muted ms-1"></i></th>
+                                                <th data-key="status" style="cursor: pointer;">Status <i class="fas fa-sort text-muted ms-1"></i></th>
+                                                <th data-key="remarks" style="cursor: pointer;">Remarks <i class="fas fa-sort text-muted ms-1"></i></th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="submissionsTbody">
+                                            <!-- This content will be generated dynamically -->
+                                        </tbody>
+                                    </table>
+                                    <!-- Pagination Controls -->
+                                    <nav aria-label="Table navigation" class="mt-3 no-print">
+                                        <ul class="pagination justify-content-end mb-0" id="paginationControls"></ul>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All State Commands Navigation -->
+                <div class="row my-4 no-print">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-map-marked-alt me-2"></i>Navigate to State Command
+                                </div>
+                                <div class="w-50 w-md-25 no-print">
+                                    <input type="search" id="stateSearch" class="form-control form-control-sm" placeholder="Filter states...">
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row" id="statesNavigation">
+                                    <!-- States generated by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return to Landing Page -->
+            <footer class="bg-light text-center py-3 mt-auto">
+                <a href="../index.html" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i>Back to Landing Page</a>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/staff-charts.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // A variable to hold the current command info, accessible to all functions in this scope
+            let currentCommand;
+            
+            // State variables for data table
+            let allSubmissions = [];
+            let filteredDataForExport = []; // Store filtered data for CSV export
+            let searchTerm = '';
+            let sortKey = '';
+            let sortDirection = 1;
+            let currentPage = 1;
+            let itemsPerPage = 5;
+
+            // Fetch command data from the JSON file
+            fetch('../data/commands.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(commandData => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const commandKey = urlParams.get('command') || 'lagos'; // Default to Lagos
+
+                    currentCommand = commandData[commandKey];
+
+                    // Populate State Selector
+                    const stateSelector = document.getElementById('stateSelector');
+                    if (stateSelector) {
+                        Object.keys(commandData).sort().forEach(key => {
+                            const cmd = commandData[key];
+                            if (cmd.name.includes('State Command') || cmd.name.includes('FCT Abuja')) {
+                                const option = document.createElement('option');
+                                option.value = key;
+                                option.text = cmd.name;
+                                if (key === commandKey) option.selected = true;
+                                stateSelector.appendChild(option);
+                            }
+                        });
+                    }
+
+                    if (currentCommand) {
+                        document.getElementById('stateCommandTitle').innerText = currentCommand.name;
+                        document.getElementById('breadcrumbStateName').innerText = currentCommand.name;
+                        document.getElementById('zonalHqDisplay').innerText = currentCommand.zone;
+                        document.title = `${currentCommand.name} - REDAS`;
+
+                        // Load state charts
+                        const statsKey = currentCommand.statsKey || currentCommand.name;
+                        loadStateCharts(statsKey);
+                        updateStateSummary(statsKey);
+                        fetchAndPopulateSubmissions(commandKey); // Fetch submissions for this command
+                    }
+                    generateStatesList(commandData, commandKey); // Generate the bottom navigation list
+
+                    // State Search Listener
+                    document.getElementById('stateSearch').addEventListener('input', (e) => {
+                        generateStatesList(commandData, commandKey, e.target.value);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading command data:', error);
+                    document.getElementById('loadingOverlay').classList.add('d-none'); // Hide spinner on error
+                });
+
+            // --- Drafts Logic (Auto-save) ---
+            const reportTitleInput = document.getElementById('reportTitle');
+            
+            // Load saved draft on startup
+            const savedDraft = localStorage.getItem('draft_reportTitle');
+            if (savedDraft) {
+                reportTitleInput.value = savedDraft;
+            }
+
+            // Save to localStorage on input
+            reportTitleInput.addEventListener('input', function() {
+                localStorage.setItem('draft_reportTitle', this.value);
+            });
+
+            // Form Validation & Mock Submission
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.from(forms).forEach(form => {
+                form.addEventListener('submit', event => {
+                    event.preventDefault();
+                    if (!form.checkValidity()) {
+                        event.stopPropagation();
+                    } else {
+                        // Use the 'currentCommand' variable that was set in the fetch promise
+                        showToast("Report submitted successfully to " + (currentCommand ? currentCommand.zone : "HQ"), 'success');
+                        localStorage.removeItem('draft_reportTitle'); // Clear draft on success
+                        form.reset();
+                        form.classList.remove('was-validated');
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+            // --- Toast Notification Logic ---
+            function showToast(message, type = 'success') {
+                const toastContainer = document.getElementById('toastContainer');
+                const toastId = 'toast-' + Date.now();
+                const bgClass = type === 'success' ? 'bg-success' : 'bg-danger';
+                
+                const toastHTML = `
+                    <div id="${toastId}" class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body"><i class="fas fa-info-circle me-2"></i>${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>`;
+                
+                toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+                const toastEl = document.getElementById(toastId);
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+                
+                // Remove from DOM after hidden
+                toastEl.addEventListener('hidden.bs.toast', () => {
+                    toastEl.remove();
+                });
+            }
+
+            // --- Search/Filter Logic ---
+            document.getElementById('submissionSearch').addEventListener('input', (e) => {
+                searchTerm = e.target.value.toLowerCase();
+                currentPage = 1; // Reset to first page on new search
+                renderTable();
+            });
+
+            // --- Date Filter Logic ---
+            const handleFilterChange = () => {
+                currentPage = 1;
+                renderTable();
+            };
+            document.getElementById('startDate').addEventListener('change', handleFilterChange);
+            document.getElementById('endDate').addEventListener('change', handleFilterChange);
+            document.getElementById('statusFilter').addEventListener('change', handleFilterChange);
+
+            // --- Page Size Logic ---
+            document.getElementById('pageSize').addEventListener('change', (e) => {
+                itemsPerPage = parseInt(e.target.value);
+                handleFilterChange();
+            });
+
+            // --- CSV Export Logic ---
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                if (!filteredDataForExport || filteredDataForExport.length === 0) {
+                    alert("No data available to export.");
+                    return;
+                }
+
+                const headers = ['Date', 'Report Title', 'Status', 'Remarks'];
+                const csvRows = [headers.join(',')];
+
+                filteredDataForExport.forEach(row => {
+                    const values = [
+                        `"${row.date}"`,
+                        `"${row.title.replace(/"/g, '""')}"`, // Escape double quotes
+                        `"${row.status}"`,
+                        `"${row.remarks.replace(/"/g, '""')}"`
+                    ];
+                    csvRows.push(values.join(','));
+                });
+
+                const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `submissions_export_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+
+            // --- Sorting Logic ---
+            document.querySelectorAll('th[data-key]').forEach(header => {
+                header.addEventListener('click', () => {
+                    const key = header.getAttribute('data-key');
+                    
+                    // Reset all icons to default state
+                    document.querySelectorAll('th[data-key] i').forEach(i => {
+                        i.className = 'fas fa-sort text-muted ms-1';
+                    });
+
+                    // Toggle direction if clicking the same column, otherwise reset to asc
+                    if (sortKey === key) {
+                        sortDirection *= -1;
+                    } else {
+                        sortDirection = 1;
+                        sortKey = key;
+                    }
+
+                    // Update active icon
+                    const icon = header.querySelector('i');
+                    icon.className = sortDirection === 1 ? 'fas fa-sort-up ms-1' : 'fas fa-sort-down ms-1';
+
+                    renderTable();
+                });
+            });
+
+            // --- Pagination Logic ---
+            document.getElementById('paginationControls').addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = e.target.closest('a.page-link');
+                if (!target || target.parentElement.classList.contains('disabled')) return;
+                
+                const page = parseInt(target.getAttribute('data-page'));
+                if (page) {
+                    currentPage = page;
+                    renderTable();
+                }
+            });
+
+            // --- Unified Render Function ---
+            function renderTable() {
+                // 1. Filter
+                let processedData = allSubmissions.filter(submission => 
+                    submission.title.toLowerCase().includes(searchTerm)
+                );
+
+                // 1b. Date Filter
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                if (startDate) {
+                    processedData = processedData.filter(item => item.date >= startDate);
+                }
+                if (endDate) {
+                    processedData = processedData.filter(item => item.date <= endDate);
+                }
+
+                // 1c. Status Filter
+                const statusFilter = document.getElementById('statusFilter').value;
+                if (statusFilter) {
+                    processedData = processedData.filter(item => item.status.includes(statusFilter));
+                }
+
+                // 2. Sort
+                if (sortKey) {
+                    processedData.sort((a, b) => {
+                        const valA = (a[sortKey] || '').toString().toLowerCase();
+                        const valB = (b[sortKey] || '').toString().toLowerCase();
+                        return valA.localeCompare(valB) * sortDirection;
+                    });
+                }
+
+                // Update export data before pagination slices it
+                filteredDataForExport = processedData;
+
+                // 3. Paginate
+                const totalPages = Math.ceil(processedData.length / itemsPerPage) || 1;
+                
+                // Ensure current page is valid
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const paginatedItems = processedData.slice(startIndex, startIndex + itemsPerPage);
+
+                // 4. Populate Table
+                populateSubmissionsTable(paginatedItems);
+
+                // 5. Update Pagination Controls
+                updatePaginationControls(totalPages);
+            }
+
+            function updatePaginationControls(totalPages) {
+                const paginationElement = document.getElementById('paginationControls');
+                paginationElement.innerHTML = '';
+
+                // Previous Button
+                const prevDisabled = currentPage === 1 ? 'disabled' : '';
+                paginationElement.insertAdjacentHTML('beforeend', `
+                    <li class="page-item ${prevDisabled}">
+                        <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+                    </li>
+                `);
+
+                // Page Numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    const active = i === currentPage ? 'active' : '';
+                    paginationElement.insertAdjacentHTML('beforeend', `
+                        <li class="page-item ${active}">
+                            <a class="page-link" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `);
+                }
+
+                // Next Button
+                const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+                paginationElement.insertAdjacentHTML('beforeend', `
+                    <li class="page-item ${nextDisabled}">
+                        <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+                    </li>
+                `);
+            }
+
+            // --- Dynamic Table Generation for Recent Submissions ---
+
+            function populateSubmissionsTable(submissions) {
+                const tableBody = document.getElementById('submissionsTbody');
+                const selectAllCheckbox = document.getElementById('selectAll');
+                if (!tableBody) return;
+
+                tableBody.innerHTML = ''; // Clear any static content
+
+                const statusBadges = {
+                    'Approved by HQ': 'bg-success',
+                    'Pending Zonal Approval': 'bg-warning text-dark',
+                    'Queried by Zone': 'bg-danger'
+                };
+
+                if (submissions.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No submissions found.</td></tr>';
+                    selectAllCheckbox.disabled = true;
+                    return;
+                }
+
+                selectAllCheckbox.disabled = false;
+                selectAllCheckbox.checked = false; // Reset select all on redraw
+                updateBulkActionsState();
+
+                submissions.forEach(submission => {
+                    const badgeClass = statusBadges[submission.status] || 'bg-secondary';
+                    const downloadButton = submission.fileUrl ?
+                        `<a href="${submission.fileUrl}" class="btn btn-sm btn-outline-primary" download><i class="fas fa-download me-1"></i>Download</a>` :
+                        '';
+                    
+                    // Escape quotes for data attributes
+                    const safeTitle = submission.title.replace(/"/g, '&quot;');
+                    const safeRemarks = submission.remarks.replace(/"/g, '&quot;');
+                    const safeUrl = submission.fileUrl || '';
+
+                    const row = `<tr>
+                                    <td><input class="form-check-input row-checkbox" type="checkbox"></td>
+                                    <td>${submission.date}</td>
+                                    <td>
+                                        <a href="#" class="text-decoration-none fw-bold" data-title="${safeTitle}" data-date="${submission.date}" data-status="${submission.status}" data-remarks="${safeRemarks}" data-url="${safeUrl}" onclick="viewReportDetails(this); return false;">${submission.title}</a>
+                                    </td>
+                                    <td><span class="badge ${badgeClass}">${submission.status}</span></td>
+                                    <td>${submission.remarks}</td>
+                                    <td>${downloadButton}</td>
+                                 </tr>`;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                });
+
+                // Re-attach listeners to new checkboxes
+                document.querySelectorAll('.row-checkbox').forEach(cb => {
+                    cb.addEventListener('change', updateBulkActionsState);
+                });
+            }
+
+            // --- Bulk Actions Logic ---
+            const selectAllCheckbox = document.getElementById('selectAll');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.row-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                updateBulkActionsState();
+            });
+
+            function updateBulkActionsState() {
+                const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+                const bulkBtn = document.getElementById('bulkActionsBtn');
+                bulkBtn.disabled = checkedCount === 0;
+                bulkBtn.innerText = checkedCount > 0 ? `Bulk Actions (${checkedCount})` : 'Bulk Actions';
+            }
+
+            document.getElementById('bulkApprove').addEventListener('click', (e) => {
+                e.preventDefault();
+                const count = document.querySelectorAll('.row-checkbox:checked').length;
+                if(count > 0) {
+                    showToast(`${count} report(s) approved successfully.`, 'success');
+                    // Here you would typically send an API request
+                    // For demo, we just uncheck everything
+                    selectAllCheckbox.click(); 
+                }
+            });
+
+            document.getElementById('bulkDelete').addEventListener('click', (e) => {
+                e.preventDefault();
+                const count = document.querySelectorAll('.row-checkbox:checked').length;
+                if(count > 0) {
+                    if(confirm(`Are you sure you want to delete ${count} items?`)) {
+                        showToast(`${count} report(s) deleted.`, 'success'); // Using 'success' (green) or could use 'danger' style
+                        selectAllCheckbox.click();
+                    }
+                }
+            });
+
+            function fetchAndPopulateSubmissions(commandKey) {
+                // This URL would point to your backend API. 
+                // The commandKey can be used to fetch data specific to the current command.
+                // For this demo, we'll use a static JSON file that simulates the API response.
+                const apiUrl = `../api/submissions.json`; // In a real app: `/api/submissions?command=${commandKey}`
+
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(submissions => {
+                        allSubmissions = submissions; // Store master list
+                        renderTable(); // Initial render
+                    })
+                    .catch(error => {
+                        console.error("Could not fetch submissions:", error);
+                        const tableBody = document.getElementById('submissionsTbody');
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load submissions data.</td></tr>';
+                    })
+                    .finally(() => {
+                        document.getElementById('loadingOverlay').classList.add('d-none'); // Hide spinner when done
+                    });
+            }
+
+            // --- Update Summary Cards ---
+            function updateStateSummary(stateName) {
+                // staffData is available globally from staff-charts.js
+                if (typeof staffData === 'undefined' || !staffData.states[stateName]) return;
+                
+                const data = staffData.states[stateName];
+                document.getElementById('summaryTotalStaff').innerText = data.totalStaff;
+                document.getElementById('summaryMale').innerText = data.gender.male;
+                document.getElementById('summaryFemale').innerText = data.gender.female;
+                document.getElementById('summaryReports').innerText = data.totalReports;
+
+                // Update Tooltips with detailed info
+                const senior = data.ranks.ACG + data.ranks.CIS + data.ranks.DCI;
+                const junior = data.ranks.DSI + data.ranks.ASI + data.ranks.II;
+                updateTooltip('tooltipTotalStaff', `Senior Officers: ${senior}<br>Junior Officers: ${junior}`);
+
+                const malePct = ((data.gender.male / data.totalStaff) * 100).toFixed(1);
+                updateTooltip('tooltipMale', `Represents ${malePct}% of workforce`);
+
+                const femalePct = ((data.gender.female / data.totalStaff) * 100).toFixed(1);
+                updateTooltip('tooltipFemale', `Represents ${femalePct}% of workforce`);
+
+                const reportTypes = data.submissionTypes ? Object.entries(data.submissionTypes).map(([k, v]) => `${k}: ${v}`).join('<br>') : 'No breakdown available';
+                updateTooltip('tooltipReports', reportTypes);
+            }
+            
+            // --- Export Analysis Wrapper ---
+            window.exportCurrentAnalysis = function() {
+                if (currentCommand) {
+                    const statsKey = currentCommand.statsKey || currentCommand.name;
+                    exportStateAnalysisPDF(statsKey);
+                } else {
+                    alert("Command data not loaded.");
+                }
+            };
+
+            // --- Smart Reporting Template Algorithm ---
+            window.generateSmartTemplate = function() {
+                if (!currentCommand) {
+                    alert("Command data not loaded.");
+                    return;
+                }
+
+                const statsKey = currentCommand.statsKey || currentCommand.name;
+                // Use the algorithm from staff-charts.js
+                const template = generateNISTemplate(statsKey);
+
+                if (template.startsWith("Error")) {
+                    alert(template);
+                    return;
+                }
+
+                // Populate the textarea
+                document.getElementById('reportContent').value = template;
+                
+                // Auto-fill title if empty
+                const titleInput = document.getElementById('reportTitle');
+                if (!titleInput.value) {
+                    titleInput.value = `Monthly Returns - ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+                }
+            };
+            
+            // --- Email Analysis Wrapper ---
+            window.emailCurrentAnalysis = function() {
+                if (currentCommand) {
+                    const statsKey = currentCommand.statsKey || currentCommand.name;
+                    emailStateAnalysisReport(statsKey);
+                } else {
+                    alert("Command data not loaded.");
+                }
+            };
+
+            // Helper to update Bootstrap tooltips dynamically
+            function updateTooltip(elementId, content) {
+                const el = document.getElementById(elementId);
+                if (el) {
+                    const tooltip = bootstrap.Tooltip.getInstance(el);
+                    if (tooltip) tooltip.dispose(); // Destroy old instance
+                    el.setAttribute('data-bs-original-title', content); // For BS5
+                    el.setAttribute('title', content); // Fallback
+                    new bootstrap.Tooltip(el); // Re-initialize
+                }
+            }
+
+            // --- Generate States Navigation List ---
+            function generateStatesList(data, activeKey, searchTerm = '') {
+                const container = document.getElementById('statesNavigation');
+                if (!container) return;
+                container.innerHTML = ''; // Clear existing content
+
+                // Filter for State Commands and FCT to get the "37 States"
+                const stateKeys = Object.keys(data).filter(key => {
+                    const name = data[key].name;
+                    const isState = name.includes('State Command') || name.includes('FCT Abuja Command');
+                    if (!isState) return false;
+
+                    if (searchTerm) {
+                        return name.toLowerCase().includes(searchTerm.toLowerCase());
+                    }
+                    return true;
+                });
+
+                // Sort alphabetically by name
+                stateKeys.sort((a, b) => data[a].name.localeCompare(data[b].name));
+
+                stateKeys.forEach(key => {
+                    const command = data[key];
+                    const col = document.createElement('div');
+                    col.className = 'col-md-3 col-sm-4 col-6 mb-2';
+                    // Remove " Command" for a cleaner list (e.g., "Lagos State")
+                    const displayName = command.name.replace(' Command', '');
+                    
+                    const isActive = key === activeKey;
+                    const linkClass = isActive ? 'text-decoration-none text-primary fw-bold small' : 'text-decoration-none text-secondary small';
+                    const iconClass = isActive ? 'fas fa-check-circle me-1' : 'fas fa-angle-right me-1 text-primary';
+
+                    col.innerHTML = `<a href="?command=${key}" class="${linkClass}"><i class="${iconClass}"></i>${displayName}</a>`;
+                    container.appendChild(col);
+                });
+            }
+
+            // --- Chart Download Function ---
+            window.downloadChart = function(canvasId, fileName) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+                const link = document.createElement('a');
+                link.download = fileName + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            };
+
+            // --- View Report Details Modal Logic ---
+            window.viewReportDetails = function(element) {
+                const title = element.getAttribute('data-title');
+                const date = element.getAttribute('data-date');
+                const status = element.getAttribute('data-status');
+                const remarks = element.getAttribute('data-remarks');
+                const url = element.getAttribute('data-url');
+
+                document.getElementById('viewReportTitle').innerText = title;
+                document.getElementById('viewReportDate').innerText = date;
+                document.getElementById('viewReportStatus').innerText = status;
+                document.getElementById('viewReportRemarks').innerText = remarks;
+
+                // Update Status Badge Color in Modal
+                const statusBadge = document.getElementById('viewReportStatusBadge');
+                statusBadge.innerText = status;
+                statusBadge.className = 'badge ' + (status.includes('Approved') ? 'bg-success' : (status.includes('Queried') ? 'bg-danger' : 'bg-warning text-dark'));
+
+                const downloadSection = document.getElementById('viewReportDownloadSection');
+                const downloadBtn = document.getElementById('viewReportDownloadBtn');
+                
+                if (url) {
+                    downloadSection.classList.remove('d-none');
+                    downloadBtn.href = url;
+                } else {
+                    downloadSection.classList.add('d-none');
+                }
+
+                new bootstrap.Modal(document.getElementById('viewReportModal')).show();
+            };
+
+            // Override updateStateSummary to include text analysis
+            const originalUpdateStateSummary = updateStateSummary;
+            updateStateSummary = function(stateName) {
+                originalUpdateStateSummary(stateName);
+                const analysis = generateStateAnalysis(stateName);
+                const summaryEl = document.getElementById('commandSummaryText');
+                if(summaryEl) summaryEl.innerText = analysis.summary;
+            }
+
+            // --- Zonal Announcements Logic ---
+            const announcements = [
+                { id: 1, title: "Urgent: Monthly Returns Deadline", message: "All commands are reminded to submit their monthly returns by the 5th of this month.", date: "2 hours ago", priority: "High" },
+                { id: 2, title: "New Passport Guidelines", message: "Please review the attached circular regarding the new enhanced passport issuance procedures.", date: "1 day ago", priority: "Normal" }
+            ];
+
+            const announcementList = document.getElementById('announcementList');
+            const announcementCount = document.getElementById('announcementCount');
+
+            if (announcementList) {
+                announcementList.innerHTML = '';
+                if (announcements.length > 0) {
+                    announcementCount.innerText = `${announcements.length} New`;
+                    announcements.forEach(item => {
+                        const priorityBadge = item.priority === 'High' ? '<span class="badge bg-danger ms-2">Urgent</span>' : '';
+                        const html = `
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 fw-bold text-primary">${item.title} ${priorityBadge}</h6>
+                                    <small class="text-muted">${item.date}</small>
+                                </div>
+                                <p class="mb-1 small">${item.message}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted"><i class="fas fa-user-shield me-1"></i> Zonal Coordinator</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-secondary py-0 me-2" onclick="dismissAnnouncement(this)"><i class="fas fa-check me-1"></i> Mark as Read</button>
+                                        <button class="btn btn-sm btn-outline-primary py-0" onclick="openReplyModal('${item.title.replace(/'/g, "\\'")}')"><i class="fas fa-reply me-1"></i> Quick Reply</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        announcementList.insertAdjacentHTML('beforeend', html);
+                    });
+                } else {
+                    announcementList.innerHTML = '<div class="text-center p-3 text-muted">No new announcements.</div>';
+                    announcementCount.style.display = 'none';
+                }
+            }
+
+            // --- Quick Reply Logic ---
+            window.openReplyModal = function(title) {
+                document.getElementById('replySubject').value = `Re: ${title}`;
+                document.getElementById('replyMessage').value = '';
+                document.getElementById('charCounter').innerText = '0 / 500 characters';
+                new bootstrap.Modal(document.getElementById('replyModal')).show();
+            };
+
+            window.sendReply = function() {
+                const message = document.getElementById('replyMessage').value;
+                if (!message) {
+                    alert("Please enter a message.");
+                    return;
+                }
+
+                const btn = document.querySelector('#replyModal .btn-primary');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    const modalEl = document.getElementById('replyModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+
+                    showToast('Reply sent successfully to Zonal Coordinator.', 'success');
+                }, 1000);
+            };
+
+            // Character Counter Listener
+            document.getElementById('replyMessage').addEventListener('input', function() {
+                const maxLength = this.getAttribute('maxlength');
+                const currentLength = this.value.length;
+                document.getElementById('charCounter').innerText = `${currentLength} / ${maxLength} characters`;
+            });
+
+            // --- Dismiss Announcement Logic ---
+            window.dismissAnnouncement = function(btn) {
+                const item = btn.closest('.list-group-item');
+                // Animate removal
+                item.style.transition = 'all 0.3s ease';
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(20px)';
+                
+                setTimeout(() => {
+                    item.remove();
+                    
+                    // Update count
+                    let count = parseInt(announcementCount.innerText);
+                    if (!isNaN(count)) {
+                        count = Math.max(0, count - 1);
+                        if (count === 0) {
+                            announcementCount.style.display = 'none';
+                            announcementList.innerHTML = '<div class="text-center p-3 text-muted">No new announcements.</div>';
+                        } else {
+                            announcementCount.innerText = `${count} New`;
+                        }
+                    }
+                }, 300);
+            };
+        });
+    </script>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer" style="z-index: 1100"></div>
+
+    <!-- View Report Details Modal -->
+    <div class="modal fade" id="viewReportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Report Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h5 id="viewReportTitle" class="mb-3 text-primary"></h5>
+                    
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold text-muted">Date:</div>
+                        <div class="col-8" id="viewReportDate"></div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold text-muted">Status:</div>
+                        <div class="col-8">
+                            <span id="viewReportStatusBadge" class="badge bg-secondary"></span>
+                            <span id="viewReportStatus" class="d-none"></span> <!-- Hidden raw text for logic -->
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-4 fw-bold text-muted">Remarks:</div>
+                        <div class="col-8" id="viewReportRemarks"></div>
+                    </div>
+
+                    <div id="viewReportDownloadSection" class="d-none border-top pt-3 mt-3">
+                        <a href="#" id="viewReportDownloadBtn" class="btn btn-outline-primary btn-sm w-100" download>
+                            <i class="fas fa-download me-2"></i>Download Attached Document
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standard Reporting Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Standard Reporting Template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">All State Commands must adhere to this structure for Monthly Returns.</p>
+                    <div class="border p-3 rounded bg-light mb-3">
+                        <h6 class="fw-bold">1. Executive Summary</h6>
+                        <p class="small">Brief overview of operations, major incidents, and achievements.</p>
+                        <h6 class="fw-bold">2. Statistical Data</h6>
+                        <p class="small">Passport issuance, Visa applications, Border crossings (In/Out).</p>
+                        <h6 class="fw-bold">3. Logistics & Personnel</h6>
+                        <p class="small">Staff strength, vehicle status, infrastructure report.</p>
+                        <h6 class="fw-bold">4. Challenges & Recommendations</h6>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-2"></i>Download DOCX Template</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Reply Modal -->
+    <div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Reply to Announcement</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="replyForm">
+                        <div class="mb-3">
+                            <label class="form-label">To:</label>
+                            <input type="text" class="form-control" value="Zonal Coordinator" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Subject:</label>
+                            <input type="text" class="form-control" id="replySubject" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Message:</label>
+                            <textarea class="form-control" id="replyMessage" rows="4" placeholder="Type your response here..." required maxlength="500"></textarea>
+                            <div class="text-end small text-muted mt-1" id="charCounter">0 / 500 characters</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="sendReply()">Send Reply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

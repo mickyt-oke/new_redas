@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nominal Roll - REDAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link rel="icon" type="image/png" href="../assets/images/nis.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: #111827 !important; color: #f3f4f6; }
+        body.dark-mode .bg-white { background-color: #1f2937 !important; color: #f3f4f6; }
+        body.dark-mode .text-muted { color: #9ca3af !important; }
+        body.dark-mode .border-bottom { border-color: #374151 !important; }
+        body.dark-mode .table { color: #f3f4f6; }
+        body.dark-mode .table-hover tbody tr:hover { color: #f3f4f6; background-color: #374151; }
+        body.dark-mode .form-control, body.dark-mode .form-select { background-color: #374151; border-color: #4b5563; color: #f3f4f6; }
+        body.dark-mode .list-group-item { background-color: transparent; color: #d1d5db; }
+        body.dark-mode .list-group-item.active { color: #10b981; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Fixed NIS Logo -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 40px;">
+    </div>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-white border-end" id="sidebar-wrapper" style="width: 250px;">
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom" id="sidebarHeader">
+                <img src="../assets/images/nis.png" alt="Logo" class="me-2">State Cmd
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard-state.html" id="dashboardLink" class="list-group-item list-group-item-action bg-transparent second-text">
+                    <i class="fas fa-home me-2"></i>Dashboard
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text active">
+                    <i class="fas fa-users me-2"></i>Nominal Roll
+                </a>
+                <a href="report-generation.html" class="list-group-item list-group-item-action bg-transparent second-text">
+                    <i class="fas fa-chart-pie me-2"></i>Reports
+                </a>
+                <a href="data-entry.html" class="list-group-item list-group-item-action bg-transparent second-text">
+                    <i class="fas fa-edit me-2"></i>Data Entry
+                </a>
+                
+                <hr class="mx-3">
+
+                <a href="profile-settings.html" id="profileLink" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-user-cog me-2"></i>Profile Settings
+                </a>
+                
+                <!-- Dark Mode Toggle -->
+                <div class="list-group-item bg-transparent mt-4 border-top">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                        <label class="form-check-label second-text small" for="darkModeSwitch">Dark Mode</label>
+                    </div>
+                </div>
+
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    <i class="fas fa-power-off me-2"></i>Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-4 px-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
+                    <h2 class="fs-2 m-0">Nominal Roll Management</h2>
+                </div>
+                <div class="ms-auto d-flex align-items-center">
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown me-3">
+                        <a class="nav-link text-muted position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-bell fs-5"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                3
+                                <span class="visually-hidden">unread messages</span>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg" aria-labelledby="notificationDropdown" style="width: 300px;">
+                            <li><h6 class="dropdown-header">Recent Alerts</h6></li>
+                            <li><a class="dropdown-item small" href="#"><i class="fas fa-file-alt text-primary me-2"></i> New Report from Zone A</a></li>
+                            <li><a class="dropdown-item small" href="#"><i class="fas fa-exclamation-circle text-danger me-2"></i> Urgent: Border Incident</a></li>
+                            <li><a class="dropdown-item small" href="#"><i class="fas fa-check-circle text-success me-2"></i> Profile Updated</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- User Dropdown -->
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle second-text fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield me-2"></i>Officer ID: NIS/22/990
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="profile-settings.html">Profile Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="bg-light py-2 px-4 border-bottom">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="dashboard-state.html" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Nominal Roll</li>
+                </ol>
+            </nav>
+
+            <div class="container-fluid px-4">
+                <div class="row my-4">
+                    <div class="col-md-12">
+                        <div class="bg-white shadow-sm rounded p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h4 class="fw-bold">Officers List</h4>
+                                <div>
+                                    <div class="btn-group me-2">
+                                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-file-import me-2"></i>Import
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="#" onclick="document.getElementById('importFile').click()">CSV Format</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="document.getElementById('importFile').click()">Excel Format</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="document.getElementById('importFile').click()">XML Data</a></li>
+                                        </ul>
+                                    </div>
+                                    <input type="file" id="importFile" class="d-none" onchange="alert('File imported successfully!')">
+                                    <button class="btn btn-danger me-2" onclick="generateNominalRollPDF()">
+                                        <i class="fas fa-file-pdf me-2"></i>Export PDF
+                                    </button>
+                                    <button class="btn btn-success">
+                                        <i class="fas fa-user-plus me-2"></i>Add Officer
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Filters -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <select class="form-select">
+                                        <option selected>Filter by Rank</option>
+                                        <option>ACG</option>
+                                        <option>CIS</option>
+                                        <option>DCI</option>
+                                        <option>DSI</option>
+                                        <option>ASI</option>
+                                        <option>II</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" placeholder="Search Name or Service Number...">
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th>S/N</th>
+                                            <th>Service No.</th>
+                                            <th>Name</th>
+                                            <th>Rank</th>
+                                            <th>Unit/Dept</th>
+                                            <th>State of Origin</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>NIS/18/2234</td>
+                                            <td>Oke Michael</td>
+                                            <td>DSI</td>
+                                            <td>Migration</td>
+                                            <td>Anambra</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>NIS/19/5501</td>
+                                            <td>Kawu Mohammed</td>
+                                            <td>ASI</td>
+                                            <td>Visa</td>
+                                            <td>Kano</td>
+                                            <td><span class="badge bg-success">Active</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>NIS/20/1109</td>
+                                            <td>Akintunde Shefiu</td>
+                                            <td>II</td>
+                                            <td>Border Patrol</td>
+                                            <td>Ogun</td>
+                                            <td><span class="badge bg-warning text-dark">On Leave</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="bg-white text-center py-4 border-top">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="mb-0 text-muted small">&copy; 2026 Nigeria Immigration Service. All Rights Reserved.</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            <!-- Return to Landing Page -->
+            <footer class="bg-light text-center py-3 mt-auto">
+                <a href="../index.html" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i>Back to Landing Page</a>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Maintenance Mode Overlay -->
+    <div id="maintenanceOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-dark text-white d-flex flex-column justify-content-center align-items-center d-none" style="z-index: 9999; opacity: 0.95;">
+        <i class="fas fa-tools fa-5x mb-4 text-warning"></i>
+        <h1 class="display-4 fw-bold">System Maintenance</h1>
+        <p class="lead">We are currently performing scheduled maintenance.</p>
+        <p class="text-muted">Please check back later.</p>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to log out of the system?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="../index.html" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="btn btn-primary btn-lg rounded-circle shadow">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role') || 'state';
+            
+            const dashboardLink = document.getElementById('dashboardLink');
+            const sidebarHeader = document.getElementById('sidebarHeader');
+            const profileLink = document.getElementById('profileLink');
+
+            if (role === 'hq') {
+                sidebarHeader.innerHTML = '<img src="../assets/images/nis.png" alt="Logo" class="me-2">HQ Admin';
+                dashboardLink.href = 'dashboard-hq.html';
+                profileLink.href = 'profile-setting.html';
+            } else if (role === 'zonal') {
+                sidebarHeader.innerHTML = '<img src="../assets/images/nis.png" alt="Logo" class="me-2">Zonal Cmd';
+                dashboardLink.href = 'dashboard-zonal.html';
+                profileLink.href = 'profile-zonal.html';
+            }
+        });
+
+        // Dark Mode Logic
+        const toggleSwitch = document.querySelector('#darkModeSwitch');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            toggleSwitch.checked = true;
+        }
+
+        toggleSwitch.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Sidebar Toggle
+        var el = document.getElementById("wrapper");
+        var toggleButton = document.getElementById("menu-toggle");
+        if (toggleButton) {
+            toggleButton.onclick = function () {
+                el.classList.toggle("toggled");
+            };
+        }
+
+        // PDF Generation Simulation
+        function generateNominalRollPDF() {
+            const btn = document.querySelector('.btn-danger');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating PDF...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert("Nominal Roll PDF generated successfully! Downloading file...");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        // Maintenance Mode Logic
+        function setSystemStatus(status) {
+            const overlay = document.getElementById('maintenanceOverlay');
+            if (status === 'Maintenance') {
+                overlay.classList.remove('d-none');
+            } else {
+                overlay.classList.add('d-none');
+            }
+        }
+    </script>
+</body>
+</html>

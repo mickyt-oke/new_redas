@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings - Zonal Command</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../assets/images/nis.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <!-- Fixed NIS Logo -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 40px;">
+    </div>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
+                <img src="../assets/images/nis.png" alt="Logo" class="me-2">REDAS
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard-zonal.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-tachometer-alt me-2"></i>Zonal Dashboard
+                </a>
+                <a href="data-entry.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-edit me-2"></i>Data Entry
+                </a>
+                <a href="report-generation.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-chart-pie me-2"></i>Reports Archive
+                </a>
+                <a href="nominal-roll.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users me-2"></i>Nominal Roll
+                </a>
+                <a href="user-management.html?role=zonal" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users-cog me-2"></i>User Management
+                </a>
+                
+                <hr class="mx-3">
+
+                <a href="profile-zonal.html" class="list-group-item list-group-item-action bg-transparent second-text active">
+                    <i class="fas fa-user-cog me-2"></i>Profile Settings
+                </a>
+                <a href="../index.html" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
+                    <i class="fas fa-power-off me-2"></i>Logout
+                </a>
+
+                <!-- Dark Mode Toggle -->
+                <div class="list-group-item bg-transparent mt-4 border-top">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                        <label class="form-check-label second-text small" for="darkModeSwitch">Dark Mode</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 px-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
+                    <h2 class="fs-2 m-0">Profile Settings</h2>
+                </div>
+                <div class="ms-auto d-flex align-items-center">
+                    <span class="text-muted me-3">Zonal Command Headquarters</span>
+                </div>
+            </nav>
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="bg-light py-2 px-4 border-bottom">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="dashboard-zonal.html" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Profile Settings</li>
+                </ol>
+            </nav>
+
+            <div class="container-fluid px-4">
+                <div class="row my-5">
+                    <div class="col-md-8 mx-auto">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white border-bottom">
+                                <h5 class="mb-0 fw-bold">Edit Profile Information</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="text-center mb-4">
+                                    <div class="position-relative d-inline-block">
+                                        <img src="../assets/images/nis.png" id="profilePreview" class="rounded-circle border border-3 border-white shadow-sm" style="width: 120px; height: 120px; object-fit: cover;" alt="Profile Picture">
+                                        <label for="profilePictureUpload" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow-sm" style="cursor: pointer; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Upload new picture">
+                                            <i class="fas fa-camera small"></i>
+                                        </label>
+                                        <input type="file" id="profilePictureUpload" class="d-none" accept="image/*">
+                                    </div>
+                                    <div class="small text-muted mt-2">Allowed: JPG, PNG. Max size: 2MB</div>
+                                </div>
+                                <form id="profileForm">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="fullName" class="form-label fw-bold small text-muted">Full Name</label>
+                                            <input type="text" class="form-control" id="fullName" value="">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="serviceNumber" class="form-label fw-bold small text-muted">Service Number</label>
+                                            <input type="text" class="form-control bg-light" id="serviceNumber" value="" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="rank" class="form-label fw-bold small text-muted">Rank</label>
+                                            <input type="text" class="form-control bg-light" id="rank" value="" readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="email" class="form-label fw-bold small text-muted">Official Email</label>
+                                            <input type="email" class="form-control" id="email" value="">
+                                        </div>
+                                    </div>
+                                    <div class="mb-4">
+                                        <label for="phone" class="form-label fw-bold small text-muted">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone" value="">
+                                    </div>
+                                    
+                                    <hr>
+                                    
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-outline-secondary">Change Password</button>
+                                        <button type="submit" class="btn btn-success px-4">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zone Configuration Section -->
+                <div class="row mb-5">
+                    <div class="col-md-8 mx-auto">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white border-bottom">
+                                <h5 class="mb-0 fw-bold">Zone Configuration</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <form id="zoneConfigForm">
+                                    <div class="mb-3">
+                                        <label for="zoneName" class="form-label fw-bold small text-muted">Zone Name</label>
+                                        <input type="text" class="form-control bg-light" id="zoneName" value="Zone A - Lagos" readonly>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="zoneAddress" class="form-label fw-bold small text-muted">Zonal HQ Address</label>
+                                        <textarea class="form-control" id="zoneAddress" rows="3">Old Secretariat, Ikeja, Lagos</textarea>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="zonePhone" class="form-label fw-bold small text-muted">Official Phone</label>
+                                            <input type="tel" class="form-control" id="zonePhone" value="+234 800 111 2222">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="zoneEmail" class="form-label fw-bold small text-muted">Official Email</label>
+                                            <input type="email" class="form-control" id="zoneEmail" value="zone.a@immigration.gov.ng">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-primary px-4">Update Zone Details</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities Log -->
+                <div class="row mb-5">
+                    <div class="col-md-8 mx-auto">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center">
+                                <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Recent Account Activity</h5>
+                                <div class="d-flex gap-2 mt-2 mt-md-0">
+                                    <input type="text" id="activitySearch" class="form-control form-control-sm" placeholder="Search activities...">
+                                    <select id="activityFilter" class="form-select form-select-sm" style="width: 150px;">
+                                        <option value="all" selected>All Types</option>
+                                        <option value="Logged">Logins</option>
+                                        <option value="Approved">Approvals</option>
+                                        <option value="Queried">Queries</option>
+                                        <option value="Updated">Updates</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="activityLogList">
+                                    <!-- Activity items will be injected here by JavaScript -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Return to Landing Page -->
+                <footer class="bg-light text-center py-3 mt-auto">
+                    <a href="../index.html" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i>Back to Landing Page</a>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Simulated User Data for Zonal Coordinator
+            const userData = {
+                name: "Ahmed Musa",
+                serviceNumber: "NIS/ZC/22/101",
+                rank: "Assistant Comptroller General (ACG)",
+                email: "ahmed.musa@immigration.gov.ng",
+                phone: "+234 800 999 8888"
+            };
+
+            // Populate Form Fields
+            document.getElementById('fullName').value = userData.name;
+            document.getElementById('serviceNumber').value = userData.serviceNumber;
+            document.getElementById('rank').value = userData.rank;
+            document.getElementById('email').value = userData.email;
+            document.getElementById('phone').value = userData.phone;
+
+            // Handle Zone Config Submission
+            document.getElementById('zoneConfigForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                
+                btn.innerText = 'Updating...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    alert('Zone configuration updated successfully!');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }, 1000);
+            });
+
+            // --- Activity Log Logic ---
+            const activityLog = [
+                { action: "Logged in", timestamp: "1 hour ago", icon: "fa-sign-in-alt", color: "text-success" },
+                { action: "Approved Monthly Returns (Lagos)", timestamp: "3 hours ago", icon: "fa-check-circle", color: "text-success" },
+                { action: "Updated Zone Configuration", timestamp: "1 day ago", icon: "fa-cog", color: "text-primary" },
+                { action: "Queried Report (Ogun)", timestamp: "2 days ago", icon: "fa-question-circle", color: "text-danger" }
+            ];
+
+            const activityLogList = document.getElementById('activityLogList');
+            const activitySearch = document.getElementById('activitySearch');
+            const activityFilter = document.getElementById('activityFilter');
+
+            function renderActivityLog(searchTerm = '', filterType = 'all') {
+                activityLogList.innerHTML = ''; // Clear current list
+
+                const filteredLog = activityLog.filter(activity => {
+                    const matchesSearch = activity.action.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesFilter = filterType === 'all' || activity.action.toLowerCase().includes(filterType.toLowerCase());
+                    return matchesSearch && matchesFilter;
+                });
+
+                if (filteredLog.length === 0) {
+                    activityLogList.innerHTML = '<li class="list-group-item text-center text-muted">No activities found.</li>';
+                    return;
+                }
+
+                filteredLog.forEach(activity => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <div>
+                            <i class="fas ${activity.icon} ${activity.color} me-3"></i>
+                            <span>${activity.action}</span>
+                        </div>
+                        <small class="text-muted">${activity.timestamp}</small>`;
+                    activityLogList.appendChild(li);
+                });
+            }
+
+            // Initial render
+            renderActivityLog();
+
+            // Event Listeners for search and filter
+            activitySearch.addEventListener('input', () => {
+                renderActivityLog(activitySearch.value, activityFilter.value);
+            });
+            activityFilter.addEventListener('change', () => {
+                renderActivityLog(activitySearch.value, activityFilter.value);
+            });
+        });
+    </script>
+</body>
+</html>

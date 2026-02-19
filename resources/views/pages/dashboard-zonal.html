@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zonal Dashboard - REDAS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../assets/images/nis.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <!-- Fixed NIS Logo -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 40px;">
+    </div>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
+                <img src="../assets/images/nis.png" alt="Logo" class="me-2">REDAS
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard-zonal.html" class="list-group-item list-group-item-action bg-transparent second-text active">
+                    <i class="fas fa-tachometer-alt me-2"></i>Zonal Dashboard
+                </a>
+                <a href="data-entry.html?role=zonal" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-edit me-2"></i>Data Entry
+                </a>
+                <a href="report-generation.html?role=zonal" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-chart-pie me-2"></i>Reports Archive
+                </a>
+                <a href="nominal-roll.html?role=zonal" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users me-2"></i>Nominal Roll
+                </a>
+                <a href="user-management.html?role=zonal" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users-cog me-2"></i>User Management
+                </a>
+                <a href="notifications.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-bell me-2"></i>Notifications
+                </a>
+                <a href="REDAS.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-info-circle me-2"></i>About REDAS
+                </a>
+                
+                <hr class="mx-3">
+
+                <a href="profile-zonal.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-user-cog me-2"></i>Profile Settings
+                </a>
+                <a href="../index.html" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
+                    <i class="fas fa-power-off me-2"></i>Logout
+                </a>
+
+                <!-- Dark Mode Toggle -->
+                <div class="list-group-item bg-transparent mt-4 border-top">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                        <label class="form-check-label second-text small" for="darkModeSwitch">Dark Mode</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 px-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
+                    <h2 class="fs-2 m-0">Zonal Command</h2>
+                </div>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <!-- Zone Selector for Demo Purposes -->
+                        <li class="nav-item me-3">
+                            <select id="zoneSelector" class="form-select border-primary text-primary fw-bold">
+                                <option value="A">Zone A - Lagos</option>
+                                <option value="B">Zone B - Kaduna</option>
+                                <option value="C">Zone C - Bauchi</option>
+                                <option value="D">Zone D - Niger</option>
+                                <option value="E">Zone E - Imo</option>
+                                <option value="F">Zone F - Oyo</option>
+                                <option value="G">Zone G - Edo</option>
+                                <option value="H">Zone H - Benue</option>
+                            </select>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle second-text fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-shield me-2"></i>ACG Zonal Coordinator
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="profile-zonal.html">Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="../index.html">Logout</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="bg-light py-2 px-4 border-bottom">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Zonal Dashboard</li>
+                </ol>
+            </nav>
+
+            <!-- Secondary Navigation Bar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom py-2">
+                <div class="container-fluid px-4">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#secondaryNavbar" aria-controls="secondaryNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="secondaryNavbar">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" href="dashboard-zonal.html">Home</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" id="operationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Operations
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="operationsDropdown">
+                                    <li><a class="dropdown-item" href="data-entry.html?role=zonal"><i class="fas fa-edit me-2"></i>Data Entry</a></li>
+                                    <li><a class="dropdown-item" href="report-generation.html?role=zonal"><i class="fas fa-chart-pie me-2"></i>Reports Archive</a></li>
+                                    <li><a class="dropdown-item" href="prs-reports.html"><i class="fas fa-file-alt me-2"></i>PRS Reports</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" id="personnelDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Personnel
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="personnelDropdown">
+                                    <li><a class="dropdown-item" href="nominal-roll.html?role=zonal"><i class="fas fa-users me-2"></i>Nominal Roll</a></li>
+                                    <li><a class="dropdown-item" href="user-management.html?role=zonal"><i class="fas fa-users-cog me-2"></i>User Management</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link fw-bold" href="notifications.html"><i class="fas fa-bell me-2"></i>Communications</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle fw-bold" href="#" id="informationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Information
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="informationDropdown">
+                                    <li><a class="dropdown-item" href="REDAS.html"><i class="fas fa-info-circle me-2"></i>About REDAS</a></li>
+                                    <li><a class="dropdown-item" href="profile-zonal.html"><i class="fas fa-user-cog me-2"></i>Profile Settings</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="container-fluid px-4">
+                <!-- Overview Stats -->
+                <div class="row g-3 my-2">
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                            <div>
+                                <h3 class="fs-2" id="pendingCount">12</h3>
+                                <p class="fs-5">Pending Approval</p>
+                            </div>
+                            <i class="fas fa-hourglass-half fs-1 text-warning border rounded-full bg-light p-3"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                            <div>
+                                <h3 class="fs-2" id="forwardedCount">45</h3>
+                                <p class="fs-5">Forwarded to HQ</p>
+                            </div>
+                            <i class="fas fa-paper-plane fs-1 text-primary border rounded-full bg-light p-3"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                            <div>
+                                <h3 class="fs-2" id="commandCount">0</h3>
+                                <p class="fs-5">Commands</p>
+                            </div>
+                            <i class="fas fa-sitemap fs-1 text-success border rounded-full bg-light p-3"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="p-3 bg-white shadow-sm d-flex justify-content-around align-items-center rounded">
+                            <div>
+                                <h3 class="fs-2">Template</h3>
+                                <p class="fs-6 mb-0"><a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#templateModal">View Standard</a></p>
+                            </div>
+                            <i class="fas fa-file-contract fs-1 text-secondary border rounded-full bg-light p-3"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Analytics Charts -->
+                <div class="row my-4">
+                    <h3 class="fs-4 mb-3">Staff Analytics</h3>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom">
+                                <i class="fas fa-chart-bar me-2"></i>Staff Numbers by State (Histogram)
+                            </div>
+                            <div class="card-body">
+                                <canvas id="zonalStaffHistogram" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom">
+                                <i class="fas fa-chart-pie me-2"></i>Gender Distribution
+                            </div>
+                            <div class="card-body">
+                                <canvas id="zonalGenderPie" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom">
+                                <i class="fas fa-chart-bar me-2"></i>Ranks Distribution
+                            </div>
+                            <div class="card-body">
+                                <canvas id="zonalRanksBar" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom">
+                                <i class="fas fa-chart-bar me-2"></i>Reports by State
+                            </div>
+                            <div class="card-body">
+                                <canvas id="zonalReportsBar" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Chart Row -->
+                <div class="row my-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white fw-bold border-bottom">
+                                <i class="fas fa-chart-bar me-2"></i>Reports Submission Analytics
+                            </div>
+                            <div class="card-body">
+                                <canvas id="reportsChart" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row my-4">
+                    <!-- Commands List -->
+                    <div class="col-lg-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-building me-2"></i>Commands Under Jurisdiction</span>
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#broadcastModal">
+                                    <i class="fas fa-bullhorn me-1"></i>Broadcast
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush" id="commandsList">
+                                    <!-- Populated by JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Reports Table -->
+                    <div class="col-lg-8">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-header bg-white fw-bold border-bottom d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-file-alt me-2"></i>Incoming State Reports</span>
+                                <div class="input-group input-group-sm w-50">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" id="reportSearch" class="form-control border-start-0" placeholder="Filter reports...">
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Command</th>
+                                                <th>Report Title</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportsTableBody">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Broadcast Message Modal -->
+    <div class="modal fade" id="broadcastModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Broadcast Message to Zone</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="broadcastForm">
+                        <div class="mb-3">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="broadcastSubject" placeholder="e.g., Urgent Meeting" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" id="broadcastMessage" rows="4" placeholder="Type your message here..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Priority</label>
+                            <select class="form-select" id="broadcastPriority">
+                                <option value="Normal">Normal</option>
+                                <option value="Urgent">Urgent</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="sendBroadcast()">Send Broadcast</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reporting Template Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Standard Reporting Template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">All State Commands must adhere to this structure for Monthly Returns.</p>
+                    <div class="border p-3 rounded bg-light mb-3">
+                        <h6 class="fw-bold">1. Executive Summary</h6>
+                        <p class="small">Brief overview of operations, major incidents, and achievements.</p>
+                        <h6 class="fw-bold">2. Statistical Data</h6>
+                        <p class="small">Passport issuance, Visa applications, Border crossings (In/Out).</p>
+                        <h6 class="fw-bold">3. Logistics & Personnel</h6>
+                        <p class="small">Staff strength, vehicle status, infrastructure report.</p>
+                        <h6 class="fw-bold">4. Challenges & Recommendations</h6>
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm"><i class="fas fa-download me-2"></i>Download DOCX Template</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Return to Landing Page -->
+    <footer class="bg-light text-center py-3 mt-auto">
+        <a href="../index.html" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i>Back to Landing Page</a>
+    </footer>
+
+    <!-- Report Details Modal -->
+    <div class="modal fade" id="reportDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalReportTitle">Report Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Command:</strong> <span id="modalCommandName" class="text-primary"></span>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <strong>Date:</strong> <span id="modalReportDate"></span>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold">Executive Summary</h6>
+                    <p class="text-muted">
+                        This report covers the operational activities for the month. Key highlights include increased passport issuance efficiency and strengthened border patrol operations. No major security incidents were recorded during this period.
+                    </p>
+                    <h6 class="fw-bold mt-3">Attached Documents</h6>
+                    <div class="p-2 border rounded bg-light d-flex align-items-center">
+                        <i class="fas fa-file-pdf text-danger fs-4 me-3"></i>
+                        <div>
+                            <div class="fw-bold">Monthly_Returns_Jan_2026.pdf</div>
+                            <small class="text-muted">2.4 MB</small>
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary ms-auto"><i class="fas fa-download"></i></button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+        <div id="approvalToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i> Report approved and forwarded to PRS Directorate!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/staff-charts.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Zone Data Configuration
+            const zoneData = {
+                'A': {
+                    name: 'Zone A - Lagos',
+                    commands: ['Lagos State Command', 'Ogun State Command', 'Seme Special Border Command', 'Lagos State Passport Command', 'Lagos Border Patrol Command', 'Idiroko Special Border Command', 'Murtala Muhammad Int. Airport']
+                },
+                'B': {
+                    name: 'Zone B - Kaduna',
+                    commands: ['Kaduna State Command', 'Sokoto State Command', 'Katsina State Command', 'Kano State Command', 'Jigawa State Command', 'Illela Special Border Command', 'Jibia Special Border Command']
+                },
+                'C': {
+                    name: 'Zone C - Bauchi',
+                    commands: ['Bauchi State Command', 'Borno State Command', 'Adamawa State Command', 'Gombe State Command', 'Plateau State Command']
+                },
+                'D': {
+                    name: 'Zone D - Niger',
+                    commands: ['Niger State Command', 'Kwara State Command', 'Kebbi State Command', 'FCT Abuja']
+                },
+                'E': {
+                    name: 'Zone E - Imo',
+                    commands: ['Imo State Command', 'Rivers State Command', 'Rivers Marine Command', 'Abia State Command', 'Ebonyi State Command', 'Mfum Special Border Command']
+                },
+                'F': {
+                    name: 'Zone F - Oyo',
+                    commands: ['Oyo State Command', 'Ekiti State Command', 'Ondo State Command', 'Osun State Command']
+                },
+                'G': {
+                    name: 'Zone G - Edo',
+                    commands: ['Edo State Command', 'Delta State Command', 'Enugu State Command', 'Anambra State Command', 'Bayelsa State Command']
+                },
+                'H': {
+                    name: 'Zone H - Benue',
+                    commands: ['Benue State Command', 'Nasarawa State Command', 'Kogi State Command', 'Taraba State Command']
+                }
+            };
+
+            const zoneSelector = document.getElementById('zoneSelector');
+            const commandsList = document.getElementById('commandsList');
+            const reportsTableBody = document.getElementById('reportsTableBody');
+            const commandCount = document.getElementById('commandCount');
+            let reportsChart = null;
+
+            function loadZoneData(zoneKey) {
+                const data = zoneData[zoneKey];
+
+                // Update Commands List
+                commandsList.innerHTML = '';
+                data.commands.forEach(cmd => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `<span>${cmd}</span> <span class="badge bg-light text-dark border">Active</span>`;
+                    commandsList.appendChild(li);
+                });
+                commandCount.innerText = data.commands.length;
+
+                // Load Pending Reports from localStorage
+                loadPendingReports(zoneKey);
+
+                // Update Chart
+                updateChart(data.commands);
+
+                // Load Staff Charts
+                loadZonalCharts(zoneKey);
+            }
+
+            function loadPendingReports(zoneKey) {
+                reportsTableBody.innerHTML = '';
+                const submissions = JSON.parse(localStorage.getItem('submissions') || '[]');
+                const zoneSubmissions = submissions.filter(sub => sub.status === 'Pending Zonal Approval' && sub.zone === zoneData[zoneKey].name);
+
+                zoneSubmissions.forEach((sub, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${sub.date}</td>
+                        <td>${sub.command}</td>
+                        <td><a href="#" class="text-decoration-none fw-bold" onclick="viewReportDetails('${sub.command}', '${sub.date}', '${sub.title}')">${sub.title}</a></td>
+                        <td>
+                            <button class="btn btn-sm btn-success me-1" onclick="approveReport(this, ${sub.id})"><i class="fas fa-check me-1"></i>Approve to HQ</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="queryReport(this, ${sub.id})"><i class="fas fa-times"></i>Query</button>
+                        </td>
+                    `;
+                    reportsTableBody.appendChild(row);
+                });
+
+                // Update pending count
+                document.getElementById('pendingCount').innerText = zoneSubmissions.length;
+            }
+
+            // Initial Load
+            loadZoneData('A');
+
+            // Handle Zone Change
+            zoneSelector.addEventListener('change', function() {
+                loadZoneData(this.value);
+            });
+
+            // Chart Update Function
+            function updateChart(commands) {
+                const ctx = document.getElementById('reportsChart').getContext('2d');
+                
+                // Generate random data for demo purposes
+                const data = commands.map(() => Math.floor(Math.random() * 50) + 5);
+
+                if (reportsChart) {
+                    reportsChart.destroy();
+                }
+
+                reportsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: commands,
+                        datasets: [{
+                            label: 'Reports Submitted (YTD)',
+                            data: data,
+                            backgroundColor: '#009d63',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            // Search Filter Logic
+            document.getElementById('reportSearch').addEventListener('keyup', function() {
+                const value = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#reportsTableBody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(value) ? '' : 'none';
+                });
+            });
+
+            // Approve Function
+            window.approveReport = function(btn, id) {
+                const row = btn.closest('tr');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    // Update submission status
+                    const submissions = JSON.parse(localStorage.getItem('submissions') || '[]');
+                    const submission = submissions.find(s => s.id === id);
+                    if (submission) {
+                        submission.status = 'Forwarded to PRS';
+                        submission.history.push({
+                            date: new Date().toLocaleString(),
+                            action: 'Approved and forwarded to PRS',
+                            user: 'ACG Zonal Coordinator'
+                        });
+                        localStorage.setItem('submissions', JSON.stringify(submissions));
+                    }
+
+                    row.style.opacity = '0.5';
+                    btn.innerHTML = '<i class="fas fa-check-double"></i> Forwarded';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+
+                    const toastEl = document.getElementById('approvalToast');
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+
+                    // Reload data
+                    loadPendingReports(zoneSelector.value);
+                }, 1000);
+            };
+
+            // Query Function
+            window.queryReport = function(btn, id) {
+                const reason = prompt('Enter reason for query:');
+                if (!reason) return;
+
+                const submissions = JSON.parse(localStorage.getItem('submissions') || '[]');
+                const submission = submissions.find(s => s.id === id);
+                if (submission) {
+                    submission.status = 'Queried by Zone';
+                    submission.history.push({
+                        date: new Date().toLocaleString(),
+                        action: `Queried: ${reason}`,
+                        user: 'ACG Zonal Coordinator'
+                    });
+                    localStorage.setItem('submissions', JSON.stringify(submissions));
+                }
+
+                // Reload data
+                loadPendingReports(zoneSelector.value);
+                alert('Report queried and returned to state command.');
+            };
+
+            // View Report Details Function
+            window.viewReportDetails = function(command, date, title) {
+                document.getElementById('modalReportTitle').innerText = title;
+                document.getElementById('modalCommandName').innerText = command;
+                document.getElementById('modalReportDate').innerText = date;
+                
+                const modal = new bootstrap.Modal(document.getElementById('reportDetailsModal'));
+                modal.show();
+            };
+
+            // Broadcast Function
+            window.sendBroadcast = function() {
+                const subject = document.getElementById('broadcastSubject').value;
+                const message = document.getElementById('broadcastMessage').value;
+                
+                if(!subject || !message) {
+                    alert("Please fill in all fields.");
+                    return;
+                }
+
+                const btn = document.querySelector('#broadcastModal .btn-primary');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    const modalEl = document.getElementById('broadcastModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+
+                    document.getElementById('broadcastForm').reset();
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+
+                    // Show success toast
+                    const toastContainer = document.querySelector('.toast-container');
+                    const toastHtml = `
+                        <div class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <i class="fas fa-bullhorn me-2"></i> Message broadcasted to all commands.
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                        </div>`;
+                    
+                    // Create a temporary element to hold the HTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = toastHtml.trim();
+                    const newToastEl = tempDiv.firstChild;
+                    
+                    toastContainer.appendChild(newToastEl);
+                    const toast = new bootstrap.Toast(newToastEl);
+                    toast.show();
+                    
+                    newToastEl.addEventListener('hidden.bs.toast', () => {
+                        newToastEl.remove();
+                    });
+                }, 1500);
+            };
+        });
+    </script>
+</body>
+</html>

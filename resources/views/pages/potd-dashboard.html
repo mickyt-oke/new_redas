@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POTD Report Submission - NIS REDAS</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        /* POTD-specific color scheme */
+        .top-nav { background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); }
+        .stat-primary .stat-icon { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .nav-item.active { background: rgba(245, 158, 11, 0.08); color: #f59e0b; }
+        .nav-item.active::before { background: #f59e0b; }
+        .btn-primary { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .btn-primary:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-light bg-light border-bottom py-2">
+        <div class="container-fluid px-4">
+            <div>
+                <button class="btn btn-outline-secondary me-2" onclick="window.history.back()"><i class="fas fa-arrow-left me-1"></i>Back</button>
+                <a href="dashboard-hq.html" class="btn btn-outline-primary"><i class="fas fa-home me-1"></i>Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="container-fluid">
+            <div class="nav-wrapper">
+                <div class="nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <a href="hq-dashboard.html" class="nav-logo">
+                        <img src="../assets/images/nis-logo.png" alt="NIS Logo">
+                    </a>
+                    <h1 class="nav-brand">NIS REDAS</h1>
+                    <span class="system-status">
+                        <span class="status-dot"></span>
+                        Operational
+                    </span>
+                </div>
+                <div class="nav-right">
+                    <button class="nav-icon-btn" title="Notifications" aria-label="Notifications">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="notification-badge">7</span>
+                    </button>
+                    <div class="user-menu" role="button" tabindex="0" aria-label="User menu">
+                        <div class="user-avatar">PT</div>
+                        <div class="user-details">
+                            <span class="user-name">Planning & Training</span>
+                            <span class="user-role">Supervisor</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+       
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Header -->
+                <div class="section-card">
+                    <div class="text-center mb-4">
+                        <h1 class="section-title">NIGERIA IMMIGRATION SERVICE</h1>
+                        <h2 class="h4 text-muted">PASSPORTS AND OTHER TRAVEL DOCUMENTS</h2>
+                        <h3 class="h5 text-muted">REPORTING TEMPLATE</h3>
+                        <p class="text-muted">FOR MONTHLY, QUARTERLY, BI-ANNUAL AND ANNUAL REPORT</p>
+                    </div>
+                </div>
+
+                <!-- Report Form -->
+                <form id="nisReportForm">
+                    <!-- Period of Return -->
+                    <div class="section-card">
+                        <h3 class="section-title">PERIOD OF RETURN</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="reportPeriod" class="form-label">Report Period</label>
+                                <select class="form-select" id="reportPeriod" required>
+                                    <option value="">Select Period</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly">Quarterly</option>
+                                    <option value="biannual">Bi-Annual</option>
+                                    <option value="annual">Annual</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reportDate" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="reportDate" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Directorate Personnel Strength -->
+                    <div class="section-card">
+                        <h3 class="section-title">ii. DIRECTORATE PERSONNEL STRENGTH</h3>
+                        <p class="text-muted">(Current nominal roll to be attached)</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Cadre</th>
+                                        <th>Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Compt. Cadre</td>
+                                        <td><input type="number" class="form-control" name="comptCadre" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Superintendent Cadre</td>
+                                        <td><input type="number" class="form-control" name="superintendentCadre" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Inspectorate Cadre</td>
+                                        <td><input type="number" class="form-control" name="inspectorateCadre" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Assistant Cadre</td>
+                                        <td><input type="number" class="form-control" name="assistantCadre" min="0"></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>TOTAL</strong></td>
+                                        <td><input type="number" class="form-control" name="totalPersonnel" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Passport Administration Activities -->
+                    <div class="section-card">
+                        <h3 class="section-title">PASSPORT ADMINISTRATION ACTIVITIES</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th rowspan="2">S/NO</th>
+                                        <th rowspan="2">Type of cases</th>
+                                        <th colspan="2">Number of cases</th>
+                                    </tr>
+                                    <tr>
+                                        <th>MALE</th>
+                                        <th>FEMALE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1.</td>
+                                        <td>Fresh</td>
+                                        <td><input type="number" class="form-control" name="freshMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="freshFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2.</td>
+                                        <td>Re-issue</td>
+                                        <td><input type="number" class="form-control" name="reissueMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="reissueFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3.</td>
+                                        <td>Marriage</td>
+                                        <td><input type="number" class="form-control" name="marriageMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="marriageFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>4.</td>
+                                        <td>Lost</td>
+                                        <td><input type="number" class="form-control" name="lostMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="lostFemale" min="0"></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td></td>
+                                        <td><strong>Total</strong></td>
+                                        <td><input type="number" class="form-control" name="totalMale" readonly></td>
+                                        <td><input type="number" class="form-control" name="totalFemale" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Change of Data Activities -->
+                    <div class="section-card">
+                        <h3 class="section-title">CHANGE OF DATA ACTIVITIES</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th rowspan="2">S/NO</th>
+                                        <th rowspan="2">Type of cases</th>
+                                        <th colspan="2">Number of cases</th>
+                                    </tr>
+                                    <tr>
+                                        <th>MALE</th>
+                                        <th>FEMALE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1.</td>
+                                        <td>Change of Date of birth</td>
+                                        <td><input type="number" class="form-control" name="dobMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="dobFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2.</td>
+                                        <td>Change of Place of birth</td>
+                                        <td><input type="number" class="form-control" name="pobMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="pobFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3.</td>
+                                        <td>Change of Signature</td>
+                                        <td><input type="number" class="form-control" name="signatureMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="signatureFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>4.</td>
+                                        <td>Change of Name/s</td>
+                                        <td><input type="number" class="form-control" name="nameMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="nameFemale" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>5.</td>
+                                        <td>Others</td>
+                                        <td><input type="number" class="form-control" name="othersMale" min="0"></td>
+                                        <td><input type="number" class="form-control" name="othersFemale" min="0"></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td></td>
+                                        <td><strong>TOTAL</strong></td>
+                                        <td><input type="number" class="form-control" name="changeTotalMale" readonly></td>
+                                        <td><input type="number" class="form-control" name="changeTotalFemale" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Passport Revenue -->
+                    <div class="section-card">
+                        <h3 class="section-title">2. PASSPORT REVENUE</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th rowspan="2">e-passport:</th>
+                                        <th rowspan="2">No. of ppt. Issued</th>
+                                        <th rowspan="2">Amount Generated (N)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>32-Pages(5 Years)</td>
+                                        <td><input type="number" class="form-control" name="pages32Issued" min="0"></td>
+                                        <td><input type="number" class="form-control" name="pages32Amount" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>64-Pages (5 Years)</td>
+                                        <td><input type="number" class="form-control" name="pages64Issued" min="0"></td>
+                                        <td><input type="number" class="form-control" name="pages64Amount" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Enhanced e-Passport:</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>32-Pages (5 Years)</td>
+                                        <td><input type="number" class="form-control" name="enhanced32Issued" min="0"></td>
+                                        <td><input type="number" class="form-control" name="enhanced32Amount" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>64-Pages(5 Years)</td>
+                                        <td><input type="number" class="form-control" name="enhanced64Issued" min="0"></td>
+                                        <td><input type="number" class="form-control" name="enhanced64Amount" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>64-Pages(10 Years)</td>
+                                        <td><input type="number" class="form-control" name="enhanced64_10Issued" min="0"></td>
+                                        <td><input type="number" class="form-control" name="enhanced64_10Amount" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>ECOWAS TRAVEL CERTIFICATE(ETC)</td>
+                                        <td><input type="number" class="form-control" name="etcIssued" min="0"></td>
+                                        <td><input type="number" class="form-control" name="etcAmount" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>TOTAL</strong></td>
+                                        <td><input type="number" class="form-control" name="totalIssued" readonly></td>
+                                        <td><input type="number" class="form-control" name="totalAmount" readonly step="0.01"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Passport Stock Returns -->
+                    <div class="section-card">
+                        <h3 class="section-title">3. PASSPORT STOCK RETURNS</h3>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th></th>
+                                        <th>32-Pages (5 Years)</th>
+                                        <th>64-Pages (5 Years)</th>
+                                        <th>32-Pages (5 Years)- Enhanced e-Passport</th>
+                                        <th>64-Pages (5 Years)- Enhanced e-Passport</th>
+                                        <th>64-Pages (10 Years) Enhanced e-Passport</th>
+                                        <th>ECOWAS TRAVEL CERTIFICATE (ETC)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Balance brought forward</td>
+                                        <td><input type="number" class="form-control" name="balance32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="balance64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="balanceEnhanced32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="balanceEnhanced64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="balanceEnhanced64_10" min="0"></td>
+                                        <td><input type="number" class="form-control" name="balanceETC" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>No. Of passport collected from ppt. H/qtrs</td>
+                                        <td><input type="number" class="form-control" name="collected32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="collected64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="collectedEnhanced32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="collectedEnhanced64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="collectedEnhanced64_10" min="0"></td>
+                                        <td><input type="number" class="form-control" name="collectedETC" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>No. Of passport issued in the states</td>
+                                        <td><input type="number" class="form-control" name="issuedStates32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="issuedStates64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="issuedStatesEnhanced32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="issuedStatesEnhanced64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="issuedStatesEnhanced64_10" min="0"></td>
+                                        <td><input type="number" class="form-control" name="issuedStatesETC" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>No. Of passport voided(damage)</td>
+                                        <td><input type="number" class="form-control" name="voided32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="voided64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="voidedEnhanced32" min="0"></td>
+                                        <td><input type="number" class="form-control" name="voidedEnhanced64" min="0"></td>
+                                        <td><input type="number" class="form-control" name="voidedEnhanced64_10" min="0"></td>
+                                        <td><input type="number" class="form-control" name="voidedETC" min="0"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Amount (voided/damage)</td>
+                                        <td><input type="number" class="form-control" name="amountVoided32" min="0" step="0.01"></td>
+                                        <td><input type="number" class="form-control" name="amountVoided64" min="0" step="0.01"></td>
+                                        <td><input type="number" class="form-control" name="amountVoidedEnhanced32" min="0" step="0.01"></td>
+                                        <td><input type="number" class="form-control" name="amountVoidedEnhanced64" min="0" step="0.01"></td>
+                                        <td><input type="number" class="form-control" name="amountVoidedEnhanced64_10" min="0" step="0.01"></td>
+                                        <td><input type="number" class="form-control" name="amountVoidedETC" min="0" step="0.01"></td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>Stock balance</strong></td>
+                                        <td><input type="number" class="form-control" name="stockBalance32" readonly></td>
+                                        <td><input type="number" class="form-control" name="stockBalance64" readonly></td>
+                                        <td><input type="number" class="form-control" name="stockBalanceEnhanced32" readonly></td>
+                                        <td><input type="number" class="form-control" name="stockBalanceEnhanced64" readonly></td>
+                                        <td><input type="number" class="form-control" name="stockBalanceEnhanced64_10" readonly></td>
+                                        <td><input type="number" class="form-control" name="stockBalanceETC" readonly></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- General Report -->
+                    <div class="section-card">
+                        <h3 class="section-title">GENERAL REPORT</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>i. Other Reports</h4>
+                                <textarea class="form-control" name="otherReports" rows="4" placeholder="Enter other reports..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>ii. Challenges</h4>
+                                <textarea class="form-control" name="challenges" rows="4" placeholder="Enter challenges faced..."></textarea>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h4>iii. Recommendations/way forward</h4>
+                                <textarea class="form-control" name="recommendations" rows="4" placeholder="Enter recommendations..."></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>iv. Conclusion</h4>
+                                <textarea class="form-control" name="conclusion" rows="4" placeholder="Enter conclusion..."></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="attachments" class="form-label">Pictures can be attached & clearly labeled or explained</label>
+                            <input type="file" class="form-control" id="attachments" name="attachments" multiple accept="image/*">
+                        </div>
+                    </div>
+
+                    <!-- Officer Details -->
+                    <div class="section-card">
+                        <h3 class="section-title">NAME AND SIGNATURE OF THE REPORTING OFFICER</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="officerName" class="form-label">NAME</label>
+                                <input type="text" class="form-control" id="officerName" name="officerName" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="officerRank" class="form-label">RANK</label>
+                                <input type="text" class="form-control" id="officerRank" name="officerRank" required>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <label for="officerGSM" class="form-label">GSM NUMBER</label>
+                                <input type="tel" class="form-control" id="officerGSM" name="officerGSM" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="officerSignature" class="form-label">SIGNATURE</label>
+                                <input type="file" class="form-control" id="officerSignature" name="officerSignature" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="section-card">
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">Submit Report</button>
+                            <button type="reset" class="btn btn-secondary btn-lg ms-3">Reset Form</button>
+                        </div>
+                    </div>
+
+
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Return to HQ Dashboard -->
+    <footer class="bg-light text-center py-3 mt-auto">
+        <button class="btn btn-outline-secondary" onclick="window.location.href='dashboard-hq.html'"><i class="fas fa-arrow-left me-2"></i>Back to HQ Dashboard</button>
+    </footer>
+
+    <!-- Report Submission Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportModalLabel">Submit Planning Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="reportType" class="form-label">Report Type</label>
+                            <select class="form-select" id="reportType" required>
+                                <option value="">Select Type</option>
+                                <option value="monthly">Monthly Planning</option>
+                                <option value="quarterly">Quarterly Training</option>
+                                <option value="biannual">Bi-Annual Review</option>
+                                <option value="annual">Annual Planning</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reportTitle" class="form-label">Report Title</label>
+                            <input type="text" class="form-control" id="reportTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reportContent" class="form-label">Report Content</label>
+                            <textarea class="form-control" id="reportContent" rows="5" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reportFile" class="form-label">Attach File (optional)</label>
+                            <input type="file" class="form-control" id="reportFile" accept=".pdf,.doc,.docx,.pptx">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Submit Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dashboard.js"></script>
+
+    <!-- POTD Report Form JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('nisReportForm');
+
+            // Function to calculate personnel total
+            function calculatePersonnelTotal() {
+                const comptCadre = parseInt(document.querySelector('[name="comptCadre"]').value) || 0;
+                const superintendentCadre = parseInt(document.querySelector('[name="superintendentCadre"]').value) || 0;
+                const inspectorateCadre = parseInt(document.querySelector('[name="inspectorateCadre"]').value) || 0;
+                const assistantCadre = parseInt(document.querySelector('[name="assistantCadre"]').value) || 0;
+
+                const total = comptCadre + superintendentCadre + inspectorateCadre + assistantCadre;
+                document.querySelector('[name="totalPersonnel"]').value = total;
+            }
+
+            // Function to calculate passport administration totals
+            function calculatePassportTotals() {
+                const freshMale = parseInt(document.querySelector('[name="freshMale"]').value) || 0;
+                const freshFemale = parseInt(document.querySelector('[name="freshFemale"]').value) || 0;
+                const reissueMale = parseInt(document.querySelector('[name="reissueMale"]').value) || 0;
+                const reissueFemale = parseInt(document.querySelector('[name="reissueFemale"]').value) || 0;
+                const marriageMale = parseInt(document.querySelector('[name="marriageMale"]').value) || 0;
+                const marriageFemale = parseInt(document.querySelector('[name="marriageFemale"]').value) || 0;
+                const lostMale = parseInt(document.querySelector('[name="lostMale"]').value) || 0;
+                const lostFemale = parseInt(document.querySelector('[name="lostFemale"]').value) || 0;
+
+                const totalMale = freshMale + reissueMale + marriageMale + lostMale;
+                const totalFemale = freshFemale + reissueFemale + marriageFemale + lostFemale;
+
+                document.querySelector('[name="totalMale"]').value = totalMale;
+                document.querySelector('[name="totalFemale"]').value = totalFemale;
+            }
+
+            // Function to calculate change of data totals
+            function calculateChangeTotals() {
+                const dobMale = parseInt(document.querySelector('[name="dobMale"]').value) || 0;
+                const dobFemale = parseInt(document.querySelector('[name="dobFemale"]').value) || 0;
+                const pobMale = parseInt(document.querySelector('[name="pobMale"]').value) || 0;
+                const pobFemale = parseInt(document.querySelector('[name="pobFemale"]').value) || 0;
+                const signatureMale = parseInt(document.querySelector('[name="signatureMale"]').value) || 0;
+                const signatureFemale = parseInt(document.querySelector('[name="signatureFemale"]').value) || 0;
+                const nameMale = parseInt(document.querySelector('[name="nameMale"]').value) || 0;
+                const nameFemale = parseInt(document.querySelector('[name="nameFemale"]').value) || 0;
+                const othersMale = parseInt(document.querySelector('[name="othersMale"]').value) || 0;
+                const othersFemale = parseInt(document.querySelector('[name="othersFemale"]').value) || 0;
+
+                const totalMale = dobMale + pobMale + signatureMale + nameMale + othersMale;
+                const totalFemale = dobFemale + pobFemale + signatureFemale + nameFemale + othersFemale;
+
+                document.querySelector('[name="changeTotalMale"]').value = totalMale;
+                document.querySelector('[name="changeTotalFemale"]').value = totalFemale;
+            }
+
+            // Function to calculate revenue totals
+            function calculateRevenueTotals() {
+                const pages32Issued = parseInt(document.querySelector('[name="pages32Issued"]').value) || 0;
+                const pages64Issued = parseInt(document.querySelector('[name="pages64Issued"]').value) || 0;
+                const enhanced32Issued = parseInt(document.querySelector('[name="enhanced32Issued"]').value) || 0;
+                const enhanced64Issued = parseInt(document.querySelector('[name="enhanced64Issued"]').value) || 0;
+                const enhanced64_10Issued = parseInt(document.querySelector('[name="enhanced64_10Issued"]').value) || 0;
+                const etcIssued = parseInt(document.querySelector('[name="etcIssued"]').value) || 0;
+
+                const pages32Amount = parseFloat(document.querySelector('[name="pages32Amount"]').value) || 0;
+                const pages64Amount = parseFloat(document.querySelector('[name="pages64Amount"]').value) || 0;
+                const enhanced32Amount = parseFloat(document.querySelector('[name="enhanced32Amount"]').value) || 0;
+                const enhanced64Amount = parseFloat(document.querySelector('[name="enhanced64Amount"]').value) || 0;
+                const enhanced64_10Amount = parseFloat(document.querySelector('[name="enhanced64_10Amount"]').value) || 0;
+                const etcAmount = parseFloat(document.querySelector('[name="etcAmount"]').value) || 0;
+
+                const totalIssued = pages32Issued + pages64Issued + enhanced32Issued + enhanced64Issued + enhanced64_10Issued + etcIssued;
+                const totalAmount = pages32Amount + pages64Amount + enhanced32Amount + enhanced64Amount + enhanced64_10Amount + etcAmount;
+
+                document.querySelector('[name="totalIssued"]').value = totalIssued;
+                document.querySelector('[name="totalAmount"]').value = totalAmount.toFixed(2);
+            }
+
+            // Function to calculate stock balances
+            function calculateStockBalances() {
+                const columns = ['32', '64', 'Enhanced32', 'Enhanced64', 'Enhanced64_10', 'ETC'];
+
+                columns.forEach(col => {
+                    const balance = parseInt(document.querySelector(`[name="balance${col}"]`).value) || 0;
+                    const collected = parseInt(document.querySelector(`[name="collected${col}"]`).value) || 0;
+                    const issued = parseInt(document.querySelector(`[name="issuedStates${col}"]`).value) || 0;
+                    const voided = parseInt(document.querySelector(`[name="voided${col}"]`).value) || 0;
+
+                    const stockBalance = balance + collected - issued - voided;
+                    document.querySelector(`[name="stockBalance${col}"]`).value = stockBalance;
+                });
+            }
+
+            // Add event listeners for automatic calculations
+            const numberInputs = form.querySelectorAll('input[type="number"]');
+            numberInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.name.includes('Cadre')) {
+                        calculatePersonnelTotal();
+                    } else if (this.name.includes('Male') || this.name.includes('Female')) {
+                        if (this.name.includes('change')) {
+                            calculateChangeTotals();
+                        } else {
+                            calculatePassportTotals();
+                        }
+                    } else if (this.name.includes('Issued') || this.name.includes('Amount')) {
+                        calculateRevenueTotals();
+                    } else if (this.name.includes('balance') || this.name.includes('collected') || this.name.includes('issuedStates') || this.name.includes('voided')) {
+                        calculateStockBalances();
+                    }
+                });
+            });
+
+            // Form validation and submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                // Basic validation
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+
+                if (!isValid) {
+                    alert('Please fill in all required fields.');
+                    return;
+                }
+
+                // Collect form data
+                const formData = new FormData(form);
+                const reportData = {};
+
+                for (let [key, value] of formData.entries()) {
+                    reportData[key] = value;
+                }
+
+                // Show success message (in a real application, this would send data to server)
+                alert('Report submitted successfully!\n\nReport Period: ' + reportData.reportPeriod + '\nDate: ' + reportData.reportDate + '\nOfficer: ' + reportData.officerName);
+
+                // Reset form
+                form.reset();
+                calculatePersonnelTotal();
+                calculatePassportTotals();
+                calculateChangeTotals();
+                calculateRevenueTotals();
+                calculateStockBalances();
+            });
+
+            // Initialize calculations
+            calculatePersonnelTotal();
+            calculatePassportTotals();
+            calculateChangeTotals();
+            calculateRevenueTotals();
+            calculateStockBalances();
+        });
+    </script>
+</body>
+
+</html>

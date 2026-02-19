@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>About - REDAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">    <link rel="icon" type="image/png" href="../assets/images/nis.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-50">
+
+    <!-- Fixed NIS Logo -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 40px;">
+    </div>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-white border-end" id="sidebar-wrapper" style="width: 250px;">
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom">
+                <img src="../assets/images/nis.png" alt="Logo" class="me-2">HQ Admin
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard-hq.html" class="list-group-item list-group-item-action bg-transparent second-text">
+                    <i class="fas fa-arrow-left me-2"></i>Back to HQ
+                </a>
+                <a href="#" class="list-group-item list-group-item-action bg-transparent second-text active">
+                    <i class="fas fa-building me-2"></i>Directorate View
+                </a>
+                
+                <!-- Dark Mode Toggle -->
+                <div class="list-group-item bg-transparent mt-4 border-top">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                        <label class="form-check-label second-text small" for="darkModeSwitch">Dark Mode</label>
+                    </div>
+                </div>
+
+                <a href="#" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold mt-2" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                    <i class="fas fa-power-off me-2"></i>Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-4 px-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
+                    <h2 class="fs-2 m-0">About REDAS</h2>
+                </div>
+                <div class="ms-auto d-flex align-items-center">
+                    <span class="text-muted me-3">Service Headquarters</span>
+                </div>
+            </nav>
+
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="bg-light py-2 px-4 border-bottom">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="dashboard-hq.html" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">About REDAS</li>
+                </ol>
+            </nav>
+
+            <div class="container-fluid px-4">
+                <div class="row my-4">
+                    <div class="col-md-12">
+                        <div class="bg-white shadow-sm rounded p-5">
+                            <div class="text-center mb-5">
+                                <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 80px;" class="mb-3">
+                                <h3 class="fw-bold text-success">Real-time Electronic Data Analysis System (REDAS)</h3>
+                                <p class="text-muted lead">Nigeria Immigration Service</p>
+                            </div>
+                            <hr class="my-4">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="fw-bold">System Overview</h5>
+                                    <p>REDAS is a comprehensive data management and analysis platform designed to streamline operations within the Nigeria Immigration Service. It facilitates real-time reporting, personnel management, and statistical analysis across all commands and directorates.</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="fw-bold">Key Features</h5>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Automated Monthly Returns</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Real-time Dashboard Analytics</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Digital Nominal Roll Management</li>
+                                        <li><i class="fas fa-check-circle text-success me-2"></i> Secure Data Transmission</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="bg-white text-center py-4 border-top">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <p class="mb-0 text-muted small">&copy; 2026 Nigeria Immigration Service. All Rights Reserved.</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+
+            <!-- Return to Landing Page -->
+            <footer class="bg-light text-center py-3 mt-auto">
+                <a href="../index.html" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i>Back to Landing Page</a>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="btn btn-primary btn-lg rounded-circle shadow">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to log out of the system?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="../index.html" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Dark Mode Logic
+        const toggleSwitch = document.querySelector('#darkModeSwitch');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            toggleSwitch.checked = true;
+        }
+
+        toggleSwitch.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // Sidebar Toggle
+        var el = document.getElementById("wrapper");
+        var toggleButton = document.getElementById("menu-toggle");
+        if (toggleButton) {
+            toggleButton.onclick = function () {
+                el.classList.toggle("toggled");
+            };
+        }
+    </script>
+</body>
+</html>
