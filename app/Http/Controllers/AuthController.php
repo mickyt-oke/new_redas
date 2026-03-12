@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -14,63 +13,91 @@ class AuthController extends Controller
     /**
      * Register a new user.
      */
-    public function register(Request $request): JsonResponse
+    public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'service_number' => 'required|string|unique:users',
+            'role' => 'required|in:admin,zonal,state,officer',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'terms' => 'accepted',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
+            'service_number' => $validated['service_number'],
+            'role' => $validated['role'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        Auth::login($user);
 
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ], 201);
+        return redirect()->route('login')->with('status', 'Registration successful. Please login with your credentials.');
     }
 
     /**
      * Login user and generate token.
+     * Supports login by email OR service_number
      */
-    public function login(Request $request): JsonResponse
+    public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
+            'login' => 'required|string',
+            'password' => 'required|string',
+            'role' => 'required|in:admin,zonal,state,officer',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $loginField = $request->input('login');
+        
+        // Determine if login is email or service number
+        $field = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
+        
+        $user = User::where($field, $loginField)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'login' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+        if ($user->role !== $request->input('role')) {
+            throw ValidationException::withMessages([
+                'role' => ['Invalid role selected for this account.'],
+            ]);
+        }
 
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
+        Auth::login($user, $request->boolean('remember'));
+
+        return redirect($this->getRedirectUrl($user->role));
+    }
+
+    /**
+     * Get redirect URL based on user role
+     */
+    private function getRedirectUrl(string $role): string
+    {
+        return match($role) {
+            'admin' => '/admin/dashboard',
+            'zonal' => '/dashboard/zonal',
+            'state' => '/dashboard/state',
+            'officer' => '/dashboard',
+            default => '/home',
+        };
     }
 
     /**
      * Logout user and revoke token.
      */
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        Auth::logout();
 
-        return response()->json([
-            'message' => 'Logged out successfully',
-        ]);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('status', 'Logged out successfully.');
     }
+
 }

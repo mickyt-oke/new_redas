@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - REDAS Secure Access Gateway</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
+   @vite(['resources/css/auth-pages.css'])
+
+</head>
+<body class="register-page" data-page="register">
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <img src="{{ asset('assets/images/nis.png') }}" alt="NIS Logo" class="register-logo">
+                <h1 class="register-title">Create Account</h1>
+                <p class="register-subtitle">Join REDAS Secure Gateway</p>
+            </div>
+
+            <div class="register-body">
+                <!-- Info Alert -->
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Register with your official NIS service number.
+                </div>
+
+                @if ($errors->any())
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span>{{ $errors->first() }}</span>
+                    </div>
+                @endif
+
+                @if (session('status'))
+                    <div class="alert alert-success" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span>{{ session('status') }}</span>
+                    </div>
+                @endif
+
+                <form id="registerForm" method="POST" action="{{ route('register.submit') }}" novalidate>
+                    @csrf
+                    <!-- Full Name -->
+                    <div class="form-floating">
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" placeholder="Full Name" value="{{ old('name') }}" required>
+                        <label for="name"><i class="fas fa-user me-2"></i>Full Name</label>
+                    </div>
+
+                    <!-- Service Number -->
+                    <div class="form-floating">
+                        <input type="text" class="form-control @error('service_number') is-invalid @enderror" id="serviceNumber" name="service_number" placeholder="Service Number" value="{{ old('service_number') }}" required>
+                        <label for="serviceNumber"><i class="fas fa-id-card me-2"></i>Service Number (NIS/XX/XXXX)</label>
+                    </div>
+
+                    <!-- Role Selection -->
+                    <div class="form-floating">
+                        <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
+                            <option value="" disabled {{ old('role') ? '' : 'selected' }}>Select your role</option>
+                            <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Administrator</option>
+                            <option value="zonal" {{ old('role') === 'zonal' ? 'selected' : '' }}>Zonal Commander</option>
+                            <option value="state" {{ old('role') === 'state' ? 'selected' : '' }}>State Coordinator</option>
+                            <option value="officer" {{ old('role') === 'officer' ? 'selected' : '' }}>Immigration Officer</option>
+                        </select>
+                        <label for="role"><i class="fas fa-user-shield me-2"></i>Select Role</label>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-floating">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" placeholder="Email Address" value="{{ old('email') }}" required>
+                        <label for="email"><i class="fas fa-envelope me-2"></i>Official Email Address</label>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-floating">
+                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Password" required minlength="8">
+                        <label for="password"><i class="fas fa-lock me-2"></i>Password</label>
+                    </div>
+                    <div class="password-strength" id="passwordStrength"></div>
+                    <small class="text-muted d-block mb-3">Password must be at least 8 characters</small>
+
+                    <!-- Confirm Password -->
+                    <div class="form-floating">
+                        <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" id="passwordConfirmation" name="password_confirmation" placeholder="Confirm Password" required>
+                        <label for="passwordConfirmation"><i class="fas fa-lock me-2"></i>Confirm Password</label>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input @error('terms') is-invalid @enderror" type="checkbox" id="terms" name="terms" value="1" {{ old('terms') ? 'checked' : '' }} required>
+                            <label class="form-check-label text-muted" for="terms">
+                                I agree to the <a href="#" class="terms-link">Terms &amp; Conditions</a> and <a href="#" class="terms-link">Privacy Policy</a>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Register Button -->
+                    <button type="submit" class="btn btn-register w-100" id="registerBtn">
+                        <span class="btn-text"><i class="fas fa-user-plus me-2"></i>Create Account</span>
+                    </button>
+                </form>
+
+                <p class="login-link mt-4">
+                    Already have an account? <a href="{{ route('login') }}">Login here</a>
+                </p>
+
+                <div class="footer-links">
+                    <a href="{{ url('/') }}"><i class="fas fa-home me-1"></i>Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

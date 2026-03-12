@@ -1,0 +1,27 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app.js",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/css/auth-pages.css": {
+    "file": "assets/auth-pages.css",
+    "src": "resources/css/auth-pages.css",
+    "isEntry": true
+  },
+  "resources/css/dashboard.css": {
+    "file": "assets/dashboard.css",
+    "src": "resources/css/dashboard.css",
+    "isEntry": true
+  },
+  "resources/css/styles.css": {
+    "file": "assets/styles.css",
+    "src": "resources/css/styles.css",
+    "isEntry": true
+  }
+}
