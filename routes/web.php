@@ -26,5 +26,19 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 });
 
+//User Dashboard Route (Protected)
+Route::middleware('auth')->group(function () {
+    Route::get('/user/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
+
+//Admin Dashboard Route (Protected)
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin_dashboard');
+    })->name('admin.dashboard');
+});
+
 // Logout Route
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
