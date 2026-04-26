@@ -9,17 +9,38 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    {{-- Bootstrap & Font Awesome are bundled via Vite --}}
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
-   @vite(['resources/css/auth-pages.css'])
-
+    @vite(['resources/js/app.js', 'resources/css/app.css', 'resources/css/auth-pages.css', 'resources/css/styles.css'])
 </head>
 <body class="register-page" data-page="register">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-bottom">
+        <nav class="navbar navbar-expand-lg navbar-light container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
+                <img src="{{ asset('assets/images/nis.png') }}" alt="NIS Logo" height="40" class="me-2">
+                <span class="fw-bold text-success">NIS REDAS</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url('/') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('login') }}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ route('register') }}">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
     <div class="register-container">
         <div class="register-card">
             <div class="register-header">
@@ -121,5 +142,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="fw-bold">Nigeria Immigration Service</h5>
+                    <p class="mb-0">Service Headquarters, Abuja, FCT</p>
+                    <p class="mb-0">Email: info@immigration.gov.ng</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">&copy; 2026 Nigeria Immigration Service. All Rights Reserved.</p>
+                    <a href="https://immigration.gov.ng" class="text-white-50" target="_blank">Visit Official Website</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

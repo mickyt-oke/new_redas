@@ -82,7 +82,7 @@ class AuthController extends Controller
             'admin' => '/admin/dashboard',
             'zonal' => '/dashboard/zonal',
             'state' => '/dashboard/state',
-            'officer' => '/dashboard',
+            'officer' => '/user/dashboard',
             default => '/home',
         };
     }
@@ -97,7 +97,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('status', 'Logged out successfully.');
+        return redirect()->route('home')->with('status', 'Logged out successfully.');
     }
 
 }

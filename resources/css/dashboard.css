@@ -758,6 +758,27 @@
         display: none !important;
     }
 
+    /* Dashboard print adjustments */
+    .no-print,
+    #sidebar-wrapper,
+    #menu-toggle,
+    .navbar-collapse,
+    footer {
+        display: none !important;
+    }
+
+    #page-content-wrapper {
+        width: 100%;
+        margin: 0;
+        padding: 0 !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+        page-break-inside: avoid;
+    }
+
     .main-content {
         margin-left: 0 !important;
     }
