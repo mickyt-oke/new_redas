@@ -54,7 +54,7 @@
             <div class="nis-section">
                 <div class="nis-section-head">
                     <span class="sec-num">A</span>
-                    Nigeria Immigration Service — Reporting Template Header
+                    Nigeria Immigration Service — Monthly Reporting Template
                 </div>
                 <div class="nis-section-body">
                     <div class="form-grid-4" style="align-items:end;">
@@ -772,7 +772,7 @@
 </div> -->
 
 <!-- ═══ CONFIRM SUBMIT MODAL ═══ -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+{{-- <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:var(--radius-lg);border:none;">
             <div class="modal-header" style="background:var(--nis-700);color:#fff;border:none;padding:14px 20px;">
@@ -793,5 +793,6 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
+@include('partials.footer')

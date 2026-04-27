@@ -162,8 +162,11 @@
                         <a href="{{ url('/user/returns/create?type=quarterly') }}" class="btn-nis btn-outline-nis full-width">
                             <i class="fas fa-calendar-alt"></i> Submit Quarterly Return
                         </a>
-                        <a href="{{ url('/user/archive/upload') }}" class="btn-nis btn-ghost full-width">
-                            <i class="fas fa-upload"></i> Upload Archive Document
+                        <a href="{{ route('user.archive') }}" class="btn-nis btn-ghost full-width">
+                            <i class="fas fa-archive"></i> Archive Documents
+                        </a>
+                        <a href="{{ route('user.reports') }}" class="btn-nis btn-ghost full-width">
+                            <i class="fas fa-file-export"></i> Generate Report
                         </a>
                         <a href="{{ url('/user/profile') }}" class="btn-nis btn-ghost full-width">
                             <i class="fas fa-user-cog"></i> Update Profile

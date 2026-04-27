@@ -30,27 +30,36 @@
     <!-- Navigation -->
     <nav class="sidebar-nav">
         <div class="sidebar-section-label">Main Menu</div>
-
-        <a href="{{ route('user.dashboard') }}" class="sidebar-link active">
+        <a href="{{ route('user.dashboard') }}" class="sidebar-link {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
             <span class="link-text">Dashboard</span>
         </a>
 
-        <a href="{{ url('/user/returns/create') }}" class="sidebar-link">
+        <a href="{{ url('/user/returns/create') }}" class="sidebar-link {{ request()->is('user/returns/create') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-plus-circle"></i></span>
             <span class="link-text">Submit New Return</span>
         </a>
 
-        <a href="{{ url('/user/submissions') }}" class="sidebar-link">
+        <a href="{{ url('/user/submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-inbox"></i></span>
             <span class="link-text">My Submissions</span>
             <span class="link-badge">3</span>
         </a>
 
-        <a href="{{ url('/user/notifications') }}" class="sidebar-link">
+        <a href="{{ url('/user/notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-bell"></i></span>
             <span class="link-text">Notifications</span>
             <span class="link-badge danger">2</span>
+        </a>
+
+        <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-archive"></i></span>
+            <span class="link-text">Archive</span>
+        </a>
+
+        <a href="{{ route('user.reports') }}" class="sidebar-link {{ request()->routeIs('user.reports') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-file-export"></i></span>
+            <span class="link-text">Generate Report</span>
         </a>
 </aside>
 

@@ -45,10 +45,27 @@ Route::middleware(['auth', 'role:officer'])->group(function () {
         return view('user.notifications');
     })->name('user.notifications');
 
-    // Placeholder routes (for future implementation)
     Route::get('/user/archive', function () {
-        return redirect()->route('user.dashboard');
+        return view('user.archive');
     })->name('user.archive');
+
+    Route::get('/user/archive/upload', function () {
+        return view('user.archive');
+    })->name('user.archive.upload');
+
+    Route::post('/user/archive/upload', function (\Illuminate\Http\Request $request) {
+        return redirect()->route('user.archive')
+            ->with('status', 'Document(s) uploaded to archive successfully.');
+    })->name('user.archive.store');
+
+    Route::get('/user/reports', function () {
+        return view('user.reports');
+    })->name('user.reports');
+
+    Route::post('/user/reports/generate', function (\Illuminate\Http\Request $request) {
+        return redirect()->route('user.reports')
+            ->with('status', 'Your report has been generated and is ready for download.');
+    })->name('user.reports.generate');
 
     Route::get('/user/profile', function () {
         return redirect()->route('user.dashboard');
