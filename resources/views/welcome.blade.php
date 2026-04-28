@@ -73,8 +73,9 @@
             </div> --}}
 
             <h1 class="hero-title">
-                NIS Digitalised &amp; Centralized<br>
-                <span class="accent">Reporting System</span><br>
+                <span class="accent">
+                    NIS Digitalised &amp; Centralized<br>
+                    Reporting System</span><br>
             </h1>
 
             <p class="hero-desc">

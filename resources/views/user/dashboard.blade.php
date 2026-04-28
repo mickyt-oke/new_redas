@@ -66,8 +66,52 @@
             </div>
         </div>
 
-        <!-- ── Main Grid ── -->
-        <div class="grid-2" style="margin-bottom:24px;">
+        <!-- NIS Directorates -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="redas-card">
+                    <div class="card-head">
+                        <div class="card-head-title">
+                            <div class="card-head-icon" style="background:var(--purple-50);color:var(--purple-600);"><i class="fas fa-building-columns"></i></div>
+                            NIS Directorates Reporting
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="directorates-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem;">
+                            @php
+                                $directorates = [
+                                    ['slug' => 'hrm', 'name' => 'HRM', 'icon' => 'fas fa-users'],
+                                    ['slug' => 'prs', 'name' => 'PRS', 'icon' => 'fas fa-chart-bar'],
+                                    ['slug' => 'finance', 'name' => 'Finance', 'icon' => 'fas fa-coins'],
+                                    ['slug' => 'investigation', 'name' => 'Investigation', 'icon' => 'fas fa-search'],
+                                    ['slug' => 'passport', 'name' => 'Passport', 'icon' => 'fas fa-passport'],
+                                    ['slug' => 'visa', 'name' => 'Visa', 'icon' => 'fas fa-stamp'],
+                                    ['slug' => 'migration', 'name' => 'Migration', 'icon' => 'fas fa-globe-africa'],
+                                    ['slug' => 'border', 'name' => 'Border Mgt', 'icon' => 'fas fa-border-all'],
+                                    ['slug' => 'ict', 'name' => 'ICT', 'icon' => 'fas fa-laptop-code'],
+                                    ['slug' => 'works-logistics', 'name' => 'Works & Logistics', 'icon' => 'fas fa-truck'],
+                                ];
+                            @endphp
+
+                            @foreach($directorates as $dir)
+                                <a href="{{ route('user.directorates.show', $dir['slug']) }}"
+                                   style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--gray-200);border-radius:var(--radius-md);text-decoration:none;color:var(--gray-700);background:#fff;transition:.2s;"
+                                   onmouseover="this.style.borderColor='var(--nis-500)';this.style.transform='translateY(-2px)'"
+                                   onmouseout="this.style.borderColor='var(--gray-200)';this.style.transform='translateY(0)'">
+                                    <span style="display:flex;align-items:center;gap:10px;">
+                                        <span style="width:34px;height:34px;border-radius:8px;background:var(--nis-50);color:var(--nis-600);display:flex;align-items:center;justify-content:center;">
+                                            <i class="{{ $dir['icon'] }}"></i>
+                                        </span>
+                                        <strong style="font-size:.85rem;">{{ $dir['name'] }}</strong>
+                                    </span>
+                                    <i class="fas fa-arrow-right" style="font-size:.75rem;color:var(--gray-400);"></i>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
             <!-- Recent Submissions -->
             <div class="redas-card delay-2">

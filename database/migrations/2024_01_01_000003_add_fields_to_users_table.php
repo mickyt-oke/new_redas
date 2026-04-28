@@ -11,10 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('service_number')->nullable()->unique()->after('name');
-            $table->enum('role', ['admin', 'zonal', 'state', 'officer'])->default('officer')->after('service_number');
-        });
+        if (Schema::hasTable('users')) {
+            if (! Schema::hasColumn('users', 'service_number')) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->string('service_number')->nullable()->unique()->after('name');
+                });
+            }
+
+            if (! Schema::hasColumn('users', 'role')) {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->enum('role', ['admin', 'zonal', 'state', 'officer'])->default('officer')->after('service_number');
+                });
+            }
+        }
     }
 
     /**

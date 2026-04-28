@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Web\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,7 +28,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
 });
 
-// Officer routes
+// State user (officer) routes — full access to all user pages
 Route::middleware(['auth', 'role:officer'])->group(function () {
     Route::get('/user/dashboard', function () {
         return view('user.dashboard');
@@ -71,11 +72,39 @@ Route::middleware(['auth', 'role:officer'])->group(function () {
         return redirect()->route('user.dashboard');
     })->name('user.profile');
 
-    // Return submission handler (currently redirects back with status)
     Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
         return redirect()->route('user.submissions')
             ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
     })->name('user.returns.store');
+});
+
+// Directorate user routes — access only to directorate pages
+Route::middleware(['auth', 'role:directorate'])->group(function () {
+    Route::get('/user/directorate', function () {
+        return view('user.directorate');
+    })->name('user.directorate.home');
+});
+
+// Shared directorate form routes — accessible by both state (officer) and directorate users
+Route::middleware(['auth', 'role:officer,directorate'])->group(function () {
+    Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
+    Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->name('user.directorates.store');
+
+    Route::get('/user/directorate/{id}', function ($id) {
+        $legacyMap = [
+            '1' => 'hrm',
+            '2' => 'prs',
+            '3' => 'finance',
+            '4' => 'investigation',
+            '5' => 'passport',
+            '6' => 'visa',
+            '7' => 'migration',
+            '8' => 'border',
+            '9' => 'ict',
+            '10' => 'works-logistics',
+        ];
+        return redirect()->route('user.directorates.show', $legacyMap[$id] ?? 'hrm');
+    })->name('user.directorate');
 });
 
 // Supervisor dashboards (state and zonal share the same view)

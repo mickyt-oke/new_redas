@@ -117,33 +117,34 @@
             </div>
             @endif
 
-            <!-- Role Selection -->
-            <div style="margin-bottom:20px;">
-                <label style="font-size:.78rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:10px;">
-                    Select Your Access Level
-                </label>
-                <div class="auth-role-grid">
-                    @foreach([
-                        ['officer', 'fas fa-user-edit',    'Data Entry Officer'],
-                        ['state',   'fas fa-tasks',         'State Supervisor'],
-                        ['zonal',   'fas fa-sitemap',       'Zonal Commander'],
-                        ['admin',   'fas fa-user-shield',   'Administrator'],
-                    ] as [$val, $icon, $label])
-                    <input type="radio" name="role" id="role_{{ $val }}" class="auth-role-option" value="{{ $val }}" {{ old('role') === $val ? 'checked' : '' }} required>
-                    <label for="role_{{ $val }}" class="auth-role-label">
-                        <span class="auth-role-icon"><i class="{{ $icon }}"></i></span>
-                        {{ $label }}
-                    </label>
-                    @endforeach
-                </div>
-            </div>
-
             <!-- Login Form -->
             <form id="loginForm" method="POST" action="{{ route('login.submit') }}" novalidate>
                 @csrf
 
-                <!-- Hidden role field (synced from radio) -->
-                <input type="hidden" name="role" id="roleHidden" value="{{ old('role', '') }}">
+                <!-- Role Selection -->
+                <div style="margin-bottom:20px;">
+                    <label style="font-size:.78rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:10px;">
+                        Select Your Access Level
+                    </label>
+                    <div class="auth-role-grid">
+                        @foreach([
+                            ['officer',      'fas fa-user-edit',       'State User'],
+                            ['directorate',  'fas fa-building-columns', 'Directorate User'],
+                            ['state',        'fas fa-tasks',            'State Supervisor'],
+                            ['zonal',        'fas fa-sitemap',          'Zonal Commander'],
+                            ['admin',        'fas fa-user-shield',      'Administrator'],
+                        ] as [$val, $icon, $label])
+                        <input type="radio" name="role" id="role_{{ $val }}" class="auth-role-option" value="{{ $val }}" {{ old('role') === $val ? 'checked' : '' }} required>
+                        <label for="role_{{ $val }}" class="auth-role-label">
+                            <span class="auth-role-icon"><i class="{{ $icon }}"></i></span>
+                            {{ $label }}
+                        </label>
+                        @endforeach
+                    </div>
+                    @error('role')
+                    <div style="color:var(--color-danger);font-size:.76rem;margin-top:6px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
+                    @enderror
+                </div>
 
                 <!-- Service Number / Email -->
                 <div class="auth-form-group">
@@ -254,17 +255,6 @@
 </div> --}}
 
 <script>
-    /* Sync hidden role field from radio buttons */
-    document.querySelectorAll('.auth-role-option').forEach(opt => {
-        opt.addEventListener('change', () => {
-            document.getElementById('roleHidden').value = opt.value;
-        });
-    });
-
-    /* Pre-fill role hidden if page reloaded */
-    const checkedRole = document.querySelector('.auth-role-option:checked');
-    if (checkedRole) document.getElementById('roleHidden').value = checkedRole.value;
-
     /* Shake on error */
     @if($errors->any())
     document.querySelector('.auth-right-inner')?.classList.add('shake');

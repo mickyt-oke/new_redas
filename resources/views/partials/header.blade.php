@@ -19,17 +19,30 @@
 <aside class="redas-sidebar" id="redasSidebar">
 
     <!-- Brand -->
+    @if(auth()->user()?->role === 'directorate')
+    <a href="{{ route('user.directorate.home') }}" class="sidebar-brand">
+    @else
     <a href="{{ route('user.dashboard') }}" class="sidebar-brand">
+    @endif
         <img src="{{ asset('assets/images/nis.png') }}" alt="NIS" class="sidebar-brand-logo">
         <div class="sidebar-brand-text">
             <span class="sidebar-brand-title">NIS&nbsp;REDAS</span>
-            <span class="sidebar-brand-sub">Desk Officer Portal</span>
+            <span class="sidebar-brand-sub">{{ auth()->user()?->role === 'directorate' ? 'Directorate Portal' : 'State Officer Portal' }}</span>
         </div>
     </a>
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
         <div class="sidebar-section-label">Main Menu</div>
+
+        @if(auth()->user()?->role === 'directorate')
+        {{-- Directorate user: only directorate pages --}}
+        <a href="{{ route('user.directorate.home') }}" class="sidebar-link {{ request()->routeIs('user.directorate.home') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-building-columns"></i></span>
+            <span class="link-text">Directorates</span>
+        </a>
+        @else
+        {{-- State user (officer): full access --}}
         <a href="{{ route('user.dashboard') }}" class="sidebar-link {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
             <span class="link-text">Dashboard</span>
@@ -61,6 +74,7 @@
             <span class="link-icon"><i class="fas fa-file-export"></i></span>
             <span class="link-text">Generate Report</span>
         </a>
+        @endif
 </aside>
 
 <!-- ═══════ MAIN ═══════ -->
@@ -72,9 +86,11 @@
         <div class="topbar-breadcrumb">
             <span>NIS-REDAS</span>
             <span class="separator"><i class="fas fa-chevron-right" style="font-size:.6rem;"></i></span>
+            @if(auth()->user()?->role === 'directorate')
+            <a href="{{ route('user.directorate.home') }}" style="color:var(--gray-500);text-decoration:none;">Directorates</a>
+            @else
             <a href="{{ route('user.dashboard') }}" style="color:var(--gray-500);text-decoration:none;">Dashboard</a>
-            <span class="separator"><i class="fas fa-chevron-right" style="font-size:.6rem;"></i></span>
-            <span class="current">Submit New Return</span>
+            @endif
         </div>
         <div class="topbar-right">
             <div style="position:relative;">
@@ -96,14 +112,16 @@
                     <div class="topbar-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</div>
                     <div class="topbar-user-info">
                         <div class="topbar-user-name">{{ auth()->user()->name ?? 'Officer' }}</div>
-                        <div class="topbar-user-role">Data Entry Officer</div>
+                        <div class="topbar-user-role">{{ auth()->user()?->role === 'directorate' ? 'Directorate User' : 'State User' }}</div>
                     </div>
                     <i class="fas fa-chevron-down" style="font-size:.7rem;color:var(--gray-400);margin-left:4px;"></i>
                 </button>
                 <div id="userMenuDrop" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:190px;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);border:1px solid var(--gray-100);z-index:200;overflow:hidden;">
+                    @if(auth()->user()?->role !== 'directorate')
                     <a href="{{ url('/user/profile') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;">
-                        <i class="fas fa-user-cog" style="color:var(--gray-400);width:16px;"></i> Profile
+                        <i @class(['fas', 'fa-user-cog']) style="color:var(--gray-400);width:16px;"></i> Profile
                     </a>
+                    @endif
                     <div style="border-top:1px solid var(--gray-100);"></div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf

@@ -88,10 +88,11 @@
                     <div class="form-floating">
                         <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                             <option value="" disabled {{ old('role') ? '' : 'selected' }}>Select your role</option>
+                            <option value="officer" {{ old('role') === 'officer' ? 'selected' : '' }}>State User</option>
+                            <option value="directorate" {{ old('role') === 'directorate' ? 'selected' : '' }}>Directorate User</option>
                             <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Administrator</option>
                             <option value="zonal" {{ old('role') === 'zonal' ? 'selected' : '' }}>Zonal Commander</option>
-                            <option value="state" {{ old('role') === 'state' ? 'selected' : '' }}>State Coordinator</option>
-                            <option value="officer" {{ old('role') === 'officer' ? 'selected' : '' }}>Immigration Officer</option>
+                            <option value="state" {{ old('role') === 'state' ? 'selected' : '' }}>State Supervisor</option>
                         </select>
                         <label for="role"><i class="fas fa-user-shield me-2"></i>Select Role</label>
                     </div>

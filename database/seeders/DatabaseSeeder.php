@@ -65,7 +65,7 @@ class DatabaseSeeder extends Seeder
                 'service_number' => 'NIS/OF/002',
                 'email' => 'officer2@nis.gov.ng',
                 'password' => Hash::make('password123'),
-                'role' => 'officer',
+                'role' => 'directorate',
             ],
         ];
 
