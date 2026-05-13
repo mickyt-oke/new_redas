@@ -477,6 +477,11 @@ body {
 .topbar-user-name { font-size: 0.82rem; font-weight: 600; color: var(--gray-800); }
 .topbar-user-role { font-size: 0.7rem; color: var(--gray-500); }
 
+#notifPanel.open,
+#userMenuDrop.open {
+    display: block !important;
+}
+
 /* ─── Page Content ─── */
 .redas-content {
     flex: 1;
