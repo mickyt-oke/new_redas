@@ -219,6 +219,54 @@ function initAuthPage() {
         document.querySelector('.auth-right-inner')?.classList.add('shake');
         setTimeout(() => document.querySelector('.auth-right-inner')?.classList.remove('shake'), 600);
     }
+
+    /* Password strength meter (basic example) */
+    const strengthBar = document.getElementById('passwordStrength');
+    if (pwInput && strengthBar) {
+        pwInput.addEventListener('input', () => {
+            const val = pwInput.value;
+            let strength = 0;
+            if (val.length >= 8) strength++;
+            if (/[A-Z]/.test(val)) strength++;
+            if (/[a-z]/.test(val)) strength++;
+            if (/\d/.test(val)) strength++;
+            if (/[@$!%*?&]/.test(val)) strength++;
+
+            const colors = ['#dc2626', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+            strengthBar.style.width = `${(strength / 5) * 100}%`;
+            strengthBar.style.backgroundColor = colors[strength - 1] || '#e5e7eb';
+        });
+    }       
+
+    /* Show/hide password rules on focus */
+    const pwInputReg = document.getElementById('password');
+    const pwRulesReg = document.getElementById('passwordRules');
+    if (pwInputReg && pwRulesReg) {
+        pwInputReg.addEventListener('focus', () => pwRulesReg.classList.add('visible'));
+        pwInputReg.addEventListener('blur', () => pwRulesReg.classList.remove('visible'));
+    }       
+
+    /* Show/hide confirm password match status */
+    const confirmInputReg = document.getElementById('password_confirmation');
+    const matchStatusReg  = document.getElementById('matchStatus');
+    if (confirmInputReg && matchStatusReg) {
+        confirmInputReg.addEventListener('input', () => {
+            const pwVal = pwInputReg?.value || '';
+            const confVal = confirmInputReg.value;
+            if (!confVal) {
+                matchStatusReg.textContent = '';
+                matchStatusReg.className = '';
+            } else if (pwVal === confVal) {
+                matchStatusReg.textContent = 'Passwords match';
+                matchStatusReg.className = 'text-success';
+            } else {
+                matchStatusReg.textContent = 'Passwords do not match';
+                matchStatusReg.className = 'text-danger';
+            }
+        });
+    }       
+
+    
 }
 
 /* ════════════════════════════════════════

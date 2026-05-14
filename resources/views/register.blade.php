@@ -186,7 +186,8 @@
                     @enderror
                 </div>
                     
-                    <!-- Role Selection dropdown btn -->
+                    <!-- Role Selection dropdown -->
+                     
                     <div class="auth-form-group mt-3">
                     <label class="form-label-role" for="roleSelect">
                         <i class="fas fa-users me-1 text-nis"></i> Select Role  
@@ -194,9 +195,11 @@
                     <div class="auth-input-wrap">
                         <select id="roleSelect" name="role" class="auth-input @error('role') is-invalid @enderror" required>
                             <option value="" disabled selected>Select your role</option>
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option>
-                            <option value="officer" {{ old('role') == 'officer' ? 'selected' : '' }}>Operational Records Officer</option>
-                            <option value="archivist" {{ old('role') == 'archivist' ? 'selected' : '' }}>Archivist</option>
+                            <option value="officer" {{ old('role') == 'officer' ? 'selected' : '' }}>State User</option>
+                            <option value="directorate" {{ old('role') == 'directorate' ? 'selected' : '' }}>Directorate User</option>
+                            <option value="state" {{ old('role') == 'state' ? 'selected' : '' }}>State Supervisor</option>
+                            <option value="zonal" {{ old('role') == 'zonal' ? 'selected' : '' }}>Zonal Commander</option>
+                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option> 
                         </select>
                         <span class="auth-input-icon"><i class="fas fa-users"></i></span>
                     </div>
@@ -226,7 +229,7 @@
                 </div>
                    
                     <!-- Password -->
-                <div class="auth-form-group mt-3">
+                <div class="auth-form-group">
                     <label class="form-label-password" for="password">
                         <i class="fas fa-lock me-1 text-nis"></i> Password
                     </label>
