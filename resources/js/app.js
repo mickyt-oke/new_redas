@@ -175,6 +175,45 @@ function initAuthPage() {
         });
     }
 
+    /* Registration button loading state */
+    const registerForm = document.getElementById('registerForm');
+    const registerBtn  = document.getElementById('registerBtn');
+    if (registerForm && registerBtn) {
+        registerForm.addEventListener('submit', () => {
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i>Creating account…';
+        });
+    }   
+
+    /* Show/hide password validation rules on focus */
+    const pwInput = document.getElementById('password');
+    const pwRules = document.getElementById('passwordRules');
+    if (pwInput && pwRules) {
+        pwInput.addEventListener('focus', () => pwRules.classList.add('visible'));
+        pwInput.addEventListener('blur', () => pwRules.classList.remove('visible'));
+    }   
+
+    /* Show/hide confirm password match status */
+    const confirmInput = document.getElementById('password_confirmation');
+    const matchStatus  = document.getElementById('matchStatus');
+    if (confirmInput && matchStatus) {
+        confirmInput.addEventListener('input', () => {
+            const pwVal = pwInput?.value || '';
+            const confVal = confirmInput.value;
+            if (!confVal) {
+                matchStatus.textContent = '';
+                matchStatus.className = '';
+            } else if (pwVal === confVal) {
+                matchStatus.textContent = 'Passwords match';
+                matchStatus.className = 'text-success';
+            } else {
+                matchStatus.textContent = 'Passwords do not match';
+                matchStatus.className = 'text-danger';
+            }
+        });
+    }   
+    
+
     /* Shake animation on error */
     if (document.querySelector('.alert-danger')) {
         document.querySelector('.auth-right-inner')?.classList.add('shake');

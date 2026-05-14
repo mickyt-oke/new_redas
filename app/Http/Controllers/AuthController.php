@@ -20,13 +20,19 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        $request->merge([
+            'service_number' => strtoupper((string) $request->input('service_number')),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'service_number' => 'required|string|unique:users',
+            'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{2}\/[0-9]{4}$/', 'unique:users'],
             'role' => 'required|in:admin,zonal,state,officer,directorate',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'terms' => 'accepted',
+        ], [
+            'service_number.regex' => 'Service number must be in the format NIS/XX/1234.',
         ]);
 
         $user = User::create([

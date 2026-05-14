@@ -13,6 +13,9 @@ Route::get('/home', function () {
     return view('welcome');
 });
 
+Route::view('/terms-and-conditions', 'legal.terms')->name('terms');
+Route::view('/privacy-policy', 'legal.privacy')->name('privacy');
+
 // Authentication Routes (guests only)
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
