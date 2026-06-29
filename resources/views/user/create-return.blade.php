@@ -748,7 +748,7 @@
     </form>
 </div><!-- /redas-main -->
 
-<!-- ═══ PREVIEW MODAL ═══ 
+<!-- ═══ PREVIEW MODAL ═══
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content" style="border-radius:var(--radius-lg);border:none;">

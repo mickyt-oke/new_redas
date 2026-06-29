@@ -56,39 +56,46 @@ class ApiAuthController extends Controller
             ], 401);
         }
 
-        $jti = (string) Str::uuid();
+        // Gate login behind email verification
+        if (! $user->email_verified_at) {
+            return response()->json([
+                'message' => 'EMAIL_NOT_VERIFIED',
+            ], 403);
+        }
 
-        $refreshToken = new RefreshToken([
+        // Send OTP (4-digit) and return challenge response (no JWT yet)
+        $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300); // 5 minutes default
+
+        $codeInt = random_int(0, 9999);
+        $otp = str_pad((string) $codeInt, 4, '0', STR_PAD_LEFT);
+        $codeHash = hash('sha256', $otp);
+
+        \App\Models\OtpCode::create([
             'user_id' => $user->id,
-            'jti' => $jti,
-            'token_hash' => '', // set below
-            'expires_at' => now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000)),
-            'revoked_at' => null,
-            'created_ip' => $request->ip(),
-            'user_agent' => (string) $request->userAgent(),
+            'purpose' => 'login',
+            'code_hash' => $codeHash,
+            'expires_at' => now()->addSeconds($ttlSeconds),
+            'attempts' => 0,
+            'consumed_at' => null,
         ]);
 
-        $refreshJwt = $this->jwt()->issueRefreshToken(
-            userId: $user->id,
-            role: $user->role,
-            jti: $jti
-        );
-
-        $refreshToken->token_hash = hash('sha256', $refreshJwt);
-        $refreshToken->save();
-
-        $accessJwt = $this->jwt()->issueAccessToken(
-            userId: $user->id,
-            role: $user->role,
-            jti: (string) Str::uuid()
+        $mailer = new \App\Services\Messaging\ResendMailService();
+        $mailer->sendFromTemplate(
+            'otp_login',
+            [
+                'name' => $user->name,
+                'otp' => $otp,
+                'expires_in_minutes' => (int) ceil($ttlSeconds / 60),
+            ],
+            $user->email,
+            $user->name
         );
 
         return response()->json([
-            'access_token' => $accessJwt,
-            'refresh_token' => $refreshJwt,
-            'token_type' => 'bearer',
-            'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-        ]);
+            'message' => 'OTP_REQUIRED',
+            'expires_at' => now()->addSeconds($ttlSeconds)->toIso8601String(),
+            'purpose' => 'login',
+        ], 200);
     }
 
     public function refresh(Request $request): Response

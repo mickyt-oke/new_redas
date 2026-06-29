@@ -81,5 +81,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'officer',
         ]);
+
+        $this->call([
+            EmailTemplateSeeder::class,
+            PrimaryLocationTypeSeeder::class,
+            PrimaryLocationCodeSeeder::class,
+        ]);
     }
 }

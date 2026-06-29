@@ -132,20 +132,20 @@
 
             <div class="register-body">
                 @if ($errors->any())
-                        <div class="alert alert-danger" role="alert" aria-live="polite">
+                    <div class="alert alert-danger" role="alert" aria-live="polite">
                         <i class="fas fa-exclamation-circle me-2"></i>
                         <span>{{ $errors->first() }}</span>
                     </div>
                 @endif
 
                 @if (session('status'))
-                        <div class="alert alert-success" role="alert" aria-live="polite">
+                    <div class="alert alert-success" role="alert" aria-live="polite">
                         <i class="fas fa-check-circle me-2"></i>
                         <span>{{ session('status') }}</span>
                     </div>
                 @endif
-            
-            <form id="registerForm" method="POST" action="{{ route('register.submit') }}" novalidate autocomplete="off">
+
+                <form id="registerForm" method="POST" action="{{ route('register.submit') }}" novalidate autocomplete="off">
                     @csrf
                     <!-- Full Name -->
                 <div class="auth-form-group mt-0">
@@ -162,10 +162,11 @@
                             required>
                         <span class="auth-input-icon"><i class="fas fa-id-badge"></i></span>
                     </div>
-                    @error('register')
+                    @error('name')
                     <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
                     @enderror
                 </div>
+
                     <!-- Service Number -->
                     <div class="auth-form-group mt-3">
                     <label class="form-label-service" for="serviceNumber">
@@ -175,7 +176,7 @@
                         <input type="text"
                             class="auth-input @error('service_number') is-invalid @enderror"
                             id="serviceNumber" name="service_number"
-                            placeholder="NIS/AD/1234"
+                            placeholder="NIS/ADM/1234"
                             value="{{ old('service_number') }}"
                             autocomplete="off"
                             required>
@@ -185,12 +186,12 @@
                     <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
                     @enderror
                 </div>
-                    
+
                     <!-- Role Selection dropdown -->
-                     
+
                     <div class="auth-form-group mt-3">
                     <label class="form-label-role" for="roleSelect">
-                        <i class="fas fa-users me-1 text-nis"></i> Select Role  
+                        <i class="fas fa-users me-1 text-nis"></i> Select Role
                     </label>
                     <div class="auth-input-wrap">
                         <select id="roleSelect" name="role" class="auth-input @error('role') is-invalid @enderror" required>
@@ -199,10 +200,12 @@
                             <option value="directorate" {{ old('role') == 'directorate' ? 'selected' : '' }}>Directorate User</option>
                             <option value="state" {{ old('role') == 'state' ? 'selected' : '' }}>State Supervisor</option>
                             <option value="zonal" {{ old('role') == 'zonal' ? 'selected' : '' }}>Zonal Commander</option>
-                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option> 
+                            <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrator</option>
                         </select>
                         <span class="auth-input-icon"><i class="fas fa-users"></i></span>
                     </div>
+                    <input type="hidden" name="user_category" id="userCategoryInput" value="state_user">
+                    <input type="hidden" name="primary_location_type" id="primaryLocationTypeInput" value="state">
                     @error('role')
                     <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
                     @enderror
@@ -210,15 +213,15 @@
 
                     <!-- Email -->
                     <div class="auth-form-group mt-3">
-                    <label class="form-label-email" for="loginInput">
+                    <label class="form-label-email" for="email">
                         <i class="fas fa-id-card me-1 text-nis"></i> Email Address
                     </label>
                     <div class="auth-input-wrap">
-                        <input type="text"
+                        <input type="email"
                             class="auth-input @error('email') is-invalid @enderror"
-                            id="loginInput" name="login"
+                            id="email" name="email"
                             placeholder="officer@immigration.gov.ng"
-                            value="{{ old('login') }}"
+                            value="{{ old('email') }}"
                             autocomplete="email"
                             required>
                         <span class="auth-input-icon"><i class="fas fa-id-badge"></i></span>
@@ -227,7 +230,7 @@
                     <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
                     @enderror
                 </div>
-                   
+
                     <!-- Password -->
                 <div class="auth-form-group">
                     <label class="form-label-password" for="password">
@@ -278,7 +281,7 @@
                     <div class="form-check">
                         <input class="form-check-input @error('terms') is-invalid @enderror" type="checkbox" id="termsCheck" name="terms" required>
                         <label class="form-check-label" for="termsCheck">
-                            I agree to the <a href="{{ route('terms') }}" target="_blank">Terms and Conditions</a> and <a href="{{ route('privacy') }}" target="_blank">Privacy Policy</a>. 
+                            I agree to the <a href="{{ route('terms') }}" target="_blank">Terms and Conditions</a> and <a href="{{ route('privacy') }}" target="_blank">Privacy Policy</a>.
                         </label>
                         @error('terms')
                         <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
@@ -287,9 +290,10 @@
                 </div>
 
                     <!-- Register Button -->
-                    <button type="submit" id="registerBtn" class="btn btn-primary w-100 mt-4">
+                    <button type="submit" id="registerBtn" class="btn btn-primary w-100 mt-4" aria-live="polite">
                         <span class="btn-text">Create Account</span>
                     </button>
+                    <span id="submitStateText" class="sr-only" aria-live="polite"></span>
 
                 </form>
 
@@ -309,150 +313,211 @@
 </div>
 
 <script>
-            const registerForm = document.getElementById('registerForm');
-            const registerButton = document.getElementById('registerBtn');
-            const submitStateText = document.getElementById('submitStateText');
-            const serviceNumberInput = document.getElementById('serviceNumber');
-            const passwordInput = document.getElementById('password');
-            const passwordConfirmationInput = document.getElementById('passwordConfirmation');
-            const passwordStrength = document.getElementById('passwordStrength');
+    (function () {
+        'use strict';
 
-            function normalizeServiceNumber(value) {
-                return value.toUpperCase().replace(/\s+/g, '');
+        // Elements
+        const registerForm = document.getElementById('registerForm');
+        const registerButton = document.getElementById('registerBtn');
+        const submitStateText = document.getElementById('submitStateText');
+        const serviceNumberInput = document.getElementById('serviceNumber');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const passwordConfirmationInput = document.getElementById('passwordConfirmation');
+        const passwordStrength = document.getElementById('passwordStrength');
+
+        function debounce(fn, delay) {
+            let t;
+            return function (...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        function normalizeServiceNumber(value) {
+            return String(value || '').toUpperCase().replace(/\s+/g, '');
+        }
+
+        function validateEmailFormat() {
+            if (!emailInput) return;
+            const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            emailInput.setCustomValidity(pattern.test(emailInput.value) ? '' : 'Please enter a valid email address.');
+        }
+
+        function updatePasswordStrength() {
+            if (!passwordInput || !passwordStrength) return;
+            const value = passwordInput.value || '';
+            let score = 0;
+            if (value.length >= 8) score++;
+            if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score++;
+            if (/\d/.test(value)) score++;
+            if (/[^A-Za-z0-9]/.test(value)) score++;
+
+            passwordStrength.className = 'password-strength';
+            passwordStrength.classList.remove('weak', 'medium', 'strong');
+
+            if (!value.length) {
+                passwordStrength.textContent = '';
+                return;
             }
 
-            function updatePasswordStrength() {
-                if (!passwordInput || !passwordStrength) {
-                    return;
-                }
-
-                const value = passwordInput.value;
-                let score = 0;
-                if (value.length >= 8) score++;
-                if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score++;
-                if (/\d/.test(value)) score++;
-                if (/[^A-Za-z0-9]/.test(value)) score++;
-
-                passwordStrength.className = 'password-strength';
-
-                if (!value.length) {
-                    passwordStrength.textContent = '';
-                    return;
-                }
-
-                if (score <= 2) {
-                    passwordStrength.classList.add('weak');
-                    passwordStrength.textContent = 'Password strength: Weak';
-                    return;
-                }
-
-                if (score === 3) {
-                    passwordStrength.classList.add('medium');
-                    passwordStrength.textContent = 'Password strength: Medium';
-                    return;
-                }
-
-                passwordStrength.classList.add('strong');
-                passwordStrength.textContent = 'Password strength: Strong';
+            if (score <= 2) {
+                passwordStrength.classList.add('weak');
+                passwordStrength.textContent = 'Password strength: Weak';
+                return;
             }
 
-            function validatePasswordMatch() {
-                if (!passwordInput || !passwordConfirmationInput) {
-                    return;
-                }
-
-                <script>
-                // Registration form enhancements
-                const registerForm = document.getElementById('registerForm');
-                const registerButton = document.getElementById('registerBtn');
-                const submitStateText = document.getElementById('submitStateText');
-                const serviceNumberInput = document.getElementById('serviceNumber');
-                const passwordInput = document.getElementById('password');
-                const passwordConfirmationInput = document.getElementById('passwordConfirmation');
-                const passwordStrength = document.getElementById('passwordStrength');
-                }
-
-                passwordConfirmationInput.setCustomValidity('');
+            if (score === 3) {
+                passwordStrength.classList.add('medium');
+                passwordStrength.textContent = 'Password strength: Medium';
+                return;
             }
 
-            function validateServiceNumber() {
-                if (!serviceNumberInput) {
-                    return;
-                }
+            passwordStrength.classList.add('strong');
+            passwordStrength.textContent = 'Password strength: Strong';
+        }
 
-                serviceNumberInput.value = normalizeServiceNumber(serviceNumberInput.value);
+        function validatePasswordMatch() {
+            if (!passwordInput || !passwordConfirmationInput) return;
+            const p1 = passwordInput.value || '';
+            const p2 = passwordConfirmationInput.value || '';
+            passwordConfirmationInput.setCustomValidity(p1 && p2 && p1 !== p2 ? 'Passwords do not match.' : '');
+        }
 
-                if (!serviceNumberInput.value) {
-                    serviceNumberInput.setCustomValidity('');
-                    return;
-                }
+        function syncRolePlaceholderState() {
+            const roleSelect = document.getElementById('roleSelect');
+            if (!roleSelect) return;
+            const hasRole = !!roleSelect.value;
+            roleSelect.classList.toggle('is-placeholder', !hasRole);
+        }
 
-                const servicePattern = /^NIS\/[A-Z]{2}\/[0-9]{4}$/;
-                if (!servicePattern.test(serviceNumberInput.value)) {
-                    serviceNumberInput.setCustomValidity('Service Number must be in the format NIS/XX/1234.');
-                    return;
-                }
+        function syncAccessProfileInputs() {
+            const roleSelect = document.getElementById('roleSelect');
+            const userCategoryInput = document.getElementById('userCategoryInput');
+            const primaryLocationTypeInput = document.getElementById('primaryLocationTypeInput');
 
+            if (!roleSelect || !userCategoryInput || !primaryLocationTypeInput) return;
+
+            const role = roleSelect.value;
+            const roleMap = {
+                officer: { user_category: 'state_user', primary_location_type: 'state' },
+                directorate: { user_category: 'directorate_user', primary_location_type: 'directorate' },
+                state: { user_category: 'desk_admin', primary_location_type: 'state' },
+                zonal: { user_category: 'zonal_commander', primary_location_type: 'zonal' },
+                admin: { user_category: 'admin', primary_location_type: 'headquarters' },
+            };
+
+            const profile = roleMap[role] || roleMap.officer;
+            userCategoryInput.value = profile.user_category;
+            primaryLocationTypeInput.value = profile.primary_location_type;
+        }
+
+        function validateServiceNumber() {
+            if (!serviceNumberInput) return;
+            serviceNumberInput.value = normalizeServiceNumber(serviceNumberInput.value);
+            const val = serviceNumberInput.value;
+            if (!val) {
                 serviceNumberInput.setCustomValidity('');
+                return;
+            }
+            const servicePattern = /^NIS\/[A-Z]{3}\/[0-9]{4}$/;
+            serviceNumberInput.setCustomValidity(servicePattern.test(val) ? '' : 'Service Number must be in the format NIS/XXX/1234.');
+        }
+
+        function removeShakeState() {
+            document.querySelector('.auth-right-inner')?.classList.remove('shake');
+        }
+
+        // Toggle visibility for password fields
+        document.querySelectorAll('.pw-toggle').forEach((button) => {
+            button.addEventListener('click', () => {
+                const targetInput = document.getElementById(button.dataset.target);
+                if (!targetInput) return;
+                const isPassword = targetInput.type === 'password';
+                targetInput.type = isPassword ? 'text' : 'password';
+                button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+                const icon = button.querySelector('i');
+                if (icon) icon.classList.toggle('fa-eye-slash');
+            });
+        });
+
+        // Attach events with debouncing where appropriate
+        serviceNumberInput && serviceNumberInput.addEventListener('input', debounce(() => {
+            validateServiceNumber();
+            removeShakeState();
+        }, 250));
+        serviceNumberInput && serviceNumberInput.addEventListener('blur', validateServiceNumber);
+
+        emailInput && emailInput.addEventListener('input', debounce(() => {
+            validateEmailFormat();
+            removeShakeState();
+        }, 250));
+
+        passwordInput && passwordInput.addEventListener('input', () => {
+            updatePasswordStrength();
+            validatePasswordMatch();
+            removeShakeState();
+        });
+
+        passwordConfirmationInput && passwordConfirmationInput.addEventListener('input', () => {
+            validatePasswordMatch();
+            removeShakeState();
+        });
+
+        document.getElementById('roleSelect')?.addEventListener('change', () => {
+            syncRolePlaceholderState();
+            syncAccessProfileInputs();
+            removeShakeState();
+        });
+
+        document.getElementById('nameInput')?.addEventListener('input', removeShakeState);
+        document.getElementById('termsCheck')?.addEventListener('change', removeShakeState);
+
+        // Prevent double submit and provide accessible submit state
+        registerForm && registerForm.addEventListener('submit', (event) => {
+            validateServiceNumber();
+            validatePasswordMatch();
+            validateEmailFormat();
+
+            if (!registerForm.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+                registerForm.classList.add('was-validated');
+                document.querySelector('.auth-right-inner')?.classList.add('shake');
+                return;
             }
 
-            document.querySelectorAll('.pw-toggle').forEach((button) => {
-                button.addEventListener('click', () => {
-                    const targetInput = document.getElementById(button.dataset.target);
-                    if (!targetInput) {
-                        return;
-                    }
+            if (registerForm.dataset.submitting === 'true') {
+                // Already submitting
+                event.preventDefault();
+                return;
+            }
 
-                    const isPassword = targetInput.type === 'password';
-                    targetInput.type = isPassword ? 'text' : 'password';
-                    button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-                    const icon = button.querySelector('i');
-                    if (icon) {
-                        icon.classList.toggle('fa-eye');
-                        icon.classList.toggle('fa-eye-slash');
-                    }
-                });
-            });
-
-            serviceNumberInput?.addEventListener('input', validateServiceNumber);
-            serviceNumberInput?.addEventListener('blur', validateServiceNumber);
-            passwordInput?.addEventListener('input', () => {
-                updatePasswordStrength();
-                validatePasswordMatch();
-            });
-            passwordConfirmationInput?.addEventListener('input', validatePasswordMatch);
-
-            registerForm?.addEventListener('submit', (event) => {
-                validateServiceNumber();
-                validatePasswordMatch();
-
-                if (!registerForm.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    registerForm.classList.add('was-validated');
-                    document.querySelector('.auth-right-inner')?.classList.add('shake');
-                    return;
+            registerForm.dataset.submitting = 'true';
+            if (registerButton) {
+                registerButton.disabled = true;
+                registerButton.setAttribute('aria-busy', 'true');
+                const text = registerButton.querySelector('.btn-text');
+                if (text) {
+                    text.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i> Creating Account...';
                 }
+                if (submitStateText) submitStateText.textContent = 'Submitting registration form';
+            }
+        });
 
-                if (registerButton) {
-                    registerButton.disabled = true;
-                    const text = registerButton.querySelector('.btn-text');
-                    if (text) {
-                        text.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i>Creating Account...';
-                    }
-                    if (submitStateText) {
-                        submitStateText.textContent = 'Submitting registration form';
-                    }
-                }
-            });
+        // Initial run
+        updatePasswordStrength();
+        validateServiceNumber();
+        validateEmailFormat();
+        validatePasswordMatch();
+        syncRolePlaceholderState();
+        syncAccessProfileInputs();
 
-            updatePasswordStrength();
-            validateServiceNumber();
-
-            /* Shake on server-side validation error */
-            @if($errors->any())
-            document.querySelector('.auth-right-inner')?.classList.add('shake');
-            @endif
+        /* Shake on server-side validation error */
+        @if($errors->any())
+        document.querySelector('.auth-right-inner')?.classList.add('shake');
+        @endif
+    })();
 </script>
 </body>
 </html>

@@ -133,6 +133,7 @@
                             ['state',        'fas fa-tasks',            'State Supervisor'],
                             ['zonal',        'fas fa-sitemap',          'Zonal Commander'],
                             ['admin',        'fas fa-user-shield',      'Administrator'],
+                            ['super_admin',  'fas fa-user-shield',      'Super Admin'],
                         ] as [$val, $icon, $label])
                         <input type="radio" name="role" id="role_{{ $val }}" class="auth-role-option" value="{{ $val }}" {{ old('role') === $val ? 'checked' : '' }} required>
                         <label for="role_{{ $val }}" class="auth-role-label">

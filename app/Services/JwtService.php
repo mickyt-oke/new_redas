@@ -18,8 +18,12 @@ class JwtService
 
     public static function fromEnv(): self
     {
+        // In test/dev environments JWT_SECRET may be unset; provide a safe fallback
+        // to avoid php-jwt "Provided key is too short" errors.
+        $defaultSecret = 'dev-fallback-jwt-secret-dev-fallback'; // >= 32 chars
+
         return new self(
-            secret: (string) env('JWT_SECRET', ''),
+            secret: (string) env('JWT_SECRET', $defaultSecret),
             issuer: (string) env('JWT_ISSUER', 'nis-redas'),
             accessTtlSeconds: (int) env('JWT_ACCESS_TTL', 900),
             refreshTtlSeconds: (int) env('JWT_REFRESH_TTL', 2592000),
