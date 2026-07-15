@@ -36,10 +36,10 @@
     <div class="nav-container">
         <a href="{{ url('/') }}" class="nav-brand">
             <img src="{{ asset('assets/images/nis-logo.png') }}" alt="NIS Logo" class="nav-brand-logo">
-            <div class="nav-brand-text">
+            {{-- <div class="nav-brand-text">
                 <span class="nav-brand-name">NIS&nbsp;&nbsp;REDAS</span>
                 <span class="nav-brand-sub">Reporting Dashboard &amp; Archiving System</span>
-            </div>
+            </div> --}}
         </a>
 
         <div class="nav-links">
@@ -74,8 +74,8 @@
 
             <h1 class="hero-title">
                 <span class="accent">
-                    NIS Digitalised &amp; Centralized<br>
-                    Reporting System</span><br>
+                    NIS Reporting Dashboard &amp; <br>
+                    Archiving System</span><br>
             </h1>
 
             <p class="hero-desc">
@@ -111,61 +111,34 @@
             </div>
         </div>
 
-        <!-- Right: Dashboard Preview Card -->
-        <div class="hero-visual animate-fade-right delay-2">
-            <div class="hero-dashboard-preview">
-                <div class="preview-header">
-                    <span class="preview-dot red"></span>
-                    <span class="preview-dot yellow"></span>
-                    <span class="preview-dot green"></span>
-                    <span class="preview-title">NIS-REDAS Dashboard v.1</span>
+        <!-- Right: Preview Card with charts and graph showing metrics -->
+        {{-- <div class="hero-preview-side animate-fade-up" style="position:relative;">
+            <div class="hero-preview-card">
+                <div class="hero-preview-header">
+                    <div class="hero-preview-header-left">
+                        <div class="hero-preview-header-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="hero-preview-header-text">
+                            <div class="hero-preview-header-title">Monthly Returns</div>
+                            <div class="hero-preview-header-subtitle">Directorate Overview</div>
+                        </div>
+                    </div>
+                    <div class="hero-preview-header-right">
+                        <span style="font-size:.78rem;color:var(--gray-400);">Updated 2 days ago</span>
+                    </div>
                 </div>
 
-                <div class="preview-stats">
-                    <div class="preview-stat-card">
-                        <div class="preview-stat-label">Total Submitted</div>
-                        <div class="preview-stat-num green">847</div>
-                    </div>
-                    <div class="preview-stat-card">
-                        <div class="preview-stat-label">Pending Review</div>
-                        <div class="preview-stat-num gold">34</div>
-                    </div>
-                    <div class="preview-stat-card">
-                        <div class="preview-stat-label">Approved</div>
-                        <div class="preview-stat-num green">798</div>
-                    </div>
-                    <div class="preview-stat-card">
-                        <div class="preview-stat-label">Overdue</div>
-                        <div class="preview-stat-num red">15</div>
-                    </div>
+                <div class="hero-preview-body">
+                    <canvas id="previewChart" width="400" height="200"></canvas>
                 </div>
-                <!--
-                <div class="preview-bar" style="margin-bottom:10px;">
-                    <div class="preview-bar-label">
-                        <span>Formation Compliance</span>
-                        <span style="color:#4ade80;font-weight:700;">94%</span>
-                    </div>
-                    <div class="preview-bar-track">
-                        <div class="preview-bar-fill" data-width="94%" style="width:0%;background:linear-gradient(90deg,#006633,#2d9e61);"></div>
-                    </div>
+
+                <div class="hero-preview-footer">
+                    <a href="{{ route('login') }}" class="btn-nis btn-primary-nis btn-sm">
+                        <i class="fas fa-sign-in-alt"></i> Access Your Dashboard
+                    </a>
                 </div>
-                <div class="preview-bar">
-                    <div class="preview-bar-label">
-                        <span>Archive Upload Progress</span>
-                        <span style="color:#fbbf24;font-weight:700;">71%</span>
-                    </div>
-                    <div class="preview-bar-track">
-                        <div class="preview-bar-fill" data-width="71%" style="width:0%;background:linear-gradient(90deg,#c5922a,#e4c06b);"></div>
-                    </div>
-                </div>
-                -->
-                <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);display:flex;gap:8px;flex-wrap:wrap;">
-                    <span style="background:rgba(74,222,128,0.15);color:#4ade80;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:700;">● System Online</span>
-                    <span style="background:rgba(197,146,42,0.15);color:#e4c06b;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:700;">4 Pending Actions</span>
-                    <span style="background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);padding:3px 10px;border-radius:999px;font-size:.68rem;">Last sync: 2 min ago</span>
-                </div>
-            </div>
-        </div>
+            </div> --}}
+
+
     </div>
 </section>
 
@@ -243,12 +216,12 @@
 
         <div class="roles-grid">
             @foreach([
-                ['fas fa-edit',       'Data Entry Officer', 'State / Area Command', 'Submit operational returns, upload supporting documents, track submission status, receive deadline reminders.'],
-                ['fas fa-tasks',      'Supervisor',         'State / Zonal Command','Review and approve officer submissions within your zone, view formation compliance, escalate to HQ.'],
-                ['fas fa-chart-pie',  'PRS Analyst',        'HQ — PRS Directorate', 'Aggregate national data, run trend analytics, configure templates, generate statistical bulletins and exports.'],
-                ['fas fa-users-cog',  'ICT Admin',          'HQ — ICT Directorate', 'User management, audit log access, system health monitoring, bulk provisioning, and security incident reports.'],
-                ['fas fa-user-tie',   'Executive',          'CGIS / DCGs / Directors','Read-only national KPI dashboard, geographic visualisations, one-click summary reports — mobile friendly.'],
-                ['fas fa-archive',    'Archive Officer',    'Foreign Missions',     'Bulk upload scanned passport and immigration case files, index by applicant metadata, track upload progress.'],
+                ['fas fa-edit',       'Desk Officer', 'Directorates & State Command', 'Submit operational returns, upload supporting documents, track submission status, receive deadline reminders.'],
+                ['fas fa-tasks',      'Supervisor',         'Zonal Command','Review and approve officer submissions within your zone, view formation compliance, escalate to HQ.'],
+                ['fas fa-chart-pie',  'HQ Admin',        'PRS Directorate', 'Aggregate national data, run trend analytics, configure templates, generate statistical bulletins and exports.'],
+                ['fas fa-users-cog',  'Super Admin',          'PRS & ICT Directorate', 'User management, audit log access, system health monitoring, bulk provisioning, and security incident reports.'],
+                ['fas fa-user-tie',   'Executive',          'CGIS / DCGs ','Read-only KPI dashboard, geographic visualisations, one-click summary reports — real time.'],
+                ['fas fa-archive',    'Archive Management',    'All Users',     'Bulk upload scanned passport and immigration case files, index by applicant metadata, track upload progress.'],
             ] as [$icon, $role, $level, $desc])
             <div class="role-card reveal" style="transition-delay:{{ $loop->index * 0.07 }}s;">
                 <div class="role-icon"><i class="{{ $icon }}"></i></div>
@@ -261,7 +234,7 @@
     </div>
 </section>
 
-<!-- ─── CTA Banner ─── -->
+<!-- ─── CTA Banner
 <section style="background:white;padding:60px 0;text-align:center;">
     <div class="section-container">
         <div class="reveal">
@@ -277,7 +250,7 @@
             </a>
         </div>
     </div>
-</section>
+</section> -->
 
 <!-- ─── Footer ─── -->
 <footer class="welcome-footer">

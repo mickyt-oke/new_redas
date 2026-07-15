@@ -7,7 +7,7 @@
                 <i class="{{ $directorate['icon'] }}" style="margin-right:8px;"></i>
                 {{ $directorate['name'] }} Return
             </h1>
-            <p class="page-subtitle">Unique reporting form based on the directorate reporting template.</p>
+            {{-- <p class="page-subtitle">Unique reporting form based on the directorate reporting template.</p> --}}
         </div>
         @if(auth()->user()?->role === 'directorate')
         <a href="{{ route('user.directorate.home') }}" class="btn-nis btn-ghost">
@@ -32,10 +32,10 @@
                 <div class="card-head-icon" style="background:var(--nis-50);color:var(--nis-600);">
                     <i class="fas fa-sitemap"></i>
                 </div>
-                Directorate Overview
+                Monthly Reporting Template
             </div>
         </div>
-        <div class="card-body">
+        {{-- <div class="card-body">
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;">
                 @foreach($allDirectorates as $dirSlug => $dir)
                     <a href="{{ route('user.directorates.show', $dirSlug) }}"
@@ -46,7 +46,7 @@
                     </a>
                 @endforeach
             </div>
-        </div>
+        </div> --}}
     </div>
 
     <form method="POST" action="{{ route('user.directorates.store', $slug) }}">
