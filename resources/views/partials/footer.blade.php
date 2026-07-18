@@ -691,61 +691,59 @@
 
 </script>
 
-{{-- PROVOST/SECURITY UNIT JAVASCRIPT LOGIC --}}
 <script>
-// Section 2 and 3 on Staff Strength
+    // PROVOST/SECURITY UNIT JAVASCRIPT LOGIC
 
-const unitsBody = document.getElementById("provostUnitsBody");
-const strengthBody = document.getElementById("staffStrengthBody");
-const totalStrengthInput = document.getElementById("staffStrengthGrandTotal");
+    // Section 2 and 3 on Staff Strength
 
-/*
-|--------------------------------------------------------------------------
-| STAFF STRENGTH
-|--------------------------------------------------------------------------
-*/
+    const unitsBody = document.getElementById("provostUnitsBody");
+    const strengthBody = document.getElementById("staffStrengthBody");
+    const totalStrengthInput = document.getElementById("staffStrengthGrandTotal");
 
-function calculateStaffStrengthTotal() {
 
-    let total = 0;
+    // STAFF STRENGTH
 
-    document.querySelectorAll(".staff-strength-input").forEach(input => {
+    function calculateStaffStrengthTotal() {
 
-        total += Number(input.value) || 0;
+        let total = 0;
 
-    });
+        document.querySelectorAll(".staff-strength-input").forEach(input => {
 
-    totalStrengthInput.value = total;
+            total += Number(input.value) || 0;
 
-}
+        });
 
-function bindStrengthEvents() {
+        totalStrengthInput.value = total;
 
-    document.querySelectorAll(".staff-strength-input").forEach(input => {
+    }
 
-        input.oninput = calculateStaffStrengthTotal;
+    function bindStrengthEvents() {
 
-    });
+        document.querySelectorAll(".staff-strength-input").forEach(input => {
 
-}
+            input.oninput = calculateStaffStrengthTotal;
 
-function renderStaffStrengthTable() {
+        });
 
-    const existingStrengths = [];
+    }
 
-    document.querySelectorAll(".staff-strength-input").forEach(input => {
+    function renderStaffStrengthTable() {
 
-        existingStrengths.push(input.value);
+        const existingStrengths = [];
 
-    });
+        document.querySelectorAll(".staff-strength-input").forEach(input => {
 
-    strengthBody.innerHTML = "";
+            existingStrengths.push(input.value);
 
-    document.querySelectorAll(".provost-unit-name").forEach((input, index) => {
+        });
 
-        const row = document.createElement("tr");
+        strengthBody.innerHTML = "";
 
-        row.innerHTML = `
+        document.querySelectorAll(".provost-unit-name").forEach((input, index) => {
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
 
             <td>${index + 1}</td>
 
@@ -776,33 +774,29 @@ function renderStaffStrengthTable() {
 
         `;
 
-        strengthBody.appendChild(row);
+            strengthBody.appendChild(row);
 
-    });
+        });
 
-    bindStrengthEvents();
+        bindStrengthEvents();
 
-    calculateStaffStrengthTotal();
+        calculateStaffStrengthTotal();
 
-}
+    }
 
-/*
-|--------------------------------------------------------------------------
-| ADD SUB UNIT
-|--------------------------------------------------------------------------
-*/
+    // ADD SUB UNIT
 
-document
-.getElementById("addProvostUnit")
-.addEventListener("click", function () {
+    document
+        .getElementById("addProvostUnit")
+        .addEventListener("click", function () {
 
-    const index = unitsBody.querySelectorAll("tr").length;
+            const index = unitsBody.querySelectorAll("tr").length;
 
-    const row = document.createElement("tr");
+            const row = document.createElement("tr");
 
-    row.classList.add("data-row");
+            row.classList.add("data-row");
 
-    row.innerHTML = `
+            row.innerHTML = `
 
         <td>${index + 1}</td>
 
@@ -832,63 +826,57 @@ document
 
     `;
 
-    unitsBody.appendChild(row);
+            unitsBody.appendChild(row);
 
-    renderStaffStrengthTable();
+            renderStaffStrengthTable();
 
-});
+        });
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE STAFF TABLE WHEN USER TYPES
-|--------------------------------------------------------------------------
-*/
 
-document.addEventListener("input", function(e){
+    // UPDATE STAFF TABLE WHEN USER TYPES
 
-    if(!e.target.classList.contains("provost-unit-name")) return;
+    document.addEventListener("input", function (e) {
 
-    renderStaffStrengthTable();
+        if (!e.target.classList.contains("provost-unit-name")) return;
 
-});
+        renderStaffStrengthTable();
 
-/*
-|--------------------------------------------------------------------------
-| DELETE SUB UNIT
-|--------------------------------------------------------------------------
-*/
+    });
 
-document.addEventListener("click", function(e){
 
-    const button = e.target.closest(".removeProvostUnit");
+    // DELETE SUB UNIT
 
-    if(!button) return;
+    document.addEventListener("click", function (e) {
 
-    if(unitsBody.querySelectorAll("tr").length === 1){
+        const button = e.target.closest(".removeProvostUnit");
 
-        alert("At least one Sub Unit is required.");
+        if (!button) return;
 
-        return;
+        if (unitsBody.querySelectorAll("tr").length === 1) {
 
-    }
+            alert("At least one Sub Unit is required.");
 
-    button.closest("tr").remove();
+            return;
 
-    document.querySelectorAll("#provostUnitsBody tr")
-    .forEach((row,index)=>{
+        }
 
-        row.querySelector("td").textContent = index + 1;
+        button.closest("tr").remove();
 
-        row.querySelector(".provost-unit-name")
-            .name = `provost_units[${index}][name]`;
+        document.querySelectorAll("#provostUnitsBody tr")
+            .forEach((row, index) => {
+
+                row.querySelector("td").textContent = index + 1;
+
+                row.querySelector(".provost-unit-name")
+                    .name = `provost_units[${index}][name]`;
+
+            });
+
+        renderStaffStrengthTable();
 
     });
 
     renderStaffStrengthTable();
-
-});
-
-renderStaffStrengthTable();
 
     /*
     | FIREARMS TABLES
@@ -912,7 +900,7 @@ renderStaffStrengthTable();
 
         if (!tbody) return;
 
-       function updateTotals() {
+        function updateTotals() {
 
             let ammoTotal = 0;
 
@@ -1051,47 +1039,40 @@ renderStaffStrengthTable();
     });
 
 
-
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Generic Dynamic Single Column Tables
-    |--------------------------------------------------------------------------
-    */
+    // Generic Dynamic Single Column Tables
 
     function initialiseSimpleDynamicTable(config) {
 
-    const tbody = document.getElementById(config.body);
+        const tbody = document.getElementById(config.body);
 
-    if (!tbody) return;
+        if (!tbody) return;
 
-    const addButton = document.querySelector(
-        `[data-body="${config.body}"]`
-    );
+        const addButton = document.querySelector(
+            `[data-body="${config.body}"]`
+        );
 
-    function refreshRows() {
+        function refreshRows() {
 
-        tbody.querySelectorAll("tr").forEach((row, index) => {
+            tbody.querySelectorAll("tr").forEach((row, index) => {
 
-            row.querySelector("td:first-child").textContent = index + 1;
+                row.querySelector("td:first-child").textContent = index + 1;
 
-            row.querySelector("input").name =
-                `${config.prefix}[${index}][description]`;
+                row.querySelector("input").name =
+                    `${config.prefix}[${index}][description]`;
 
-        });
+            });
 
-    }
+        }
 
-    addButton.addEventListener("click", function () {
+        addButton.addEventListener("click", function () {
 
-        const index = tbody.querySelectorAll("tr").length;
+            const index = tbody.querySelectorAll("tr").length;
 
-        const row = document.createElement("tr");
+            const row = document.createElement("tr");
 
-        row.classList.add("data-row");
+            row.classList.add("data-row");
 
-        row.innerHTML = `
+            row.innerHTML = `
             <td>${index + 1}</td>
 
             <td>
@@ -1117,25 +1098,25 @@ renderStaffStrengthTable();
                     </td>
                 `;
 
-                tbody.appendChild(row);
+            tbody.appendChild(row);
 
-            });
+        });
 
-            tbody.addEventListener("click", function (e) {
+        tbody.addEventListener("click", function (e) {
 
-                const button = e.target.closest(".remove-simple-row");
+            const button = e.target.closest(".remove-simple-row");
 
-                if (!button) return;
+            if (!button) return;
 
-                button.closest("tr").remove();
-
-                refreshRows();
-
-            });
+            button.closest("tr").remove();
 
             refreshRows();
 
-        }
+        });
+
+        refreshRows();
+
+    }
 
 
     initialiseSimpleDynamicTable({

@@ -956,7 +956,7 @@
 
         </div>
 
-
+        {{-- SECTION 7 - ACTION BUTTONS --}}
         <div class="entry-action-bar">
 
             <div class="action-bar-left">
@@ -1004,6 +1004,5 @@
     </div>
 
 </form>
-
 
 @include('partials.footer')

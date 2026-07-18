@@ -105,779 +105,645 @@
         </div>
 
 
-{{-- Introduction --}}
+        {{-- SECTION 1 - INTRODUCTION --}}
 
-<div class="nis-section">
+        <div class="nis-section">
 
-    <div class="nis-section-head">
-        <span class="sec-num">1</span>
-        Introduction
-    </div>
+            <div class="nis-section-head">
+                <span class="sec-num">1</span>
+                Introduction
+            </div>
 
-    <div class="nis-section-body">
+            <div class="nis-section-body">
 
-        <div class="fg">
-            <label>Introduction</label>
+                <div class="fg">
+                    <label>Introduction</label>
 
-            <textarea
-                name="introduction"
-                class="ni"
-                rows="6"
-                placeholder="Provide a brief overview of the activities of the Provost/Security Unit during the reporting period..."
-            ></textarea>
+                    <textarea name="introduction" class="ni" rows="6"
+                        placeholder="Provide a brief overview of the activities of the Provost/Security Unit during the reporting period..."></textarea>
 
-            <small style="color:var(--gray-500);">
-                Summarize the major operations, security situation, achievements and any significant observations during the reporting period.
-            </small>
-        </div>
+                    <small style="color:var(--gray-500);">
+                        Summarize the major operations, security situation, achievements and any significant
+                        observations during the reporting period.
+                    </small>
+                </div>
 
-    </div>
-
-</div>
-
-
-
-
-{{-- SECTION 2 - UNITS UNDER PROVOST/SECURITY --}}
-
-<div class="nis-section">
-
-    <div class="nis-section-head">
-        <span class="sec-num">2</span>
-        Units Under Provost / Security
-    </div>
-
-    <div class="nis-section-body">
-
-        <div class="table-responsive">
-
-            <table class="nis-table">
-
-                <thead>
-
-                <tr>
-
-                    <th style="width:80px;">S/N</th>
-                    <th>Sub Unit</th>
-                    <th style="width:70px;">Action</th>
-
-                </tr>
-
-                </thead>
-
-                <tbody id="provostUnitsBody">
-
-                    <tr class="data-row">
-
-                        <td>1</td>
-
-                        <td>
-
-                            <input
-                                type="text"
-                                class="ni provost-unit-name"
-                                name="provost_units[0][name]"
-                                placeholder="Enter Sub Unit Name"
-                            >
-
-                        </td>
-
-                        <td>
-
-                            <button
-                                type="button"
-                                class="remove-row-btn removeProvostUnit"
-                                title="Remove Sub Unit"
-                            >
-                                <i class="fas fa-trash"></i>
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            id="addProvostUnit"
-        >
-            <i class="fas fa-plus"></i>
 
-            Add Sub Unit
+        {{-- SECTION 2 - UNITS UNDER PROVOST/SECURITY --}}
 
-        </button>
+        <div class="nis-section">
 
-    </div>
+            <div class="nis-section-head">
+                <span class="sec-num">2</span>
+                Units Under Provost / Security
+            </div>
 
-</div>
+            <div class="nis-section-body">
 
+                <div class="table-responsive">
 
+                    <table class="nis-table">
 
-{{-- SECTION 3 - TOTAL STAFF STRENGTH --}}
+                        <thead>
 
-<div class="nis-section">
+                            <tr>
 
-    <div class="nis-section-head">
-        <span class="sec-num">3</span>
-        Total Staff Strength
-    </div>
+                                <th style="width:80px;">S/N</th>
+                                <th>Sub Unit</th>
+                                <th style="width:70px;">Action</th>
 
-    <div class="nis-section-body">
+                            </tr>
 
-        <div class="table-responsive">
+                        </thead>
 
-            <table class="nis-table">
+                        <tbody id="provostUnitsBody">
 
-                <thead>
+                            <tr class="data-row">
 
-                    <tr>
+                                <td>1</td>
 
-                        <th style="width:80px;">S/N</th>
+                                <td>
 
-                        <th>Sub Unit</th>
+                                    <input type="text" class="ni provost-unit-name" name="provost_units[0][name]"
+                                        placeholder="Enter Sub Unit Name">
 
-                        <th style="width:180px;">Strength</th>
+                                </td>
 
-                    </tr>
+                                <td>
 
-                </thead>
+                                    <button type="button" class="btn-icon btn-danger remove-row-btn removeProvostUnit"
+                                        title="Remove Sub Unit">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
 
-                <tbody id="staffStrengthBody">
+                                </td>
 
-                    <!-- Populated automatically from Section 2 -->
+                            </tr>
 
-                </tbody>
+                        </tbody>
 
-                <tfoot>
+                    </table>
 
-                    <tr class="total-row">
+                </div>
 
-                        <td colspan="2">
-                            <strong>TOTAL STAFF STRENGTH</strong>
-                        </td>
+                <button type="button" class="add-row-btn" id="addProvostUnit">
+                    <i class="fas fa-plus"></i>
 
-                        <td>
+                    Add Sub Unit
 
-                            <input
-                                type="number"
-                                readonly
-                                class="ni"
-                                id="staffStrengthGrandTotal"
-                                value="0"
-                            >
+                </button>
 
-                        </td>
-
-                    </tr>
-
-                </tfoot>
-
-            </table>
+            </div>
 
         </div>
 
-        <small style="color:var(--gray-500);">
-            This section is automatically generated from the Sub Units entered above.
-        </small>
-
-    </div>
-
-</div>
 
 
-{{-- SECTION 4A - FIREARMS (PROVOST) --}}
+        {{-- SECTION 3 - TOTAL STAFF STRENGTH --}}
 
-<div class="nis-section">
+        <div class="nis-section">
 
-    <div class="nis-section-head">
-        <span class="sec-num">4A</span>
-        Firearms: Provost / Security
-    </div>
+            <div class="nis-section-head">
+                <span class="sec-num">3</span>
+                Total Staff Strength
+            </div>
 
-    <div class="nis-section-body">
+            <div class="nis-section-body">
 
-        <div class="table-responsive">
+                <div class="table-responsive">
 
-            <table class="nis-table">
+                    <table class="nis-table">
 
-                <thead>
+                        <thead>
 
-                    <tr>
-                        <th style="width:70px;">S/N</th>
-                        <th>Type</th>
-                        <th style="width:180px;">Ammunition</th>
-                        <th style="width:90px;">Action</th>
-                    </tr>
+                            <tr>
 
-                </thead>
+                                <th style="width:80px;">S/N</th>
 
-                <tbody id="provostFirearmsBody">
+                                <th>Sub Unit</th>
 
-                <tr class="data-row">
+                                <th style="width:180px;">Strength</th>
 
-                    <td>1</td>
+                            </tr>
 
-                    <td>
-                        <input
-                            type="text"
-                            class="ni firearm-type"
-                            name="provost_firearms[0][type]"
-                        >
-                    </td>
+                        </thead>
 
-                    <td>
-                        <input
-                            type="number"
-                            min="0"
-                            class="ni firearm-ammo"
-                            name="provost_firearms[0][ammunition]"
-                        >
-                    </td>
+                        <tbody id="staffStrengthBody">
 
-                    <td>
+                            <!-- Populated automatically from Section 2 -->
 
-                        <button
-                            type="button"
-                            class="btn-icon btn-danger remove-firearm-row"
-                        >
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        </tbody>
 
-                    </td>
+                        <tfoot>
 
-                </tr>
+                            <tr class="total-row">
 
-                </tbody>
+                                <td colspan="2">
+                                    <strong>TOTAL STAFF STRENGTH</strong>
+                                </td>
 
-                <tfoot>
+                                <td>
 
-                    <tr class="total-row">
+                                    <input type="number" readonly class="ni" id="staffStrengthGrandTotal" value="0">
 
-                        <td colspan="2">
-                            <strong>Total Firearm Types</strong>
-                        </td>
+                                </td>
 
-                        <td>
+                            </tr>
 
-                            <input
-                                readonly
-                                id="provostFirearmCount"
-                                class="ni"
-                                value="1"
-                            >
+                        </tfoot>
 
-                        </td>
+                    </table>
 
-                    </tr>
+                </div>
 
-                    <tr class="total-row">
+                <small style="color:var(--gray-500);">
+                    This section is automatically generated from the Sub Units entered above.
+                </small>
 
-                        <td colspan="2">
-                            <strong>Total Ammunition</strong>
-                        </td>
-
-                        <td>
-
-                            <input
-                                readonly
-                                id="provostAmmoTotal"
-                                class="ni"
-                                value="0"
-                            >
-
-                        </td>
-
-                    </tr>
-
-                </tfoot>
-
-            </table>
+            </div>
 
         </div>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            data-body="provostFirearmsBody"
-            data-prefix="provost_firearms"
-        >
-            <i class="fas fa-plus"></i>
-            Add Firearm
-        </button>
 
-    </div>
+        {{-- SECTION 4A - FIREARMS (PROVOST) --}}
 
-</div>
+        <div class="nis-section">
 
+            <div class="nis-section-head">
+                <span class="sec-num">4A</span>
+                Firearms: Provost / Security
+            </div>
 
+            <div class="nis-section-body">
 
+                <div class="table-responsive">
 
-<div class="nis-section">
+                    <table class="nis-table">
 
-    <div class="nis-section-head">
-        <span class="sec-num">4B</span>
-        Firearms: RRS
-    </div>
+                        <thead>
 
-    <div class="nis-section-body">
+                            <tr>
+                                <th style="width:70px;">S/N</th>
+                                <th>Type</th>
+                                <th style="width:180px;">Ammunition</th>
+                                <th style="width:90px;">Action</th>
+                            </tr>
 
-        <div class="table-responsive">
+                        </thead>
 
-            <table class="nis-table">
+                        <tbody id="provostFirearmsBody">
 
-                <thead>
+                            <tr class="data-row">
 
-                <tr>
-                    <th style="width:70px;">S/N</th>
-                    <th>Type</th>
-                    <th style="width:180px;">Ammunition</th>
-                    <th style="width:90px;">Action</th>
-                </tr>
+                                <td>1</td>
 
-                </thead>
+                                <td>
+                                    <input type="text" class="ni firearm-type" name="provost_firearms[0][type]">
+                                </td>
 
-                <tbody id="rrsFirearmsBody">
+                                <td>
+                                    <input type="number" min="0" class="ni firearm-ammo"
+                                        name="provost_firearms[0][ammunition]">
+                                </td>
 
-                    <tr class="data-row">
+                                <td>
 
-                        <td>1</td>
+                                    <button type="button" class="btn-icon btn-danger remove-firearm-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
 
-                        <td>
-                            <input
-                                type="text"
-                                class="ni firearm-type"
-                                name="provost_firearms[0][type]"
-                            >
-                        </td>
+                                </td>
 
-                        <td>
-                            <input
-                                type="number"
-                                min="0"
-                                class="ni firearm-ammo"
-                                name="provost_firearms[0][ammunition]"
-                            >
-                        </td>
+                            </tr>
 
-                        <td>
+                        </tbody>
 
-                            <button
-                                type="button"
-                                class="btn-icon btn-danger remove-firearm-row"
-                            >
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <tfoot>
 
-                        </td>
+                            <tr class="total-row">
 
-                    </tr>
+                                <td colspan="2">
+                                    <strong>Total Firearm Types</strong>
+                                </td>
 
-                </tbody>
+                                <td>
 
-                <tfoot>
+                                    <input readonly id="provostFirearmCount" class="ni" value="1">
 
-                    <tr class="total-row">
-                        <td colspan="2"><strong>Total Firearm Types</strong></td>
-                        <td><input readonly id="rrsFirearmCount" class="ni" value="1"></td>
-                    </tr>
+                                </td>
 
-                    <tr class="total-row">
-                        <td colspan="2"><strong>Total Ammunition</strong></td>
-                        <td><input readonly id="rrsAmmoTotal" class="ni" value="0"></td>
-                    </tr>
+                            </tr>
 
-                </tfoot>
+                            <tr class="total-row">
 
-            </table>
+                                <td colspan="2">
+                                    <strong>Total Ammunition</strong>
+                                </td>
 
-        </div>
+                                <td>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            data-body="rrsFirearmsBody"
-            data-prefix="rrs_firearms"
-        >
-            <i class="fas fa-plus"></i>
-            Add Firearm
-        </button>
+                                    <input readonly id="provostAmmoTotal" class="ni" value="0">
 
-    </div>
+                                </td>
 
-</div>
+                            </tr>
 
+                        </tfoot>
 
+                    </table>
 
+                </div>
 
-<div class="nis-section">
+                <button type="button" class="add-row-btn" data-body="provostFirearmsBody"
+                    data-prefix="provost_firearms">
+                    <i class="fas fa-plus"></i>
+                    Add Firearm
+                </button>
 
-    <div class="nis-section-head">
-        <span class="sec-num">4C</span>
-        Firearms: JTF
-    </div>
-
-    <div class="nis-section-body">
-
-        <div class="table-responsive">
-
-            <table class="nis-table">
-
-                <thead>
-
-                <tr>
-                    <th style="width:70px;">S/N</th>
-                    <th>Type</th>
-                    <th style="width:180px;">Ammunition</th>
-                    <th style="width:90px;">Action</th>
-                </tr>
-
-                </thead>
-
-                <tbody id="jtfFirearmsBody">
-
-                    <tr class="data-row">
-
-                        <td>1</td>
-
-                        <td>
-                            <input
-                                type="text"
-                                class="ni firearm-type"
-                                name="provost_firearms[0][type]"
-                            >
-                        </td>
-
-                        <td>
-                            <input
-                                type="number"
-                                min="0"
-                                class="ni firearm-ammo"
-                                name="provost_firearms[0][ammunition]"
-                            >
-                        </td>
-
-                        <td>
-
-                            <button
-                                type="button"
-                                class="btn-icon btn-danger remove-firearm-row"
-                            >
-                                <i class="fas fa-trash"></i>
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-                <tfoot>
-
-                    <tr class="total-row">
-                        <td colspan="2"><strong>Total Firearm Types</strong></td>
-                        <td><input readonly id="jtfFirearmCount" class="ni" value="1"></td>
-                    </tr>
-
-                    <tr class="total-row">
-                        <td colspan="2"><strong>Total Ammunition</strong></td>
-                        <td><input readonly id="jtfAmmoTotal" class="ni" value="0"></td>
-                    </tr>
-
-                </tfoot>
-
-            </table>
+            </div>
 
         </div>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            data-body="jtfFirearmsBody"
-            data-prefix="jtf_firearms"
-        >
-            <i class="fas fa-plus"></i>
-            Add Firearm
-        </button>
 
-    </div>
+        {{-- SECTION 4B - FIREARMS (PROVOST) --}}
 
-</div>
+        <div class="nis-section">
 
+            <div class="nis-section-head">
+                <span class="sec-num">4B</span>
+                Firearms: RRS
+            </div>
 
+            <div class="nis-section-body">
 
+                <div class="table-responsive">
 
+                    <table class="nis-table">
 
-<!-- ================================= -->
-<!-- SECTION 5 - AREAS OF RESPONSIBILITY -->
-<!-- ================================= -->
+                        <thead>
 
-<div class="nis-section">
+                            <tr>
+                                <th style="width:70px;">S/N</th>
+                                <th>Type</th>
+                                <th style="width:180px;">Ammunition</th>
+                                <th style="width:90px;">Action</th>
+                            </tr>
 
-    <div class="nis-section-head">
-        <span class="sec-num">5</span>
-        Areas of Responsibility
-    </div>
+                        </thead>
 
-    <div class="nis-section-body">
+                        <tbody id="rrsFirearmsBody">
 
-        <div class="table-responsive">
+                            <tr class="data-row">
 
-            <table class="nis-table">
+                                <td>1</td>
 
-                <thead>
+                                <td>
+                                    <input type="text" class="ni firearm-type" name="provost_firearms[0][type]">
+                                </td>
 
-                    <tr>
-                        <th style="width:70px;">S/N</th>
-                        <th>Area of Responsibility</th>
-                        <th style="width:90px;">Action</th>
-                    </tr>
+                                <td>
+                                    <input type="number" min="0" class="ni firearm-ammo"
+                                        name="provost_firearms[0][ammunition]">
+                                </td>
 
-                </thead>
+                                <td>
 
-                <tbody id="responsibilityBody">
+                                    <button type="button" class="btn-icon btn-danger remove-firearm-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
 
-                    <tr class="data-row">
+                                </td>
 
-                        <td>1</td>
+                            </tr>
 
-                        <td>
-                            <input
-                                type="text"
-                                class="ni"
-                                name="responsibilities[0][description]"
-                                placeholder="Enter Area of Responsibility"
-                            >
-                        </td>
+                        </tbody>
 
-                        <td>
+                        <tfoot>
 
-                            <button
-                                type="button"
-                                class="btn-icon btn-danger remove-simple-row"
-                            >
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <tr class="total-row">
+                                <td colspan="2"><strong>Total Firearm Types</strong></td>
+                                <td><input readonly id="rrsFirearmCount" class="ni" value="1"></td>
+                            </tr>
 
-                        </td>
+                            <tr class="total-row">
+                                <td colspan="2"><strong>Total Ammunition</strong></td>
+                                <td><input readonly id="rrsAmmoTotal" class="ni" value="0"></td>
+                            </tr>
 
-                    </tr>
+                        </tfoot>
 
-                </tbody>
+                    </table>
 
-            </table>
+                </div>
 
-        </div>
+                <button type="button" class="add-row-btn" data-body="rrsFirearmsBody" data-prefix="rrs_firearms">
+                    <i class="fas fa-plus"></i>
+                    Add Firearm
+                </button>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            data-body="responsibilityBody"
-            data-prefix="responsibilities"
-        >
-            <i class="fas fa-plus"></i>
-            Add Area
-        </button>
-
-    </div>
-
-</div>
-
-
-
-{{-- SECTION 6 - ACTIVITIES --}}
-
-<div class="nis-section">
-
-    <div class="nis-section-head">
-        <span class="sec-num">6</span>
-        Activities Carried Out
-    </div>
-
-    <div class="nis-section-body">
-
-        <div class="table-responsive">
-
-            <table class="nis-table">
-
-                <thead>
-
-                    <tr>
-                        <th style="width:70px;">S/N</th>
-                        <th>Activity</th>
-                        <th style="width:90px;">Action</th>
-                    </tr>
-
-                </thead>
-
-                <tbody id="activitiesBody">
-
-                    <tr class="data-row">
-
-                        <td>1</td>
-
-                        <td>
-                            <input
-                                type="text"
-                                class="ni"
-                                name="activities[0][description]"
-                                placeholder="Enter Activity"
-                            >
-                        </td>
-
-                        <td>
-
-                            <button
-                                type="button"
-                                class="btn-icon btn-danger remove-simple-row"
-                            >
-                                <i class="fas fa-trash"></i>
-                            </button>
-
-                        </td>
-
-                    </tr>
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            data-body="activitiesBody"
-            data-prefix="activities"
-        >
-            <i class="fas fa-plus"></i>
-            Add Activity
-        </button>
 
-    </div>
+        {{-- SECTION 4C - FIREARMS (PROVOST) --}}
 
-</div>
+        <div class="nis-section">
 
+            <div class="nis-section-head">
+                <span class="sec-num">4C</span>
+                Firearms: JTF
+            </div>
 
-{{-- SECTION 7 - CHALLENGES --}}
+            <div class="nis-section-body">
 
-<div class="nis-section">
+                <div class="table-responsive">
 
-    <div class="nis-section-head">
-        <span class="sec-num">7</span>
-        Challenges
-    </div>
+                    <table class="nis-table">
 
-    <div class="nis-section-body">
+                        <thead>
 
-        <div class="table-responsive">
+                            <tr>
+                                <th style="width:70px;">S/N</th>
+                                <th>Type</th>
+                                <th style="width:180px;">Ammunition</th>
+                                <th style="width:90px;">Action</th>
+                            </tr>
 
-            <table class="nis-table">
+                        </thead>
 
-                <thead>
+                        <tbody id="jtfFirearmsBody">
 
-                    <tr>
-                        <th style="width:70px;">S/N</th>
-                        <th>Challenge</th>
-                        <th style="width:90px;">Action</th>
-                    </tr>
+                            <tr class="data-row">
 
-                </thead>
+                                <td>1</td>
 
-                <tbody id="challengesBody">
+                                <td>
+                                    <input type="text" class="ni firearm-type" name="provost_firearms[0][type]">
+                                </td>
 
-                    <tr class="data-row">
+                                <td>
+                                    <input type="number" min="0" class="ni firearm-ammo"
+                                        name="provost_firearms[0][ammunition]">
+                                </td>
 
-                        <td>1</td>
+                                <td>
 
-                        <td>
-                            <input
-                                type="text"
-                                class="ni"
-                                name="challenges[0][description]"
-                                placeholder="Enter Challenge"
-                            >
-                        </td>
+                                    <button type="button" class="btn-icon btn-danger remove-firearm-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
 
-                        <td>
+                                </td>
 
-                            <button
-                                type="button"
-                                class="btn-icon btn-danger remove-simple-row"
-                            >
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            </tr>
 
-                        </td>
+                        </tbody>
 
-                    </tr>
+                        <tfoot>
 
-                </tbody>
+                            <tr class="total-row">
+                                <td colspan="2"><strong>Total Firearm Types</strong></td>
+                                <td><input readonly id="jtfFirearmCount" class="ni" value="1"></td>
+                            </tr>
 
-            </table>
+                            <tr class="total-row">
+                                <td colspan="2"><strong>Total Ammunition</strong></td>
+                                <td><input readonly id="jtfAmmoTotal" class="ni" value="0"></td>
+                            </tr>
 
-        </div>
+                        </tfoot>
 
-        <button
-            type="button"
-            class="add-row-btn"
-            data-body="challengesBody"
-            data-prefix="challenges"
-        >
-            <i class="fas fa-plus"></i>
-            Add Challenge
-        </button>
+                    </table>
 
-    </div>
+                </div>
 
-</div>
+                <button type="button" class="add-row-btn" data-body="jtfFirearmsBody" data-prefix="jtf_firearms">
+                    <i class="fas fa-plus"></i>
+                    Add Firearm
+                </button>
 
-
-
-
-   <!-- ================================ -->
-<!-- SECTION 8 - CONCLUSION -->
-<!-- ================================ -->
-
-<div class="nis-section">
-
-    <div class="nis-section-head">
-        <span class="sec-num">8</span>
-        Conclusion
-    </div>
-
-    <div class="nis-section-body">
-
-        <div class="fg">
-
-            <label>Conclusion</label>
-
-            <textarea
-                name="conclusion"
-                class="ni"
-                rows="6"
-                placeholder="Provide concluding remarks..."
-            ></textarea>
+            </div>
 
         </div>
 
-    </div>
 
-</div>
+        {{-- SECTION 5 - AREAS OF RESPONSIBILITY --}}
+
+        <div class="nis-section">
+
+            <div class="nis-section-head">
+                <span class="sec-num">5</span>
+                Areas of Responsibility
+            </div>
+
+            <div class="nis-section-body">
+
+                <div class="table-responsive">
+
+                    <table class="nis-table">
+
+                        <thead>
+
+                            <tr>
+                                <th style="width:70px;">S/N</th>
+                                <th>Area of Responsibility</th>
+                                <th style="width:90px;">Action</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="responsibilityBody">
+
+                            <tr class="data-row">
+
+                                <td>1</td>
+
+                                <td>
+                                    <input type="text" class="ni" name="responsibilities[0][description]"
+                                        placeholder="Enter Area of Responsibility">
+                                </td>
+
+                                <td>
+
+                                    <button type="button" class="btn-icon btn-danger remove-simple-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <button type="button" class="add-row-btn" data-body="responsibilityBody" data-prefix="responsibilities">
+                    <i class="fas fa-plus"></i>
+                    Add Area
+                </button>
+
+            </div>
+
+        </div>
 
 
 
+        {{-- SECTION 6 - ACTIVITIES --}}
+
+        <div class="nis-section">
+
+            <div class="nis-section-head">
+                <span class="sec-num">6</span>
+                Activities Carried Out
+            </div>
+
+            <div class="nis-section-body">
+
+                <div class="table-responsive">
+
+                    <table class="nis-table">
+
+                        <thead>
+
+                            <tr>
+                                <th style="width:70px;">S/N</th>
+                                <th>Activity</th>
+                                <th style="width:90px;">Action</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="activitiesBody">
+
+                            <tr class="data-row">
+
+                                <td>1</td>
+
+                                <td>
+                                    <input type="text" class="ni" name="activities[0][description]"
+                                        placeholder="Enter Activity">
+                                </td>
+
+                                <td>
+
+                                    <button type="button" class="btn-icon btn-danger remove-simple-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <button type="button" class="add-row-btn" data-body="activitiesBody" data-prefix="activities">
+                    <i class="fas fa-plus"></i>
+                    Add Activity
+                </button>
+
+            </div>
+
+        </div>
 
 
+        {{-- SECTION 7 - CHALLENGES --}}
+
+        <div class="nis-section">
+
+            <div class="nis-section-head">
+                <span class="sec-num">7</span>
+                Challenges
+            </div>
+
+            <div class="nis-section-body">
+
+                <div class="table-responsive">
+
+                    <table class="nis-table">
+
+                        <thead>
+
+                            <tr>
+                                <th style="width:70px;">S/N</th>
+                                <th>Challenge</th>
+                                <th style="width:90px;">Action</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="challengesBody">
+
+                            <tr class="data-row">
+
+                                <td>1</td>
+
+                                <td>
+                                    <input type="text" class="ni" name="challenges[0][description]"
+                                        placeholder="Enter Challenge">
+                                </td>
+
+                                <td>
+
+                                    <button type="button" class="btn-icon btn-danger remove-simple-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <button type="button" class="add-row-btn" data-body="challengesBody" data-prefix="challenges">
+                    <i class="fas fa-plus"></i>
+                    Add Challenge
+                </button>
+
+            </div>
+
+        </div>
 
 
+        {{-- SECTION 8 - CONCLUSION --}}
 
-        {{-- SECTION 5 - ATTACHMENTS --}}
+        <div class="nis-section">
+
+            <div class="nis-section-head">
+                <span class="sec-num">8</span>
+                Conclusion
+            </div>
+
+            <div class="nis-section-body">
+
+                <div class="fg">
+
+                    <label>Conclusion</label>
+
+                    <textarea name="conclusion" class="ni" rows="6"
+                        placeholder="Provide concluding remarks..."></textarea>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {{-- SECTION 9 - ATTACHMENTS --}}
 
         <div class="nis-section">
 
@@ -929,7 +795,7 @@
         </div>
 
 
-        {{-- SECTION 6 - REPORTING OFFICER --}}
+        {{-- SECTION 10 - REPORTING OFFICER --}}
 
         <div class="nis-section">
 
@@ -1009,7 +875,7 @@
 
         </div>
 
-
+        {{-- SECTION 11 - ACTION BUTTONS --}}
         <div class="entry-action-bar">
 
             <div class="action-bar-left">
@@ -1057,6 +923,5 @@
     </div>
 
 </form>
-
 
 @include('partials.footer')
