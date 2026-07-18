@@ -20,7 +20,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet">
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
+    @include('partials.head-meta')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @laravelPWA
 
     <style>
         /* Shake animation for error state */
@@ -73,9 +75,116 @@
             border-radius: 50%;
             pointer-events: none;
         }
+
+        /* Make the right panel scroll independently and stay usable on mobile */
+        .auth-split {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .auth-right {
+            flex: 1;
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 24px;
+        }
+
+        .auth-right-inner {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .register-card-wrap {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 991px) {
+            .auth-split {
+                flex-direction: column;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .auth-left,
+            .auth-right {
+                min-height: auto;
+            }
+
+            /* Collapse left branding panel into a clean top section on mobile */
+            .auth-left {
+                display: flex;
+                width: 100%;
+                padding: 20px 16px;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 auto;
+            }
+
+            .auth-left .auth-features,
+            .auth-left .auth-footer-text,
+            .auth-left .auth-deco-circle {
+                display: none;
+            }
+
+            .auth-brand {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                text-align: center;
+            }
+
+            .auth-brand-logo {
+                height: 44px;
+                margin-bottom: 0;
+            }
+
+            .auth-brand-name {
+                font-size: 1.25rem;
+                margin-bottom: 0;
+            }
+
+            .auth-brand-sub {
+                font-size: 0.78rem;
+            }
+
+            .auth-brand > div:last-child {
+                display: none;
+            }
+
+            .auth-right {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+                padding: 20px 16px 32px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .register-card {
+                padding: 24px 18px;
+            }
+
+            .register-title {
+                font-size: 1.6rem;
+            }
+
+            .auth-form-group {
+                margin-bottom: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="auth-page">
+
+@include('partials.preloader')
 
     <div class="auth-split">
 

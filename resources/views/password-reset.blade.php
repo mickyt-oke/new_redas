@@ -4,9 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Reset password</title>
+    @include('partials.head-meta')
+    @laravelPWA
     <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body style="margin:0; padding:0;">
+
+@include('partials.preloader')
+
 <div style="max-width:520px; margin: 40px auto; padding: 20px;">
     <h2>Reset password</h2>
 

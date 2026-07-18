@@ -6,11 +6,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Officer Dashboard | NIS-REDAS</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
+    @include('partials.head-meta')
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @laravelPWA
 </head>
 <body class="redas-dashboard">
+
+@include('partials.preloader')
 
 <!-- Mobile sidebar overlay -->
 <div class="sidebar-overlay" id="sidebarOverlay"></div>

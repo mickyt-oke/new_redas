@@ -6,7 +6,9 @@
     <meta name="description" content="Terms and Conditions for NIS-REDAS platform access and usage.">
     <title>NIS-REDAS | Terms and Conditions</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
+    @include('partials.head-meta')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @laravelPWA
     <style>
         body { background: #f8f9fa; }
         .legal-wrap { max-width: 900px; margin: 40px auto; padding: 0 16px; }
@@ -24,6 +26,9 @@
     </style>
 </head>
 <body>
+
+@include('partials.preloader')
+
     <main class="legal-wrap">
         <section class="legal-card" aria-labelledby="termsTitle">
             <h1 id="termsTitle" class="legal-title">Terms and Conditions</h1>

@@ -86,6 +86,7 @@ class DatabaseSeeder extends Seeder
             EmailTemplateSeeder::class,
             PrimaryLocationTypeSeeder::class,
             PrimaryLocationCodeSeeder::class,
+            NisDirectorySeeder::class,
         ]);
     }
 }

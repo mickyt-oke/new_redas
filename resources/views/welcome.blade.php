@@ -9,7 +9,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700|inter:400,500,600,700,800" rel="stylesheet">
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
+    @include('partials.head-meta')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @laravelPWA
 
     <style>
         /* Inline reveal styles for scroll animations */
@@ -27,6 +29,8 @@
     </style>
 </head>
 <body class="welcome-page">
+
+@include('partials.preloader')
 
 <!-- Sidebar Overlay (mobile) -->
 <div class="sidebar-overlay"></div>
@@ -47,6 +51,7 @@
             <a href="#features" class="nav-link-item">Features</a>
             <a href="#workflow" class="nav-link-item">Workflow</a>
             <a href="#roles"    class="nav-link-item">Access Levels</a>
+            <a href="{{ route('directory') }}" class="nav-link-item">Directory</a>
             <a href="{{ route('login') }}" class="nav-cta">
                 <i class="fas fa-sign-in-alt"></i> Access Portal
             </a>
@@ -263,6 +268,10 @@
             <div style="display:flex;gap:16px;justify-content:center;margin-bottom:8px;">
                 <a href="https://www.immigration.gov.ng" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.5);font-size:.78rem;text-decoration:none;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
                     <i class="fas fa-globe me-1"></i>immigration.gov.ng
+                </a>
+                <span style="color:rgba(255,255,255,0.2);">|</span>
+                <a href="{{ route('directory') }}" style="color:rgba(255,255,255,0.5);font-size:.78rem;text-decoration:none;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">
+                    <i class="fas fa-address-book me-1"></i>Directory
                 </a>
                 <span style="color:rgba(255,255,255,0.2);">|</span>
                 <span style="color:rgba(255,255,255,0.5);font-size:.78rem;"><i class="fas fa-lock me-1"></i>RESTRICTED — Internal Use</span>

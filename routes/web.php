@@ -17,6 +17,7 @@ Route::get('/home', function () {
 
 Route::view('/terms-and-conditions', 'legal.terms')->name('terms');
 Route::view('/privacy-policy', 'legal.privacy')->name('privacy');
+Route::get('/directory', [\App\Http\Controllers\Web\DirectoryController::class, 'index'])->name('directory');
 
 // Authentication Routes (guests only)
 Route::middleware('guest')->group(function () {
@@ -24,19 +25,19 @@ Route::middleware('guest')->group(function () {
         return view('login');
     })->name('login');
 
-    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:database')->name('login.submit');
 
     Route::get('/register', function () {
         return view('register');
     })->name('register');
 
-    Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:database')->name('register.submit');
 
     // Magic link verification + password reset (web)
     Route::get('/verify-email/{token}', [AuthTokenController::class, 'verifyEmail'])->name('verify.email');
-    Route::post('/password/forgot', [AuthTokenController::class, 'requestPasswordReset'])->name('password.forgot');
+    Route::post('/password/forgot', [AuthTokenController::class, 'requestPasswordReset'])->middleware('throttle:database')->name('password.forgot');
     Route::get('/password/reset/{token}', [AuthTokenController::class, 'showResetForm'])->name('password.reset.form');
-    Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->name('password.reset');
+    Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->middleware('throttle:database')->name('password.reset');
 });
 
 // State user (officer) routes — full access to all user pages
@@ -74,7 +75,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     Route::post('/user/archive/upload', function (\Illuminate\Http\Request $request) {
         return redirect()->route('user.archive')
             ->with('status', 'Document(s) uploaded to archive successfully.');
-    })->name('user.archive.store');
+    })->middleware('throttle:database')->name('user.archive.store');
 
     Route::get('/user/reports', function () {
         return view('user.reports');
@@ -83,7 +84,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     Route::post('/user/reports/generate', function (\Illuminate\Http\Request $request) {
         return redirect()->route('user.reports')
             ->with('status', 'Your report has been generated and is ready for download.');
-    })->name('user.reports.generate');
+    })->middleware('throttle:database')->name('user.reports.generate');
 
     Route::get('/user/profile', function () {
         return redirect()->route('user.dashboard');
@@ -92,7 +93,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
         return redirect()->route('user.submissions')
             ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
-    })->name('user.returns.store');
+    })->middleware('throttle:database')->name('user.returns.store');
 });
 
 // Directorate user routes — access only to directorate pages
@@ -106,7 +107,7 @@ Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,l
 
 Route::middleware(['auth', 'access:category=state_user|directorate_user|directorate_admin,location=state|directorate,role=user|admin|officer|directorate|minLevel=0'])->group(function () {
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
-    Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->name('user.directorates.store');
+    Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
 
     Route::get('/user/directorate/{id}', function ($id) {
         $legacyMap = [
@@ -142,7 +143,7 @@ Route::middleware(['auth', 'access:category=super_admin,location=headquarters,ro
     Route::post('/superadmin/users', function (\Illuminate\Http\Request $request) {
         return redirect()->route('superadmin.users')
             ->with('status', 'User created successfully.');
-    })->name('superadmin.users.store');
+    })->middleware('throttle:database')->name('superadmin.users.store');
 });
 
 // Supervisor dashboards (state and zonal share the same view)
@@ -172,4 +173,4 @@ Route::middleware(['auth', 'access:category=admin,location=headquarters,role=adm
 });
 
 // Logout
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('throttle:database')->name('logout');
