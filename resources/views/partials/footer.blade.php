@@ -693,39 +693,72 @@
 
 {{-- PROVOST/SECURITY UNIT JAVASCRIPT LOGIC --}}
 <script>
+// Section 2 and 3 on Staff Strength
 
-    const unitsBody = document.getElementById("provostUnitsBody");
-    const strengthBody = document.getElementById("staffStrengthBody");
-    const totalStrengthInput = document.getElementById("staffStrengthGrandTotal");
+const unitsBody = document.getElementById("provostUnitsBody");
+const strengthBody = document.getElementById("staffStrengthBody");
+const totalStrengthInput = document.getElementById("staffStrengthGrandTotal");
 
-    function renderStaffStrengthTable() {
+/*
+|--------------------------------------------------------------------------
+| STAFF STRENGTH
+|--------------------------------------------------------------------------
+*/
 
-        const existingStrengths = [];
+function calculateStaffStrengthTotal() {
 
-        document.querySelectorAll(".staff-strength-input").forEach(input => {
-            existingStrengths.push(input.value);
-        });
+    let total = 0;
 
-        strengthBody.innerHTML = "";
+    document.querySelectorAll(".staff-strength-input").forEach(input => {
 
-        document.querySelectorAll(".provost-unit-name").forEach((input, index) => {
+        total += Number(input.value) || 0;
+
+    });
+
+    totalStrengthInput.value = total;
+
+}
+
+function bindStrengthEvents() {
+
+    document.querySelectorAll(".staff-strength-input").forEach(input => {
+
+        input.oninput = calculateStaffStrengthTotal;
+
+    });
+
+}
+
+function renderStaffStrengthTable() {
+
+    const existingStrengths = [];
+
+    document.querySelectorAll(".staff-strength-input").forEach(input => {
+
+        existingStrengths.push(input.value);
+
+    });
+
+    strengthBody.innerHTML = "";
+
+    document.querySelectorAll(".provost-unit-name").forEach((input, index) => {
 
         const row = document.createElement("tr");
 
         row.innerHTML = `
+
             <td>${index + 1}</td>
 
             <td>
+
                 <input
-                    type="number"
-                    min="0"
-                    class="ni staff-strength-input"
-                    name="staff_strength[${index}][strength]"
-                    value="${existingStrengths[index] ?? 0}"
-                    placeholder="0"
+                    type="hidden"
+                    name="staff_strength[${index}][unit]"
+                    value="${input.value}"
                 >
 
                 ${input.value || "-"}
+
             </td>
 
             <td>
@@ -735,113 +768,137 @@
                     min="0"
                     class="ni staff-strength-input"
                     name="staff_strength[${index}][strength]"
-                    value="0"
+                    value="${existingStrengths[index] || ''}"
                     placeholder="0"
                 >
 
             </td>
+
         `;
 
         strengthBody.appendChild(row);
 
     });
 
-        bindStrengthEvents();
+    bindStrengthEvents();
 
-        calculateStaffStrengthTotal();
+    calculateStaffStrengthTotal();
 
-    }
+}
 
-    document.addEventListener("click", function (e) {
+/*
+|--------------------------------------------------------------------------
+| ADD SUB UNIT
+|--------------------------------------------------------------------------
+*/
 
-    const button = e.target.closest(".removeProvostUnit");
+document
+.getElementById("addProvostUnit")
+.addEventListener("click", function () {
 
-    if (!button) return;
+    const index = unitsBody.querySelectorAll("tr").length;
 
-    button.closest("tr").remove();
+    const row = document.createElement("tr");
 
-    // Re-number Section 2
-    document.querySelectorAll("#provostUnitsBody tr").forEach((row, index) => {
-        row.querySelector("td:first-child").textContent = index + 1;
-    });
+    row.classList.add("data-row");
 
-    // Rebuild Staff Strength table
+    row.innerHTML = `
+
+        <td>${index + 1}</td>
+
+        <td>
+
+            <input
+                type="text"
+                class="ni provost-unit-name"
+                name="provost_units[${index}][name]"
+                placeholder="Enter Sub Unit Name"
+            >
+
+        </td>
+
+        <td>
+
+            <button
+                type="button"
+                class="remove-row-btn removeProvostUnit"
+            >
+
+                <i class="fas fa-trash"></i>
+
+            </button>
+
+        </td>
+
+    `;
+
+    unitsBody.appendChild(row);
+
     renderStaffStrengthTable();
 
 });
 
+/*
+|--------------------------------------------------------------------------
+| UPDATE STAFF TABLE WHEN USER TYPES
+|--------------------------------------------------------------------------
+*/
 
-    function calculateStaffStrengthTotal() {
+document.addEventListener("input", function(e){
 
-        let total = 0;
+    if(!e.target.classList.contains("provost-unit-name")) return;
 
-        document.querySelectorAll(".staff-strength-input").forEach(input => {
+    renderStaffStrengthTable();
 
-            total += Number(input.value) || 0;
+});
 
-        });
+/*
+|--------------------------------------------------------------------------
+| DELETE SUB UNIT
+|--------------------------------------------------------------------------
+*/
 
-        totalStrengthInput.value = total;
+document.addEventListener("click", function(e){
+
+    const button = e.target.closest(".removeProvostUnit");
+
+    if(!button) return;
+
+    if(unitsBody.querySelectorAll("tr").length === 1){
+
+        alert("At least one Sub Unit is required.");
+
+        return;
 
     }
 
+    button.closest("tr").remove();
 
+    document.querySelectorAll("#provostUnitsBody tr")
+    .forEach((row,index)=>{
 
-    function bindStrengthEvents() {
+        row.querySelector("td").textContent = index + 1;
 
-        document.querySelectorAll(".staff-strength-input").forEach(input => {
-
-            input.addEventListener("input", calculateStaffStrengthTotal);
-
-        });
-
-    }
-
-
-    document.addEventListener("input", function (e) {
-
-        document.getElementById("addProvostUnit").addEventListener("click", function () {
-
-            const index = unitsBody.querySelectorAll("tr").length;
-
-            const row = document.createElement("tr");
-
-            row.classList.add("data-row");
-
-            row.innerHTML = `
-                <td>${index + 1}</td>
-
-                <td>
-                    <input
-                        type="text"
-                        class="ni provost-unit-name"
-                        name="provost_units[${index}][name]"
-                        placeholder="Enter Sub Unit Name"
-                    >
-                </td>
-            `;
-
-            unitsBody.appendChild(row);
-
-            renderStaffStrengthTable();
-
-        });
+        row.querySelector(".provost-unit-name")
+            .name = `provost_units[${index}][name]`;
 
     });
 
     renderStaffStrengthTable();
 
+});
+
+renderStaffStrengthTable();
 
     /*
-    |--------------------------------------------------------------------------
     | FIREARMS TABLES
-    |--------------------------------------------------------------------------
     |
     | Handles:
     | - Add Firearm Row
     | - Auto Numbering
     | - Total Firearm Types
     | - Total Ammunition
+    | - Delete Row
     |
     */
 
@@ -855,23 +912,29 @@
 
         if (!tbody) return;
 
-        function updateTotals() {
-
-            const rows = tbody.querySelectorAll("tr");
-
-            countInput.value = rows.length;
+       function updateTotals() {
 
             let ammoTotal = 0;
+
+            const rows = tbody.querySelectorAll("tr");
 
             rows.forEach((row, index) => {
 
                 row.querySelector("td:first-child").textContent = index + 1;
 
-                const ammo = row.querySelector(".firearm-ammo");
+                row.querySelector(".firearm-type").name =
+                    `${config.prefix}[${index}][type]`;
 
-                ammoTotal += Number(ammo.value) || 0;
+                row.querySelector(".firearm-ammo").name =
+                    `${config.prefix}[${index}][ammunition]`;
+
+                ammoTotal += Number(
+                    row.querySelector(".firearm-ammo").value
+                ) || 0;
 
             });
+
+            countInput.value = rows.length;
 
             ammoTotalInput.value = ammoTotal;
 
@@ -887,6 +950,18 @@
 
         });
 
+        tbody.addEventListener("click", function (e) {
+
+            const button = e.target.closest(".remove-firearm-row");
+
+            if (!button) return;
+
+            button.closest("tr").remove();
+
+            updateTotals();
+
+        });
+
         document.querySelector(`[data-body="${config.body}"]`)
             .addEventListener("click", function () {
 
@@ -897,32 +972,36 @@
                 row.classList.add("data-row");
 
                 row.innerHTML = `
-                <td>${index + 1}</td>
+                    <td>${index + 1}</td>
 
-                <td>
+                    <td>
+                        <input
+                            type="text"
+                            class="ni firearm-type"
+                            name="${config.prefix}[${index}][type]"
+                        >
+                    </td>
 
-                    <input
-                        type="text"
-                        class="ni firearm-type"
-                        name="${config.prefix}[${index}][type]"
-                        placeholder="Firearm Type"
-                    >
+                    <td>
+                        <input
+                            type="number"
+                            min="0"
+                            class="ni firearm-ammo"
+                            name="${config.prefix}[${index}][ammunition]"
+                        >
+                    </td>
 
-                </td>
+                    <td>
 
-                <td>
+                        <button
+                            type="button"
+                            class="btn-icon btn-danger remove-firearm-row"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
 
-                    <input
-                        type="number"
-                        min="0"
-                        class="ni firearm-ammo"
-                        name="${config.prefix}[${index}][ammunition]"
-                        placeholder="0"
-                    >
-
-                </td>
-
-            `;
+                    </td>
+                    `;
 
                 tbody.appendChild(row);
 
@@ -983,24 +1062,36 @@
 
     function initialiseSimpleDynamicTable(config) {
 
-        const tbody = document.getElementById(config.body);
+    const tbody = document.getElementById(config.body);
 
-        if (!tbody) return;
+    if (!tbody) return;
 
-        const addButton = document.querySelector(
-            `[data-body="${config.body}"]`
-        );
+    const addButton = document.querySelector(
+        `[data-body="${config.body}"]`
+    );
 
-        addButton.addEventListener("click", function () {
+    function refreshRows() {
 
-            const index = tbody.querySelectorAll("tr").length;
+        tbody.querySelectorAll("tr").forEach((row, index) => {
 
-            const row = document.createElement("tr");
+            row.querySelector("td:first-child").textContent = index + 1;
 
-            row.classList.add("data-row");
+            row.querySelector("input").name =
+                `${config.prefix}[${index}][description]`;
 
-            row.innerHTML = `
+        });
 
+    }
+
+    addButton.addEventListener("click", function () {
+
+        const index = tbody.querySelectorAll("tr").length;
+
+        const row = document.createElement("tr");
+
+        row.classList.add("data-row");
+
+        row.innerHTML = `
             <td>${index + 1}</td>
 
             <td>
@@ -1012,15 +1103,39 @@
                     placeholder="${config.placeholder}"
                 >
 
-            </td>
+                    </td>
 
-        `;
+                    <td>
 
-            tbody.appendChild(row);
+                        <button
+                            type="button"
+                            class="btn-icon btn-danger remove-simple-row"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
 
-        });
+                    </td>
+                `;
 
-    }
+                tbody.appendChild(row);
+
+            });
+
+            tbody.addEventListener("click", function (e) {
+
+                const button = e.target.closest(".remove-simple-row");
+
+                if (!button) return;
+
+                button.closest("tr").remove();
+
+                refreshRows();
+
+            });
+
+            refreshRows();
+
+        }
 
 
     initialiseSimpleDynamicTable({
