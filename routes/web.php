@@ -49,6 +49,14 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
         return view('user.create-return');
     })->name('user.returns.create');
 
+    Route::get('/user/cgis/actu', function () {
+        return view('user.cgis.actu');
+    })->name('user.cgis.actu');
+
+    Route::get('/user/cgis/provost', function () {
+        return view('user.cgis.provost');
+    })->name('user.cgis.provost');
+
     Route::get('/user/submissions', function () {
         return view('user.submissions');
     })->name('user.submissions');
