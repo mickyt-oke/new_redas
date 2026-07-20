@@ -46,8 +46,25 @@
     </div>
 
     <!-- ═══ FORM ═══ -->
-    <form id="returnForm" method="POST" action="{{ url('/user/returns') }}" enctype="multipart/form-data">
+    <form id="returnForm" method="POST" action="{{ route('user.returns.store') }}" enctype="multipart/form-data">
         @csrf
+
+        <!-- Data Protection Notice -->
+        <div class="redas-content" style="padding-bottom:0;padding-top:16px;">
+            <div class="redas-card" style="border-left:4px solid #1d4ed8;">
+                <div class="card-body" style="font-size:.82rem;color:var(--gray-600);">
+                    <div style="display:flex;align-items:flex-start;gap:12px;">
+                        <i class="fas fa-shield-alt" style="color:#1d4ed8;font-size:1.1rem;margin-top:2px;"></i>
+                        <div>
+                            <strong style="color:#1e3a8a;display:block;margin-bottom:4px;">Data Protection Notice</strong>
+                            This return may contain operational and limited personal data. Provide only information that is adequate, relevant, and necessary for NIS reporting.
+                            Submitted data is processed for official oversight and is retained in line with NIS archival policy and applicable data-protection law.
+                            <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Read the Privacy Policy</a>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ── HEADER (always visible) ── -->
         <div class="redas-content" style="padding-bottom:0;padding-top:16px;">
@@ -714,6 +731,13 @@
                             <input type="date" name="sig_date" class="ni" value="{{ now()->format('Y-m-d') }}" style="max-width:200px;" required>
                         </div>
                         <p style="font-size:.76rem;color:var(--gray-500);margin-top:8px;margin-bottom:0;"><i class="fas fa-lock" style="color:var(--nis-600);"></i> By submitting this return, I certify that the information provided is accurate and complete to the best of my knowledge, in compliance with NIS reporting standards.</p>
+                        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.84rem;color:var(--gray-700);margin-top:12px;">
+                            <input type="checkbox" name="data_consent" value="1" required style="accent-color:var(--nis-600);margin-top:2px;">
+                            <span>
+                                I confirm that the data provided is limited to what is necessary for official NIS reporting, and that I have authority to submit it.
+                                I understand the data will be processed and retained in accordance with the <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Privacy Policy</a>.
+                            </span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -746,7 +770,6 @@
         </div>
 
     </form>
-</div><!-- /redas-main -->
 
 <!-- ═══ PREVIEW MODAL ═══
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">

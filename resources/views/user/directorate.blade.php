@@ -241,6 +241,6 @@
                 </div>
             </div>
         </div>
-
+    </main>
 
 @include('partials.footer')

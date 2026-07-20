@@ -7,7 +7,7 @@
                 <h1 class="page-title">My Submissions</h1>
                 <p class="page-subtitle">Track the status of all your operational returns.</p>
             </div>
-            <a href="{{ url('/user/returns/create') }}" class="btn-nis btn-primary-nis">
+            <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis">
                 <i class="fas fa-plus"></i> New Return
             </a>
         </div>
@@ -129,7 +129,7 @@
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     @if($status === 'queried')
-                                    <a href="{{ url('/user/returns/create') }}" class="btn-nis btn-sm" style="background:var(--gold-50);border:1px solid var(--gold-300);color:var(--gold-700);padding:4px 8px;" title="Edit & Resubmit">
+                                    <a href="{{ route('user.returns.create') }}" class="btn-nis btn-sm" style="background:var(--gold-50);border:1px solid var(--gold-300);color:var(--gold-700);padding:4px 8px;" title="Edit & Resubmit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     @endif
@@ -226,7 +226,7 @@
             <div class="modal-footer" style="border-top:1px solid var(--gray-100);padding:12px 20px;gap:8px;">
                 <button class="btn-nis btn-ghost btn-sm" data-bs-dismiss="modal">Close</button>
                 <button class="btn-nis btn-outline-nis btn-sm" id="downloadBtn"><i class="fas fa-download"></i> Download PDF</button>
-                <a id="editBtn" href="{{ url('/user/returns/create') }}" class="btn-nis btn-sm" style="display:none;background:var(--gold-50);border:1px solid var(--gold-400);color:var(--gold-700);">
+                <a id="editBtn" href="{{ route('user.returns.create') }}" class="btn-nis btn-sm" style="display:none;background:var(--gold-50);border:1px solid var(--gold-400);color:var(--gold-700);">
                     <i class="fas fa-edit"></i> Edit &amp; Resubmit
                 </a>
             </div>

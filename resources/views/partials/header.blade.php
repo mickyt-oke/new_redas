@@ -52,18 +52,18 @@
             <span class="link-text">Dashboard</span>
         </a>
 
-        <a href="{{ url('/user/returns/create') }}" class="sidebar-link {{ request()->is('user/returns/create') ? 'active' : '' }}">
+        <a href="{{ route('user.returns.create') }}" class="sidebar-link {{ request()->is('user/returns/create') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-plus-circle"></i></span>
             <span class="link-text">Submit New Return</span>
         </a>
 
-        <a href="{{ url('/user/submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
+        <a href="{{ route('user.submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-inbox"></i></span>
             <span class="link-text">My Submissions</span>
             <span class="link-badge">3</span>
         </a>
 
-        <a href="{{ url('/user/notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
+        <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-bell"></i></span>
             <span class="link-text">Notifications</span>
             <span class="link-badge danger">2</span>
@@ -107,7 +107,7 @@
                         <div class="notif-time">1d ago</div>
                     </div>
                     <div style="padding:10px;text-align:center;border-top:1px solid var(--gray-100);">
-                        <a href="{{ url('/user/notifications') }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all</a>
+                        <a href="{{ route('user.notifications') }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all</a>
                     </div>
                 </div>
             </div>
@@ -122,7 +122,7 @@
                 </button>
                 <div id="userMenuDrop" onclick="event.stopPropagation()" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:190px;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);border:1px solid var(--gray-100);z-index:200;overflow:hidden;">
                     @if(auth()->user()?->role !== 'directorate')
-                    <a href="{{ url('/user/profile') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;">
+                    <a href="{{ route('user.profile') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;">
                         <i @class(['fas', 'fa-user-cog']) style="color:var(--gray-400);width:16px;"></i> Profile
                     </a>
                     @endif

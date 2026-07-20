@@ -11,7 +11,7 @@
                     {{ now()->format('l, d F Y') }}
                 </p>
             </div>
-            <a href="{{ url('/user/returns/create') }}" class="btn-nis btn-primary-nis">
+            <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis">
                 <i class="fas fa-plus"></i> Submit New Return
             </a>
         </div>
@@ -25,7 +25,7 @@
                 <strong style="color:#92400e;font-size:.9rem;">Monthly Return Due — {{ now()->endOfMonth()->format('d F Y') }}</strong>
                 <p style="color:#b45309;font-size:.8rem;margin:0;">Submit your {{ now()->format('F Y') }} operational return before the deadline to avoid penalties.</p>
             </div>
-            <a href="{{ url('/user/returns/create') }}" style="background:#f59e0b;color:white;padding:8px 16px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:700;text-decoration:none;flex-shrink:0;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+            <a href="{{ route('user.returns.create') }}" style="background:#f59e0b;color:white;padding:8px 16px;border-radius:var(--radius-sm);font-size:.82rem;font-weight:700;text-decoration:none;flex-shrink:0;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
                 Submit Now
             </a>
         </div>
@@ -120,7 +120,7 @@
                         <div class="card-head-icon" style="background:var(--nis-50);color:var(--nis-600);"><i class="fas fa-inbox"></i></div>
                         Recent Submissions
                     </div>
-                    <a href="{{ url('/user/submissions') }}" class="btn-nis btn-ghost btn-sm">View All</a>
+                    <a href="{{ route('user.submissions') }}" class="btn-nis btn-ghost btn-sm">View All</a>
                 </div>
                 <div class="card-body no-pad">
                     <table class="redas-table searchable-table" id="submissionsTable">
@@ -200,10 +200,10 @@
                         </div>
                     </div>
                     <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
-                        <a href="{{ url('/user/returns/create') }}" class="btn-nis btn-primary-nis full-width">
+                        <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis full-width">
                             <i class="fas fa-plus-circle"></i> Submit Monthly Return
                         </a>
-                        <a href="{{ url('/user/returns/create?type=quarterly') }}" class="btn-nis btn-outline-nis full-width">
+                        <a href="{{ route('user.returns.create', ['type' => 'quarterly']) }}" class="btn-nis btn-outline-nis full-width">
                             <i class="fas fa-calendar-alt"></i> Submit Quarterly Return
                         </a>
                         <a href="{{ route('user.archive') }}" class="btn-nis btn-ghost full-width">
@@ -212,7 +212,7 @@
                         <a href="{{ route('user.reports') }}" class="btn-nis btn-ghost full-width">
                             <i class="fas fa-file-export"></i> Generate Report
                         </a>
-                        <a href="{{ url('/user/profile') }}" class="btn-nis btn-ghost full-width">
+                        <a href="{{ route('user.profile') }}" class="btn-nis btn-ghost full-width">
                             <i class="fas fa-user-cog"></i> Update Profile
                         </a>
                     </div>
@@ -227,7 +227,7 @@
                     <div class="card-head-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-bell"></i></div>
                     Recent Notifications
                 </div>
-                <a href="{{ url('/user/notifications') }}" class="btn-nis btn-ghost btn-sm">View All</a>
+                <a href="{{ route('user.notifications') }}" class="btn-nis btn-ghost btn-sm">View All</a>
             </div>
             <div class="card-body no-pad">
                 @foreach([

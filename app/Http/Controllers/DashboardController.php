@@ -19,7 +19,7 @@ class DashboardController extends Controller
             ['message' => 'Your profile has been updated successfully.', 'type' => 'success'],
         ];
 
-        return view('user.notifications', compact('notifications'));
+        return view('user.states.notifications', compact('notifications'));
     }
 
     /**
@@ -33,6 +33,6 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('user.submissions', compact('submissions'));
+        return view('user.states.submissions', compact('submissions'));
     }
 }

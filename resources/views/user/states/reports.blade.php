@@ -17,6 +17,20 @@
         </div>
         @endif
 
+        <!-- Data Protection Notice -->
+        <div class="redas-card" style="margin-bottom:24px;border-left:4px solid #1d4ed8;">
+            <div class="card-body" style="font-size:.82rem;color:var(--gray-600);">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                    <i class="fas fa-shield-alt" style="color:#1d4ed8;font-size:1.1rem;margin-top:2px;"></i>
+                    <div>
+                        <strong style="color:#1e3a8a;display:block;margin-bottom:4px;">Data Protection Notice</strong>
+                        Generated reports may contain operational or limited personal data. Only generate and share reports with authorised recipients in accordance with NIS confidentiality and data-protection directives.
+                        <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Read the Privacy Policy</a>.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid-2" style="margin-bottom:24px;">
 
             <!-- Report Builder -->
@@ -28,7 +42,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url('/user/reports/generate') }}" id="reportForm">
+                    <form method="POST" action="{{ route('user.reports.generate') }}" id="reportForm">
                         @csrf
 
                         <div class="fg" style="margin-bottom:14px;">

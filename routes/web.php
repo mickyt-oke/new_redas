@@ -47,15 +47,15 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     })->name('user.dashboard');
 
     Route::get('/user/returns/create', function () {
-        return view('user.create-return');
+        return view('user.states.create-return');
     })->name('user.returns.create');
 
     Route::get('/user/submissions', function () {
-        return view('user.submissions');
+        return view('user.states.submissions');
     })->name('user.submissions');
 
     Route::get('/user/notifications', function () {
-        return view('user.notifications');
+        return view('user.states.notifications');
     })->name('user.notifications');
 
     // Realtime-friendly notifications endpoints (session auth)
@@ -65,23 +65,39 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     Route::post('/user/notifications/{id}/read', [ApiNotificationController::class, 'markRead']);
 
     Route::get('/user/archive', function () {
-        return view('user.archive');
+        return view('user.states.archive');
     })->name('user.archive');
 
     Route::get('/user/archive/upload', function () {
-        return view('user.archive');
+        return view('user.states.archive');
     })->name('user.archive.upload');
 
     Route::post('/user/archive/upload', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'doc_type' => ['required', 'string', 'max:50'],
+            'documents' => ['nullable', 'array'],
+            'documents.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:20480'],
+            'data_consent' => ['required', 'accepted'],
+        ]);
+
         return redirect()->route('user.archive')
             ->with('status', 'Document(s) uploaded to archive successfully.');
     })->middleware('throttle:database')->name('user.archive.store');
 
     Route::get('/user/reports', function () {
-        return view('user.reports');
+        return view('user.states.reports');
     })->name('user.reports');
 
     Route::post('/user/reports/generate', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'report_type' => ['required', 'in:submission_summary,monthly_return,quarterly_return,annual_return,compliance_report,full_export'],
+            'date_from' => ['required', 'date'],
+            'date_to' => ['required', 'date', 'after_or_equal:date_from'],
+            'sections' => ['nullable', 'array'],
+            'format' => ['required', 'in:pdf,excel,csv'],
+        ]);
+
         return redirect()->route('user.reports')
             ->with('status', 'Your report has been generated and is ready for download.');
     })->middleware('throttle:database')->name('user.reports.generate');
@@ -91,6 +107,14 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     })->name('user.profile');
 
     Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'command_name' => ['required', 'string', 'max:120'],
+            'period' => ['required', 'date_format:Y-m'],
+            'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
+            'reporting_officer' => ['required', 'string', 'max:120'],
+            'data_consent' => ['required', 'accepted'],
+        ]);
+
         return redirect()->route('user.submissions')
             ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
     })->middleware('throttle:database')->name('user.returns.store');
