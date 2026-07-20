@@ -36,4 +36,6 @@
     </div>
 </div>
 
+<div>Hello world </div>
+
 @endsection
