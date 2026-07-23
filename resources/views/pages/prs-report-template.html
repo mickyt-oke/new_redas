@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Report - Planning Research and Statistics</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        /* PRS-specific color scheme */
+        .top-nav { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
+        .btn-primary { background: linear-gradient(135deg, #ea580c, #f97316); border: none; }
+        .btn-primary:hover { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .nav-item.active { background: rgba(234, 88, 12, 0.08); color: #ea580c; }
+        .nav-item.active::before { background: #ea580c; }
+
+        .form-section-title { font-size: 1.1rem; font-weight: 700; color: #4a5568; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+
+        /* Dark Mode Styles */
+        body.dark-mode { background-color: #111827 !important; color: #f3f4f6; }
+        body.dark-mode .bg-white { background-color: #1f2937 !important; color: #f3f4f6; }
+        body.dark-mode .text-muted { color: #9ca3af !important; }
+        body.dark-mode .border-bottom { border-color: #374151 !important; }
+        body.dark-mode .table { color: #f3f4f6; }
+        body.dark-mode .table-hover tbody tr:hover { color: #f3f4f6; background-color: #374151; }
+        body.dark-mode .form-control, body.dark-mode .form-select { background-color: #374151; border-color: #4b5563; color: #f3f4f6; }
+        body.dark-mode .list-group-item { background-color: transparent; color: #d1d5db; }
+        body.dark-mode .list-group-item.active { color: #10b981; }
+        body.dark-mode .top-nav { background: linear-gradient(135deg, #1f2937 0%, #374151 100%); }
+        body.dark-mode .sidebar { background: #1f2937; }
+        body.dark-mode .nav-item { color: #d1d5db; }
+        body.dark-mode .nav-item.active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        body.dark-mode .main-content { background: #111827; }
+        body.dark-mode .section-card { background: #1f2937; border-color: #374151; }
+        body.dark-mode .table-bordered { border-color: #374151; }
+        body.dark-mode .table-bordered th, body.dark-mode .table-bordered td { border-color: #374151; }
+        body.dark-mode .btn-primary { background: linear-gradient(135deg, #7c3aed, #c084fc); border: none; }
+        body.dark-mode .btn-warning { background: #f59e0b; border: none; }
+        body.dark-mode .btn-secondary { background: #6b7280; border: none; }
+        body.dark-mode .btn-outline-primary { border-color: #7c3aed; color: #c084fc; }
+        body.dark-mode .btn-outline-primary:hover { background: #7c3aed; color: white; }
+        body.dark-mode .form-section-title { color: #e5e7eb; border-bottom-color: #374151; }
+        body.dark-mode .report-header { background: linear-gradient(to bottom, #374151, #1f2937); border-color: #4b5563; }
+        body.dark-mode .report-title { color: #f3f4f6; }
+        body.dark-mode .report-subtitle { color: #e5e7eb; }
+        body.dark-mode .report-meta { color: #d1d5db; }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="container-fluid">
+            <div class="nav-wrapper">
+                <div class="nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div class="nav-logo">
+                        <img src="../assets/images/nis-logo.png" alt="NIS Logo">
+                    </div>
+                    <h1 class="nav-brand">NIS REDAS</h1>
+                </div>
+                <div class="nav-right">
+                    <div class="user-menu" role="button" tabindex="0" onclick="window.location.href='user-profile.html'">
+                        <div class="user-avatar">PRS</div>
+                        <div class="user-details">
+                            <span class="user-name">Planning Research and Statistics</span>
+                            <span class="user-role">Officer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard-hq.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Back to HQ Dashboard</span>
+                </a>
+                <a href="prs-dashboard.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="prs-report-template.html" class="nav-item active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Report Submission</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <span>Supervisor Approvals</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="section-card">
+                    <div class="text-center mb-4">
+                        <h2>NIGERIA IMMIGRATION SERVICE</h2>
+                        <h3>PLANNING,RESEARCH AND STATISTICS</h3>
+                        <h4>REPORTING TEMPLATE</h4>
+                        <h5>FOR MONTHLY,QUARTERLY BI-ANNUAL AND ANNUAL REPORT</h5>
+                    </div>
+
+                    <form id="prsReportForm">
+                        <h4>PLANNING RESEARCH AND STATISTICS:</h4>
+                        <label>PERIOD OF RETURN:</label> <input type="text" class="form-control mb-3">
+                        <label>DIRECTORATE PERSONNEL STRENGTH:(Current nominal roll to be attached)</label>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th></th><th>NUMBER</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Compt.Cadre</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>Superintendent Cadre</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>Inspectorate Cadre</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>Assistant Cadre</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>TOTAL</td><td><input type="number" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4>RESEARCH AND STATISTICS:</h4>
+                        <h5>RESEARCH:</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>S/N</th><th>RESEARCH TOPIC</th><th>RESEARCH OBJECTIVE</th><th>COST IMPLICATION</th><th>REMARK</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>2</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>3</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>4</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>5</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>6</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>7</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>8</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>9</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>10</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>S/N</th><th>RESEARCH TOPIC</th><th>NAMEOF THE RESEARCHER</th><th>NAME OF THE INSTITUTION</th><th>RESEARCH OBJECTIVE</th><th>REMARK</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>2</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>3</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>4</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>5</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+                        <h5>UPDATE ON NOMINAL ROLL:</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>S/NO.</th><th>ACTIVITIES</th><th>NO.OF CASES TREATED</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1.</td><td>change of name</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>2.</td><td>change of next of kin</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>3.</td><td>mandatory retirement</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>4.</td><td>Academic records update</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>5.</td><td>Harmonization of records</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>6.</td><td>Deceased</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td></td><td>Total</td><td><input type="number" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4>MONITORING AND EVALUATION:</h4>
+                        <h5>PERSONNEL/FINANCIAL REPORT:</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>S/N</th><th>ACTIVITIES</th><th>NUMBER</th><th>REMARK</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1.</td><td>Number of personnel exit for the period</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>2.</td><td>Number of personnel trained for the period</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>3</td><td>Personnel award for the period</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>4</td><td>Project implementation for the period</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>5.</td><td>Amount generated from operations/services for the period</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>6.</td><td>Number of projects completed for the period</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>7</td><td>Amount of expenditure on overhead</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>8.</td><td>Amount of expenditure on capital</td><td><input type="number" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+                        <h5>ICT MONITORING ACTIVITIES:</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>S/N</th><th>ACTIVITIES</th><th>NUMBER</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1.</td><td>Number of persons watch listed for the period</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>2.</td><td>Stolen/lost passport watch listed for the period</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>3.</td><td>Number of persons exempted from watch list</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>4.</td><td>Number of persons vacated from watch list</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>5.</td><td>Number of persons cleared for VoA facilities</td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>6.</td><td>Number of persons cleared for TWP facilities</td><td><input type="number" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+                        <h5>E-DOCUMENTATION/ID CARD ACTIVITIES:</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th></th><th>SHQ</th><th>ZONE 'A'</th><th>ZONE 'B'</th><th>ZONE 'C'</th><th>ZONE 'D'</th><th>ZONE 'E'</th><th>ZONE 'F'</th><th>ZONE 'G'</th><th>ZONE 'H'</th><th>ICSC</th><th>ITSK</th><th>NITSOL</th><th>NITSA</th><th>TOTAL</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>DCG</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>ACG</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>CIS</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>DCI</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>ACI</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>CSI</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>SI</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>DSI</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>ASI1</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>ASI2</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>II</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>AII</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>CIA</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>SIA</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>IA1</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>IA2</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>IA3</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                                <tr><td>TOTAL</td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td><td><input type="number" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+                        <h5>MIDAS DEPLOYMENT:</h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>S/N</th><th>STATE COMMAND</th><th>LOCATION</th><th>LOCATION</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>2</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>3</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>7</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>8</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>9</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>10</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>11</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                                <tr><td>12</td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td><td><input type="text" class="form-control"></td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4>GENERAL REPORT</h4>
+                        <div class="mb-3">
+                            <label>i. Other Reports</label>
+                            <textarea class="form-control" rows="3" name="otherReports"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>ii. Challenges</label>
+                            <small class="text-muted d-block">Pictures can be attached & clearly labeled or explained</small>
+                            <textarea class="form-control" rows="3" name="challenges"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>iii. Recommendations/way forward.</label>
+                            <textarea class="form-control" rows="3" name="recommendations"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label>iv. Conclusion.</label>
+                            <textarea class="form-control" rows="3" name="conclusion"></textarea>
+                        </div>
+
+                        <h5>NAME AND SIGNATURE OF THE REPORTING OFFICER:</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label>SIGNATURE:</label>
+                                <input type="text" class="form-control" name="signature">
+                            </div>
+                            <div class="col-md-6">
+                                <label>NAME:</label>
+                                <input type="text" class="form-control" name="officerName">
+                            </div>
+                            <div class="col-md-6">
+                                <label>RANK:</label>
+                                <input type="text" class="form-control" name="rank">
+                            </div>
+                            <div class="col-md-6">
+                                <label>GSM NUMBER:</label>
+                                <input type="text" class="form-control" name="gsmNumber">
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-warning" onclick="clearForm()">Clear Form</button>
+                            <button type="button" class="btn btn-secondary" onclick="saveDraft()">Save Draft</button>
+                            <button type="button" class="btn btn-primary" onclick="submitReport()">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script>
+        function clearForm() {
+            if (confirm('Are you sure you want to clear the form? All data will be lost.')) {
+                document.getElementById('prsReportForm').reset();
+            }
+        }
+
+        function saveDraft() {
+            // Save form data to localStorage
+            const formData = new FormData(document.getElementById('prsReportForm'));
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            localStorage.setItem('prsDraft', JSON.stringify(data));
+            alert('Draft saved successfully!');
+        }
+
+        function submitReport() {
+            // Submit form data
+            alert('Report submitted successfully!');
+            // Here you would typically send the data to a server
+        }
+
+        // Load draft on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const draft = localStorage.getItem('prsDraft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                const form = document.getElementById('prsReportForm');
+                for (let key in data) {
+                    const element = form.querySelector(`[name="${key}"]`);
+                    if (element) {
+                        element.value = data[key];
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
