@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry - REDAS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../assets/images/nis.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+    <!-- Fixed NIS Logo -->
+    <div style="position: fixed; top: 10px; left: 10px; z-index: 9999;">
+        <img src="../assets/images/nis.png" alt="NIS Logo" style="height: 40px;">
+    </div>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom" id="sidebarHeader">
+                <img src="../assets/images/nis.png" alt="Logo" class="me-2" style="height: 40px;">REDAS
+            </div>
+            <div class="list-group list-group-flush my-3">
+                <a href="dashboard-hq.html" id="dashboardLink" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </a>
+                <a href="data-entry.html" class="list-group-item list-group-item-action bg-transparent second-text active">
+                    <i class="fas fa-edit me-2"></i>Data Entry
+                </a>
+                <a href="report-generation.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-chart-pie me-2"></i>Report Generation
+                </a>
+                <a href="nominal-roll.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-users me-2"></i>Nominal Roll
+                </a>
+                <a href="directorate.html" id="directorateLink" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-sitemap me-2"></i>Directorates
+                </a>
+                <a href="REDAS.html" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-info-circle me-2"></i>About REDAS
+                </a>
+
+                <hr class="mx-3">
+
+                <a href="profile-setting.html" id="profileLink" class="list-group-item list-group-item-action bg-transparent second-text fw-bold">
+                    <i class="fas fa-user-cog me-2"></i>Profile Settings
+                </a>
+                <a href="../index.html" class="list-group-item list-group-item-action bg-transparent text-danger fw-bold">
+                    <i class="fas fa-power-off me-2"></i>Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-white py-3 px-4 border-bottom">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-align-left primary-text fs-4 me-3" id="menu-toggle"></i>
+                    <h2 class="fs-2 m-0">Data Entry</h2>
+                </div>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle second-text fw-bold" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user me-2"></i>DCI Jane Doe
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="profile-setting.html">Profile</a></li>
+                                <li><a class="dropdown-item" href="../index.html">Logout</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="container-fluid px-4">
+                <div class="row my-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-success text-white text-center py-3">
+                                <h4 class="fw-bold mb-0">NIGERIA IMMIGRATION SERVICE</h4>
+                                <h5 class="mb-0">NIS REPORTING TEMPLATE</h5>
+                                <p class="mb-0 small">FOR MONTHLY, QUARTERLY, BI-ANNUAL AND ANNUAL REPORT</p>
+                            </div>
+                            <div class="card-body p-4">
+                                <form id="nisReportForm" class="needs-validation" novalidate>
+                                    
+                                    <!-- A. Header Info -->
+                                    <div class="bg-light p-3 rounded border mb-4">
+                                        <h6 class="fw-bold text-success mb-3">A. STATES, ZONAL AND SPECIAL COMMANDS</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-8">
+                                                <label class="form-label fw-bold">NAME OF THE COMMAND (ZONE/STATE/SPECIAL):</label>
+                                                <select class="form-select" name="commandName" required>
+                                                    <option value="">Select Command</option>
+                                                    <optgroup label="Zones">
+                                                        <option value="Zone A Lagos">Zone A Lagos</option>
+                                                        <option value="Zone B Kaduna">Zone B Kaduna</option>
+                                                        <option value="Zone C Abuja">Zone C Bauchi</option>
+                                                        <option value="Zone D Enugu">Zone D Niger</option>
+                                                        <option value="Zone E Owerri">Zone E Owerri</option>
+                                                        <option value="Zone F Ibadan">Zone F Ibadan</option>
+                                                        <option value="Zone F Edo">Zone G Edo</option>
+                                                        <option value="Zone F Benue">Zone H Benue</option>
+                                                    </optgroup>
+                                                    <optgroup label="States">
+                                                        <option value="Abia State">Abia State</option>
+                                                        <option value="Adamawa State">Adamawa State</option>
+                                                        <option value="Akwa Ibom State">Akwa Ibom State</option>
+                                                        <option value="Anambra State">Anambra State</option>
+                                                        <option value="Bauchi State">Bauchi State</option>
+                                                        <option value="Bayelsa State">Bayelsa State</option>
+                                                        <option value="Benue State">Benue State</option>
+                                                        <option value="Borno State">Borno State</option>
+                                                        <option value="Cross River State">Cross River State</option>
+                                                        <option value="Delta State">Delta State</option>
+                                                        <option value="Ebonyi State">Ebonyi State</option>
+                                                        <option value="Edo State">Edo State</option>
+                                                        <option value="Ekiti State">Ekiti State</option>
+                                                        <option value="Enugu State">Enugu State</option>
+                                                        <option value="Gombe State">Gombe State</option>
+                                                        <option value="Imo State">Imo State</option>
+                                                        <option value="Jigawa State">Jigawa State</option>
+                                                        <option value="Kaduna State">Kaduna State</option>
+                                                        <option value="Kano State">Kano State</option>
+                                                        <option value="Katsina State">Katsina State</option>
+                                                        <option value="Kebbi State">Kebbi State</option>
+                                                        <option value="Kogi State">Kogi State</option>
+                                                        <option value="Kwara State">Kwara State</option>
+                                                        <option value="Lagos State">Lagos State</option>
+                                                        <option value="Nasarawa State">Nasarawa State</option>
+                                                        <option value="Niger State">Niger State</option>
+                                                        <option value="Ogun State">Ogun State</option>
+                                                        <option value="Ondo State">Ondo State</option>
+                                                        <option value="Osun State">Osun State</option>
+                                                        <option value="Oyo State">Oyo State</option>
+                                                        <option value="Plateau State">Plateau State</option>
+                                                        <option value="Rivers State">Rivers State</option>
+                                                        <option value="Sokoto State">Sokoto State</option>
+                                                        <option value="Taraba State">Taraba State</option>
+                                                        <option value="Yobe State">Yobe State</option>
+                                                        <option value="Zamfara State">Zamfara State</option>
+                                                        <option value="Federal Capital Territory">Federal Capital Territory</option>
+                                                    </optgroup>
+                                                    <optgroup label="Special Commands">
+                                                        <option value="Murtala Muhammed Airport Command">Murtala Muhammed International Airport Lagos</option>
+                                                        <option value="Nnamdi Azikiwe International Airport Command">Nnamdi Azikiwe International Airport Abuja</option>
+                                                        <option value="Mallam Aminu Kano International Airport Command">Mallam Aminu Kano International Airport Kano</option>
+                                                        <option value="Port Harcourt International Airport Command">Port Harcourt International Airport River</option>
+                                                        <option value="Seme Border Command">Seme Border Command</option>
+                                                        <option value="Idiroko Border Command">Idiroko Border Command</option>
+                                                        <option value="Illela Border Command">Illela Border Command Sokoto</option>
+                                                        <option value="Maiduguri Border Command">Mfum Border Command Calabar</option>
+                                                        <option value="Railway Command Lagos">Lagos Marine command</option>
+                                                        <option value="Railway Command Kano">Jibia Border Command Katsina</option>
+                                                        <option value="Immigration Training School">Immigration Training School Kano ITSK</option>
+                                                        <option value="Immigration Training School">Immigration Training School AHOADA NITSA</option>
+                                                        <option value="Immigration Training School">Immigration Training School Orlu NITSOL</option>
+                                                        <option value="Immigration Training School">Immigration Command and Staff College Sokoto ICSC</option>
+                                                        <option value="NIS Headquarters Special Command">Lagos Passport Command</option>
+                                                    </optgroup>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">PERIOD OF RETURN:</label>
+                                                <input type="month" class="form-control" required>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 1. Staff Strength -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">1. STAFF STRENGTH (Current nominal roll to be attached)</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>Cadre</th><th>NUMBER</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>Comptroller Cadre</td><td><input type="number" class="form-control form-control-sm staff-input"></td></tr>
+                                                <tr><td>Superintendent Cadre</td><td><input type="number" class="form-control form-control-sm staff-input"></td></tr>
+                                                <tr><td>Inspectorate Cadre</td><td><input type="number" class="form-control form-control-sm staff-input"></td></tr>
+                                                <tr><td>Assistant Cadre</td><td><input type="number" class="form-control form-control-sm staff-input"></td></tr>
+                                                <tr class="fw-bold table-secondary"><td>TOTAL</td><td><input type="number" class="form-control form-control-sm" id="staff-total" readonly></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 2. General Services -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">2. GENERAL SERVICES</h5>
+                                    
+                                    <h6 class="fw-bold mt-3">A. ARMS/ARMOURY RETURNS:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm align-middle">
+                                            <thead class="table-light">
+                                                <tr><th>S/N</th><th>TYPES</th><th>CONDITION</th><th>NUMBERS</th><th>TOTAL</th><th>GRAND TOTAL</th></tr>
+                                            </thead>
+                                            <tbody id="armsBody">
+                                                <tr><td rowspan="2">1</td><td rowspan="2">G3 RIFLE</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="1"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-1" readonly></td><td rowspan="20" class="align-middle text-center"><input type="number" class="form-control form-control-sm" id="arms-grand-total" readonly placeholder="Grand Total"></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="1"></td></tr>
+                                                
+                                                <tr><td rowspan="2">2</td><td rowspan="2">AR70 RIFLE</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="2"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-2" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="2"></td></tr>
+
+                                                <tr><td rowspan="2">3</td><td rowspan="2">AK47 RIFLE</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="3"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-3" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="3"></td></tr>
+
+                                                <tr><td rowspan="2">4</td><td rowspan="2">GALIL RIFLE</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="4"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-4" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="4"></td></tr>
+
+                                                <tr><td rowspan="2">5</td><td rowspan="2">LAR RIFLE</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="5"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-5" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="5"></td></tr>
+
+                                                <tr><td rowspan="2">6</td><td rowspan="2">SMG RIFLE</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="6"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-6" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="6"></td></tr>
+
+                                                <tr><td rowspan="2">7</td><td rowspan="2">PISTOL BARETTA</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="7"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-7" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="7"></td></tr>
+
+                                                <tr><td rowspan="2">8</td><td rowspan="2">DICON PISTOL</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="8"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-8" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="8"></td></tr>
+
+                                                <tr><td rowspan="2">9</td><td rowspan="2">STONE PISTOL</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="9"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-9" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="9"></td></tr>
+
+                                                <tr><td rowspan="2">10</td><td rowspan="2">OTHERS</td><td>SERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="10"></td><td rowspan="2"><input type="number" class="form-control form-control-sm arms-subtotal" id="arms-sub-10" readonly></td></tr>
+                                                <tr><td>UNSERVICEABLE</td><td><input type="number" class="form-control form-control-sm arms-input" data-group="10"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">B. AMMUNITION:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>TYPES</th><th>NO. OF ROUNDS</th><th>TOTAL</th><th>NO. USED</th><th>BAL C/F</th></tr></thead>
+                                            <tbody id="ammunitionBody">
+                                                <tr class="data-row"><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addDynamicRow('ammunitionBody')"><i class="fas fa-plus me-1"></i>Add Row</button>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">C. STORE RETURNS:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>ITEMS</th><th>BAL B/F</th><th>QTY RECEIVED</th><th>TOTAL</th><th>QTY ISSUED</th><th>TOTAL BAL</th></tr></thead>
+                                            <tbody id="storeBody">
+                                                <tr class="data-row"><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm store-bf"></td><td><input type="number" class="form-control form-control-sm store-rx"></td><td><input type="number" class="form-control form-control-sm store-total" readonly></td><td><input type="number" class="form-control form-control-sm store-iss"></td><td><input type="number" class="form-control form-control-sm store-bal" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addDynamicRow('storeBody')"><i class="fas fa-plus me-1"></i>Add Row</button>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">D. VEHICLE RETURNS:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>TYPES</th><th>ID (Engine/Chassis)</th><th>VEHICLE NO</th><th>REMARK</th></tr></thead>
+                                            <tbody id="vehicleBody">
+                                                <tr class="data-row"><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>Serviceable</option><option>Unserviceable</option></select></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addDynamicRow('vehicleBody')"><i class="fas fa-plus me-1"></i>Add Row</button>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">E. PROJECTS:</h6>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>DESCRIPTION</th><th>YEAR</th><th>LOCATION</th><th>CONTRACTOR</th><th>STATUS</th><th>% COMPLETION</th><th>PROGRESS REPORT</th></tr></thead>
+                                            <tbody id="projectsBody">
+                                                <tr class="data-row"><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm project-completion"></td><td><input type="file" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                            <tfoot class="table-light fw-bold">
+                                                <tr>
+                                                    <td colspan="6" class="text-end">Total Projects: <span id="totalProjects">1</span> | Average Completion:</td>
+                                                    <td><input type="text" class="form-control form-control-sm" id="avgCompletion" readonly value="0%"></td>
+                                                    <td></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addDynamicRow('projectsBody')"><i class="fas fa-plus me-1"></i>Add Row</button>
+                                    </div>
+
+                                    <!-- 3. Staff Development -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">3. STAFF DEVELOPMENT</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>WORKSHOP/SEMINAR</th><th>LOCATION</th><th>COST IMPLICATION</th><th>PARTICIPANTS</th><th>DURATION</th></tr></thead>
+                                            <tbody id="staffDevBody">
+                                                <tr class="data-row"><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addDynamicRow('staffDevBody')"><i class="fas fa-plus me-1"></i>Add Row</button>
+                                    </div>
+
+                                    <!-- 4. Passport Admin -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">4. PASSPORT ADMINISTRATION ACTIVITIES</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>Type of cases</th><th>Number of cases</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td>Fresh</td><td><input type="number" class="form-control form-control-sm passport-admin-input"></td></tr>
+                                                <tr><td>2</td><td>Re-issue</td><td><input type="number" class="form-control form-control-sm passport-admin-input"></td></tr>
+                                                <tr><td>3</td><td>Marriage</td><td><input type="number" class="form-control form-control-sm passport-admin-input"></td></tr>
+                                                <tr><td>4</td><td>Lost</td><td><input type="number" class="form-control form-control-sm passport-admin-input"></td></tr>
+                                                <tr class="fw-bold table-secondary"><td></td><td>Total</td><td><input type="number" class="form-control form-control-sm" id="passport-admin-total" readonly></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 5. Change of Data -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">5. CHANGE OF DATA ACTIVITIES (HQ ONLY)</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>Type of cases</th><th>Number of cases</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td>Change of Date of birth</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>2</td><td>Change of Place of birth</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>3</td><td>Change of Signature</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>4</td><td>Change of Name/s</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>5</td><td>Others</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 6. Passport Revenue -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">6. PASSPORT REVENUE</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>e-passport</th><th>No. Issued</th><th>Amount Generated (N)</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>32-Pages (5 Years)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm ppt-rev-amount"></td></tr>
+                                                <tr><td>64-Pages (5 Years)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm ppt-rev-amount"></td></tr>
+                                                <tr><td colspan="3" class="fw-bold">Enhanced e-Passport:</td></tr>
+                                                <tr><td>32-Pages (5 Years)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm ppt-rev-amount"></td></tr>
+                                                <tr><td>64-Pages (5 Years)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm ppt-rev-amount"></td></tr>
+                                                <tr><td>64-Pages (10 Years)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm ppt-rev-amount"></td></tr>
+                                                <tr><td>ECOWAS TRAVEL CERTIFICATE</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm ppt-rev-amount"></td></tr>
+                                                <tr class="fw-bold table-secondary"><td>TOTAL</td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" id="ppt-rev-total" readonly></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 7. Passport Stock -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">7. PASSPORT STOCK RETURNS</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Item</th>
+                                                    <th>32-Pg (5Y)</th>
+                                                    <th>64-Pg (5Y)</th>
+                                                    <th>32-Pg Enh (5Y)</th>
+                                                    <th>64-Pg Enh (5Y)</th>
+                                                    <th>64-Pg Enh (10Y)</th>
+                                                    <th>ETC</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr id="stock-bf-row"><td>Balance B/F</td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td></tr>
+                                                <tr id="stock-col-row"><td>Collected from HQ</td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td></tr>
+                                                <tr id="stock-iss-row"><td>Issued</td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td></tr>
+                                                <tr id="stock-void-row"><td>Voided/Damaged</td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td><td><input type="number" class="form-control form-control-sm stock-input"></td></tr>
+                                                <tr id="stock-bal-row"><td>Stock Balance</td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 8. Visa & Residency -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">8. VISA AND RESIDENCY</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>Type</th><th>Number</th><th>Amount Generated (N)</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>Residence Card</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>V/Pass Ext (ECOWAS)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>CERPAC (African)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>CERPAC (Non-African)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>V/Pass Ext (Non-ECOWAS)</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>PUR</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>ECOWAS Registration</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm" value="Not Applicable" readonly></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 9. Free Trade Zone -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">9. FREE TRADE ZONE</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>ACTIVITY</th><th>NUMBER</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>REGULARIZATION</td><td><input type="number" class="form-control form-control-sm ftz-input"></td></tr>
+                                                <tr><td>RENEWAL</td><td><input type="number" class="form-control form-control-sm ftz-input"></td></tr>
+                                                <tr><td>COE</td><td><input type="number" class="form-control form-control-sm ftz-input"></td></tr>
+                                                <tr><td>RE-DESIGNATION</td><td><input type="number" class="form-control form-control-sm ftz-input"></td></tr>
+                                                <tr class="fw-bold table-secondary"><td>TOTAL</td><td><input type="number" class="form-control form-control-sm" id="ftz-total" readonly></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 10. Quota -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">10. QUOTA</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>ACTIVITY</th><th>NUMBER</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>No. of companies that open file</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of quota Placement for ROS</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of quota Placement for Renewal</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of quota Placement for COE</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of quota Placement for Re-designation</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 11. Visa & Residency Revenue -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">11. VISA & RESIDENCY (REVENUE)</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>ACTIVITY</th><th>NUMBER</th><th>AMOUNT GENERATED (N)</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>REGULARIZATION</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>RENEWAL</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>COE</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>RE-DESIGNATION</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>V/P EXTENSION</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 12. Migration/Anti Human Trafficking -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">12. MIGRATION/ANTI HUMAN TRAFFICKING AND CHILD LABOUR</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>ACTIVITIES</th><th>Number</th><th>Status or Remark</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>Migrants Intercepted</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>Smugglers Arrested</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of HT&CL Victims Rescued</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of Human Traffickers apprehended</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of HT&CL Victims referred to NAPTIP</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of HT&CL Traffickers referred NAPTIP</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of HT&CL Victims Re-United</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>No. of Victims/migrants Repatriated</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 13. Migration -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">13. MIGRATION</h5>
+                                    
+                                    <h6 class="fw-bold">b. NUMBER OF FOREIGNERS EMPLOYED IN NIGERIA:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>NATIONALITY</th><th>DEPENDANTS</th><th>POSITION</th><th>INDUSTRY</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="bg-light p-2 border rounded">
+                                            <strong>SUMMARY:</strong>
+                                            <div class="row g-2 mt-1">
+                                                <div class="col-md-4">Employed: <input type="number" class="form-control form-control-sm d-inline w-50" placeholder="Total"></div>
+                                                <div class="col-md-4">Dependents: <input type="number" class="form-control form-control-sm d-inline w-50" placeholder="Total"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">c. NUMBER OF FOREIGNERS ISSUED WITH WORK PERMITS:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>NATIONALITY</th><th>TYPES OF PERMIT</th><th>DURATION</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">d. NUMBER OF IRREGULAR MIGRANTS EMPLOYED:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>NATIONALITY</th><th>POSITION</th><th>DURATION</th><th>SECTOR</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">e. NUMBER OF SEASONAL MIGRANTS EMPLOYED:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>NATIONALITY</th><th>POSITION</th><th>DURATION</th><th>SECTOR</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">f. NUMBER OF BORDER MIGRANTS EMPLOYED:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>NATIONALITY</th><th>POSITION</th><th>DURATION</th><th>SECTOR</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">g. NIGERIA CITIZENS EMPLOYED ABROAD:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>DESTINATION</th><th>POSITION</th><th>DURATION</th><th>SECTOR</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold mt-3">h. NIGERIANS DEPARTING FOR EMPLOYMENT ABROAD:</h6>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NAME</th><th>GENDER</th><th>DESTINATION</th><th>POSITION</th><th>DURATION</th><th>SECTOR</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><select class="form-select form-select-sm"><option>M</option><option>F</option></select></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 15. Investigation -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">15. INVESTIGATION AND COMPLIANCE</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>ACTIVITIES</th><th>NUMBER</th><th>REMARK</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td>Cases involving Companies</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>2</td><td>Cases involving Expatriates</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>3</td><td>Cases involving officers</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 16. Refugee -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">16. REFUGEE/ASYLUM SEEKERS</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>ACTIVITIES</th><th>NUMBER</th><th>REMARK</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td>No. of Asylum Seekers/Refugee applications</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>2</td><td>No. of Asylum Seekers/Refugee approved</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                                <tr><td>3</td><td>No. of Asylum Seekers/Refugee Rejected</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="text" class="form-control form-control-sm"></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 17. Deportation -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">17. DEPORTATION/REPATRIATION/REFUSED ENTRY/DEPARTURE</h5>
+                                    
+                                    <h6 class="fw-bold">NIGERIANS DEPORTED FROM ABROAD:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>STATE OF ORIGIN</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">NIGERIANS REPATRIATED FROM ABROAD:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>STATE OF ORIGIN</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">NIGERIANS REFUSED ENTRY ABROAD (RETURNEES):</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>STATE OF ORIGIN</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">NIGERIANS REFUSED DEPARTURE:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>STATE OF ORIGIN</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">MIGRANTS DEPORTED FROM NIGERIA:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NATIONALITY</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">MIGRANTS REPATRIATED FROM NIGERIA:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NATIONALITY</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">MIGRANTS REFUSED ENTRY/ADMISSION INTO NIGERIA:</h6>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NATIONALITY</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <h6 class="fw-bold">STOWAWAYS:</h6>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm">
+                                            <thead class="table-light"><tr><th>S/N</th><th>NATIONALITY</th><th>MALE</th><th>FEMALE</th><th>TOTAL</th></tr></thead>
+                                            <tbody>
+                                                <tr><td>1</td><td><input type="text" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm" readonly></td></tr>
+                                                <tr class="fw-bold table-secondary"><td colspan="2">TOTAL</td><td></td><td></td><td></td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <!-- 18. Migrant E-Registration -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">18. MIGRANT E-REGISTRATION</h5>
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm text-center align-middle">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th rowspan="2">S/N</th>
+                                                    <th rowspan="2">NATIONALITY</th>
+                                                    <th colspan="3">SEX</th>
+                                                    <th colspan="7">MIGRANT STATUS</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>M</th><th>F</th><th>TOTAL</th>
+                                                    <th>EMPLOYED</th><th>STUDENT</th><th>SELF EMP</th><th>SPOUSE</th><th>DEPENDANT</th><th>REGULAR</th><th>IRREGULAR</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="migrantEregBody">
+                                                <tr class="data-row">
+                                                    <td>1</td>
+                                                    <td><input type="text" class="form-control form-control-sm"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-m"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-f"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-total" readonly></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                    <td><input type="number" class="form-control form-control-sm ereg-col"></td>
+                                                </tr>
+                                                <tr class="fw-bold table-secondary">
+                                                    <td colspan="2">TOTAL</td>
+                                                    <td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td>
+                                                    <td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td><td><input type="number" class="form-control form-control-sm" readonly></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addDynamicRow('migrantEregBody')"><i class="fas fa-plus me-1"></i>Add Row</button>
+                                    </div>
+
+                                    <!-- 19. General Report -->
+                                    <h5 class="text-success border-bottom pb-2 mb-3">19. GENERAL REPORT</h5>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">vi. Security Report</label>
+                                        <textarea class="form-control" rows="3"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">vii. Other Reports</label>
+                                        <textarea class="form-control mb-2" rows="3"></textarea>
+                                        <label class="form-label small text-muted">Pictures can be attached & clearly labeled or explained (Drag & Drop supported)</label>
+                                        <div id="dropZone" class="border border-2 border-dashed rounded p-4 text-center bg-light" style="cursor: pointer;">
+                                            <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                            <p class="mb-0 text-muted">Drag & Drop images here or click to upload</p>
+                                            <input type="file" class="d-none" id="generalReportImages" multiple accept="image/*">
+                                        </div>
+                                        <div id="imagePreviewContainer" class="d-flex flex-wrap gap-2 mt-2"></div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">viii. Challenges</label>
+                                        <textarea class="form-control" rows="3"></textarea>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">ix. Recommendations/way forward.</label>
+                                        <textarea class="form-control" rows="3"></textarea>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">X. Conclusion.</label>
+                                        <textarea class="form-control" rows="3"></textarea>
+                                    </div>
+
+                                    <!-- Signature Section -->
+                                    <div class="bg-light p-4 rounded border mb-4">
+                                        <h6 class="fw-bold text-success mb-3">NAME AND SIGNATURE OF THE REPORTING OFFICER:</h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">NAME:</label>
+                                                <input type="text" class="form-control" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">RANK:</label>
+                                                <input type="text" class="form-control" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">GSM NUMBER:</label>
+                                                <input type="tel" class="form-control" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">SIGNATURE:</label>
+                                                <div class="border bg-white rounded">
+                                                    <canvas id="signaturePad" width="400" height="150" style="width: 100%; touch-action: none; cursor: crosshair;"></canvas>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-danger mt-1" onclick="clearSignature()">Clear Signature</button>
+                                                <input type="hidden" id="signatureData" name="signatureData">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 align-items-center">
+                                        <span id="lastSaved" class="text-muted small fst-italic me-2"></span>
+                                        <button type="button" class="btn btn-warning text-white" onclick="clearForm()"><i class="fas fa-eraser me-2"></i>Clear Form</button>
+                                        <button type="button" class="btn btn-info text-white" onclick="showPrintPreview()"><i class="fas fa-eye me-2"></i>Print Preview</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">Save Draft</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="saveDraft()">Save Draft</button>
+                                        <button type="submit" class="btn btn-success px-4"><i class="fas fa-paper-plane me-2"></i>Submit Report</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Return to Landing Page -->
+                <footer class="bg-light text-center py-3 mt-auto">
+                    <a href="../index.html" class="text-decoration-none text-muted"><i class="fas fa-arrow-left me-2"></i>Back to Landing Page</a>
+                </footer>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Dynamic Sidebar Logic
+            const urlParams = new URLSearchParams(window.location.search);
+            const role = urlParams.get('role') || 'hq';
+            
+            const dashboardLink = document.getElementById('dashboardLink');
+            const profileLink = document.getElementById('profileLink');
+            const sidebarHeader = document.getElementById('sidebarHeader');
+            const directorateLink = document.getElementById('directorateLink');
+
+            if (role === 'state') {
+                sidebarHeader.innerHTML = '<img src="../assets/images/nis.png" alt="Logo" class="me-2" style="height: 40px;">State Cmd';
+                dashboardLink.href = 'dashboard-state.html';
+                dashboardLink.innerHTML = '<i class="fas fa-tachometer-alt me-2"></i>State Dashboard';
+                profileLink.href = 'profile-settings.html';
+                if(directorateLink) directorateLink.style.display = 'none'; // Hide directorates for state
+            } else if (role === 'zonal') {
+                sidebarHeader.innerHTML = '<img src="../assets/images/nis.png" alt="Logo" class="me-2" style="height: 40px;">Zonal Cmd';
+                dashboardLink.href = 'dashboard-zonal.html';
+                dashboardLink.innerHTML = '<i class="fas fa-tachometer-alt me-2"></i>Zonal Dashboard';
+                profileLink.href = 'profile-zonal.html';
+                if(directorateLink) directorateLink.style.display = 'none';
+            }
+
+        // Command to Zone Mapping
+        const commandToZone = {
+            // Zones
+            "Zone A Lagos": "Zone A - Lagos",
+            "Zone B Kaduna": "Zone B - Kaduna",
+            "Zone C Abuja": "Zone C - Bauchi",
+            "Zone D Enugu": "Zone D - Niger",
+            "Zone E Kano": "Zone E - Imo",
+            "Zone F Calabar": "Zone F - Oyo",
+            "Zone G Edo": "Zone G - Edo",
+            "Zone H Benue": "Zone H - Benue",
+            // States to Zones (based on typical NIS zoning)
+            "Abia State": "Zone E - Imo",
+            "Adamawa State": "Zone C - Bauchi",
+            "Akwa Ibom State": "Zone E - Imo",
+            "Anambra State": "Zone G - Edo",
+            "Bauchi State": "Zone C - Bauchi",
+            "Bayelsa State": "Zone G - Edo",
+            "Benue State": "Zone H - Benue",
+            "Borno State": "Zone C - Bauchi",
+            "Cross River State": "Zone E - Imo",
+            "Delta State": "Zone G - Edo",
+            "Ebonyi State": "Zone E - Imo",
+            "Edo State": "Zone G - Edo",
+            "Ekiti State": "Zone F - Oyo",
+            "Enugu State": "Zone G - Edo",
+            "Gombe State": "Zone C - Bauchi",
+            "Imo State": "Zone E - Imo",
+            "Jigawa State": "Zone B - Kaduna",
+            "Kaduna State": "Zone B - Kaduna",
+            "Kano State": "Zone B - Kaduna",
+            "Katsina State": "Zone B - Kaduna",
+            "Kebbi State": "Zone D - Niger",
+            "Kogi State": "Zone H - Benue",
+            "Kwara State": "Zone D - Niger",
+            "Lagos State": "Zone A - Lagos",
+            "Nasarawa State": "Zone H - Benue",
+            "Niger State": "Zone D - Niger",
+            "Ogun State": "Zone A - Lagos",
+            "Ondo State": "Zone F - Oyo",
+            "Osun State": "Zone F - Oyo",
+            "Oyo State": "Zone F - Oyo",
+            "Plateau State": "Zone C - Bauchi",
+            "Rivers State": "Zone E - Imo",
+            "Sokoto State": "Zone B - Kaduna",
+            "Taraba State": "Zone H - Benue",
+            "Yobe State": "Zone C - Bauchi",
+            "Zamfara State": "Zone B - Kaduna",
+            "Federal Capital Territory": "Zone C - Bauchi",
+            // Special Commands
+            "Murtala Muhammed Airport Command": "Zone A - Lagos",
+            "Nnamdi Azikiwe International Airport Command": "Zone C - Bauchi",
+            "Mallam Aminu Kano International Airport Command": "Zone B - Kaduna",
+            "Port Harcourt International Airport Command": "Zone E - Imo",
+            "Seme Border Command": "Zone A - Lagos",
+            "Idiroko Border Command": "Zone A - Lagos",
+            "Illela Border Command Sokoto": "Zone B - Kaduna",
+            "Maiduguri Border Command": "Zone C - Bauchi",
+            "Railway Command Lagos": "Zone A - Lagos",
+            "Railway Command Kano": "Zone B - Kaduna",
+            "Immigration Training School Kano ITSK": "Zone B - Kaduna",
+            "Immigration Training School AHOADA NITSA": "Zone E - Imo",
+            "Immigration Training School Orlu NITSOL": "Zone E - Imo",
+            "Immigration Command and Staff College Sokoto ICSC": "Zone B - Kaduna",
+            "Lagos Passport Command": "Zone A - Lagos"
+        };
+
+        // Form validation
+        const form = document.getElementById('nisReportForm');
+        form.addEventListener('submit', function(event) {
+            // Validation: Check for negative stock balances
+            const stockBalances = document.querySelectorAll('#stock-bal-row input');
+            let stockError = false;
+            stockBalances.forEach(input => {
+                if (input.value !== '' && parseFloat(input.value) < 0) {
+                    stockError = true;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            if (stockError) {
+                event.preventDefault();
+                event.stopPropagation();
+                alert("Error: Stock Balance cannot be negative. Please check your inputs in the Passport Stock Returns section.");
+                return;
+            }
+
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                event.preventDefault(); // Prevent actual submission for demo
+                const selectedCommand = document.getElementById('commandName').value;
+                const zone = commandToZone[selectedCommand] || 'Unknown Zone';
+                const btn = form.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    alert(`Report submitted successfully to ${zone}!`);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    localStorage.removeItem('nisReportDraft'); // Clear draft on success
+                    form.reset();
+                    form.classList.remove('was-validated');
+                }, 2000);
+            }
+            form.classList.add('was-validated');
+        });
+
+            // --- Auto-Calculation Logic ---
+            document.addEventListener('input', function(e) {
+                // 1. Staff Strength
+                if (e.target.classList.contains('staff-input')) {
+                    calculateTotal('staff-input', 'staff-total');
+                }
+                // 4. Passport Admin
+                if (e.target.classList.contains('passport-admin-input')) {
+                    calculateTotal('passport-admin-input', 'passport-admin-total');
+                }
+                // 9. Free Trade Zone
+                if (e.target.classList.contains('ftz-input')) {
+                    calculateTotal('ftz-input', 'ftz-total');
+                }
+                // 6. Passport Revenue
+                if (e.target.classList.contains('ppt-rev-amount')) {
+                    calculateTotal('ppt-rev-amount', 'ppt-rev-total');
+                }
+                // Arms Calculation
+                if (e.target.classList.contains('arms-input')) {
+                    calculateArms();
+                }
+                // Store Returns Calculation
+                if (e.target.closest('#storeBody')) {
+                    const row = e.target.closest('tr');
+                    const bf = parseFloat(row.querySelector('.store-bf').value) || 0;
+                    const rx = parseFloat(row.querySelector('.store-rx').value) || 0;
+
+            // Load draft if exists
+            loadDraft();
+                    const iss = parseFloat(row.querySelector('.store-iss').value) || 0;
+                    row.querySelector('.store-total').value = bf + rx;
+                    row.querySelector('.store-bal').value = (bf + rx) - iss;
+                }
+                // Passport Stock Calculation
+                if (e.target.classList.contains('stock-input')) {
+                    calculatePassportStock();
+                }
+                // 18. Migrant E-Reg (Row Total: M + F)
+                if (e.target.classList.contains('ereg-m') || e.target.classList.contains('ereg-f')) {
+                    const row = e.target.closest('tr');
+                    const m = parseFloat(row.querySelector('.ereg-m').value) || 0;
+                    const f = parseFloat(row.querySelector('.ereg-f').value) || 0;
+                    row.querySelector('.ereg-total').value = m + f;
+                    calculateTableColumnTotals('migrantEregBody');
+                }
+                // 18. Migrant E-Reg (Column Totals)
+                if (e.target.closest('#migrantEregBody')) {
+                    calculateTableColumnTotals('migrantEregBody');
+                }
+                // Projects Calculation
+                if (e.target.classList.contains('project-completion')) {
+                    calculateProjectsSummary();
+                }
+            });
+
+            // Load draft if exists
+            loadDraft();
+        });
+
+        // Generic function to sum inputs by class and update a total field
+        function calculateTotal(inputClass, totalId) {
+            let sum = 0;
+            document.querySelectorAll('.' + inputClass).forEach(input => {
+                sum += parseFloat(input.value) || 0;
+            });
+            document.getElementById(totalId).value = sum;
+        }
+
+        // Arms Calculation Logic
+        function calculateArms() {
+            let grandTotal = 0;
+            for (let i = 1; i <= 10; i++) {
+                const inputs = document.querySelectorAll(`.arms-input[data-group="${i}"]`);
+                let subTotal = 0;
+                inputs.forEach(inp => subTotal += parseFloat(inp.value) || 0);
+                const subTotalInput = document.getElementById(`arms-sub-${i}`);
+                if (subTotalInput) subTotalInput.value = subTotal;
+                grandTotal += subTotal;
+            }
+            document.getElementById('arms-grand-total').value = grandTotal;
+        }
+
+        // Passport Stock Calculation Logic
+        function calculatePassportStock() {
+            const bfRow = document.getElementById('stock-bf-row');
+            const colRow = document.getElementById('stock-col-row');
+            const issRow = document.getElementById('stock-iss-row');
+            const voidRow = document.getElementById('stock-void-row');
+            const balRow = document.getElementById('stock-bal-row');
+
+            // Iterate columns 1 to 6 (indices 1 to 6 in cells)
+            for (let i = 1; i <= 6; i++) {
+                const bf = parseFloat(bfRow.cells[i].querySelector('input').value) || 0;
+                const col = parseFloat(colRow.cells[i].querySelector('input').value) || 0;
+                const iss = parseFloat(issRow.cells[i].querySelector('input').value) || 0;
+                const voided = parseFloat(voidRow.cells[i].querySelector('input').value) || 0;
+                balRow.cells[i].querySelector('input').value = bf + col - iss - voided;
+            }
+        }
+
+        // Projects Summary Calculation
+        function calculateProjectsSummary() {
+            const rows = document.querySelectorAll('#projectsBody tr.data-row');
+            const totalProjects = rows.length;
+            let totalCompletion = 0;
+            let countWithValue = 0;
+
+            rows.forEach(row => {
+                const input = row.querySelector('.project-completion');
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) {
+                    totalCompletion += val;
+                    countWithValue++;
+                }
+            });
+
+            const avg = countWithValue > 0 ? (totalCompletion / countWithValue).toFixed(1) : 0;
+            document.getElementById('totalProjects').innerText = totalProjects;
+            document.getElementById('avgCompletion').value = avg + '%';
+        }
+
+        // Function to add dynamic rows
+        function addDynamicRow(tbodyId) {
+            const tbody = document.getElementById(tbodyId);
+            const rows = tbody.querySelectorAll('tr.data-row');
+            const lastRow = rows[rows.length - 1];
+            
+            // Clone the last data row
+            const newRow = lastRow.cloneNode(true);
+            
+            // Update S/N
+            const snCell = newRow.cells[0];
+            snCell.innerText = rows.length + 1;
+            
+            // Clear inputs
+            newRow.querySelectorAll('input, select').forEach(input => {
+                input.value = '';
+            });
+
+            // Insert before the total row (if exists) or at end
+            const totalRow = tbody.querySelector('.table-secondary');
+            if (totalRow) {
+                tbody.insertBefore(newRow, totalRow);
+            } else {
+                tbody.appendChild(newRow);
+            }
+
+            // Trigger calculation for projects
+            if (tbodyId === 'projectsBody') {
+                calculateProjectsSummary();
+            }
+        }
+
+        // Function to calculate column totals for complex tables (like Migrant E-Reg)
+        function calculateTableColumnTotals(tbodyId) {
+            const tbody = document.getElementById(tbodyId);
+            const rows = tbody.querySelectorAll('tr.data-row');
+            const totalRow = tbody.querySelector('.table-secondary');
+            
+            if (!totalRow) return;
+
+            // Iterate through columns starting from index 2 (skipping S/N and Name)
+            for (let i = 2; i < totalRow.cells.length; i++) {
+                let colSum = 0;
+                rows.forEach(row => {
+                    const input = row.cells[i].querySelector('input');
+                    if (input) colSum += parseFloat(input.value) || 0;
+                });
+                const totalInput = totalRow.cells[i].querySelector('input');
+                if (totalInput) totalInput.value = colSum;
+            }
+        }
+
+        // --- Image Preview Logic ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('generalReportImages');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-primary', 'bg-white');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-primary', 'bg-white');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-white');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            const container = document.getElementById('imagePreviewContainer');
+            container.innerHTML = ''; // Clear previous
+            Array.from(files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'img-thumbnail';
+                        img.style.height = '100px';
+                        img.style.objectFit = 'cover';
+                        container.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // --- Digital Signature Pad Logic ---
+        const canvas = document.getElementById('signaturePad');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        function getPos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (evt.clientX || evt.touches[0].clientX) - rect.left;
+            const y = (evt.clientY || evt.touches[0].clientY) - rect.top;
+            return {
+                x: x * (canvas.width / rect.width),
+                y: y * (canvas.height / rect.height)
+            };
+        }
+
+        function startDraw(e) {
+            isDrawing = true;
+            const pos = getPos(canvas, e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            e.preventDefault(); // Prevent scrolling on touch
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(canvas, e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            e.preventDefault();
+        }
+
+        function endDraw(e) {
+            if (isDrawing) {
+                isDrawing = false;
+                document.getElementById('signatureData').value = canvas.toDataURL();
+            }
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', endDraw);
+        canvas.addEventListener('mouseout', endDraw);
+
+        // Touch events
+        canvas.addEventListener('touchstart', startDraw);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', endDraw);
+
+        window.clearSignature = function() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('signatureData').value = '';
+        };
+
+        // --- Print Preview Logic ---
+        window.showPrintPreview = function() {
+            // Clone the form container
+            const formContent = document.getElementById('nisReportForm').cloneNode(true);
+            
+            // Remove buttons and non-printable elements
+            const elementsToRemove = formContent.querySelectorAll('button, .no-print, .btn');
+            elementsToRemove.forEach(el => el.remove());
+
+            // Replace inputs with their values for display
+            const inputs = formContent.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                let value = input.value;
+                
+                if (input.tagName === 'SELECT') {
+                    value = input.options[input.selectedIndex]?.text || '';
+                } else if (input.type === 'file') {
+                    value = input.files.length > 0 ? `(Attached: ${input.files.length} files)` : '(No attachment)';
+                }
+                
+                // Create a text node or span to replace the input
+                const span = document.createElement('span');
+                span.className = 'fw-bold text-dark';
+                span.innerText = value;
+                
+                // Preserve layout by replacing the input
+                if (input.type !== 'hidden') {
+                    input.replaceWith(span);
+                }
+            });
+
+            // Handle Signature Canvas
+            const originalCanvas = document.getElementById('signaturePad');
+            const clonedCanvasContainer = formContent.querySelector('canvas')?.parentElement;
+            
+            if (originalCanvas && clonedCanvasContainer) {
+                const img = document.createElement('img');
+                img.src = originalCanvas.toDataURL();
+                img.style.maxWidth = '100%';
+                img.style.height = 'auto';
+                clonedCanvasContainer.innerHTML = ''; // Clear canvas from clone
+                clonedCanvasContainer.appendChild(img);
+            }
+
+            // Inject into modal
+            const previewBody = document.getElementById('printPreviewBody');
+            previewBody.innerHTML = '';
+            previewBody.appendChild(formContent);
+            
+            new bootstrap.Modal(document.getElementById('printPreviewModal')).show();
+        };
+
+        // --- Save as PDF Logic ---
+        window.saveAsPDF = function() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('printPreviewBody');
+            const btn = document.querySelector('#printPreviewModal .btn-danger');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                html2canvas(element).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const pdf = new jsPDF();
+                    const imgWidth = 210; // A4 width in mm
+                    const pageHeight = 295; // A4 height in mm
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    let heightLeft = imgHeight;
+
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    while (heightLeft >= 0) {
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'PNG', 0, -heightLeft, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    pdf.save('nis-report.pdf');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+            }, 1000);
+        };
+
+        // --- Save Draft Logic ---
+        window.saveDraft = function() {
+            const form = document.getElementById('nisReportForm');
+            const now = new Date();
+            const draft = {
+                timestamp: now.getTime(),
+                dynamicCounts: {},
+                values: []
+            };
+
+            // 1. Save Dynamic Row Counts
+            const dynamicTables = ['ammunitionBody', 'storeBody', 'vehicleBody', 'projectsBody', 'staffDevBody', 'migrantEregBody'];
+            dynamicTables.forEach(id => {
+                const tbody = document.getElementById(id);
+                if (tbody) {
+                    draft.dynamicCounts[id] = tbody.querySelectorAll('tr.data-row').length;
+                }
+            });
+
+            // 2. Save All Input Values
+            Array.from(form.elements).forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                     let val = { type: el.type, value: el.value };
+                     if (el.type === 'checkbox' || el.type === 'radio') {
+                         val.checked = el.checked;
+                     }
+                     draft.values.push(val);
+                }
+            });
+
+            localStorage.setItem('nisReportDraft', JSON.stringify(draft));
+            document.getElementById('lastSaved').innerText = `Last Saved: ${now.toLocaleTimeString()}`;
+            alert('Draft saved successfully! You can resume later.');
+        };
+
+        window.loadDraft = function() {
+            const draftString = localStorage.getItem('nisReportDraft');
+            if (!draftString) return;
+
+            if (!confirm("A saved draft was found. Do you want to restore it?")) {
+                localStorage.removeItem('nisReportDraft');
+                return;
+            }
+
+            const draft = JSON.parse(draftString);
+            
+            if (draft.timestamp) {
+                const date = new Date(draft.timestamp);
+                document.getElementById('lastSaved').innerText = `Last Saved: ${date.toLocaleTimeString()}`;
+            }
+
+            const form = document.getElementById('nisReportForm');
+
+            // 1. Restore Dynamic Rows
+            if (draft.dynamicCounts) {
+                for (const [id, count] of Object.entries(draft.dynamicCounts)) {
+                    const tbody = document.getElementById(id);
+                    if (tbody) {
+                        const currentCount = tbody.querySelectorAll('tr.data-row').length;
+                        for (let i = currentCount; i < count; i++) {
+                            addDynamicRow(id);
+                        }
+                    }
+                }
+            }
+
+            // 2. Restore Values
+            let inputIndex = 0;
+            Array.from(form.elements).forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                    const val = draft.values[inputIndex];
+                    if (val) {
+                        if (val.type === 'checkbox' || val.type === 'radio') {
+                            el.checked = val.checked;
+                        } else {
+                            el.value = val.value;
+                        }
+                    }
+                    inputIndex++;
+                }
+            });
+
+            // 3. Restore Signature Visual
+            const sigData = document.getElementById('signatureData').value;
+            if (sigData) {
+                const canvas = document.getElementById('signaturePad');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = sigData;
+            }
+            
+            // 4. Trigger Calculations
+            document.querySelectorAll('input').forEach(input => {
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        };
+
+        // --- Clear Form Logic ---
+        window.clearForm = function() {
+            if (confirm("Are you sure you want to clear the entire form? This action cannot be undone.")) {
+                document.getElementById('nisReportForm').reset();
+                clearSignature();
+                document.getElementById('imagePreviewContainer').innerHTML = '';
+                
+                // Reset calculated fields (readonly inputs)
+                document.querySelectorAll('input[readonly]').forEach(input => {
+                    input.value = '';
+                });
+            }
+        };
+
+        // --- Save Draft Logic ---
+        window.saveDraft = function() {
+            const form = document.getElementById('nisReportForm');
+            const draft = {
+                timestamp: new Date().getTime(),
+                dynamicCounts: {},
+                values: []
+            };
+
+            // 1. Save Dynamic Row Counts
+            const dynamicTables = ['ammunitionBody', 'storeBody', 'vehicleBody', 'projectsBody', 'staffDevBody', 'migrantEregBody'];
+            dynamicTables.forEach(id => {
+                const tbody = document.getElementById(id);
+                if (tbody) {
+                    draft.dynamicCounts[id] = tbody.querySelectorAll('tr.data-row').length;
+                }
+            });
+
+            // 2. Save All Input Values
+            Array.from(form.elements).forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                     let val = { type: el.type, value: el.value };
+                     if (el.type === 'checkbox' || el.type === 'radio') {
+                         val.checked = el.checked;
+                     }
+                     draft.values.push(val);
+                }
+            });
+
+            localStorage.setItem('nisReportDraft', JSON.stringify(draft));
+            alert('Draft saved successfully! You can resume later.');
+        };
+
+        window.loadDraft = function() {
+            const draftString = localStorage.getItem('nisReportDraft');
+            if (!draftString) return;
+
+            if (!confirm("A saved draft was found. Do you want to restore it?")) {
+                localStorage.removeItem('nisReportDraft');
+                return;
+            }
+
+            const draft = JSON.parse(draftString);
+            const form = document.getElementById('nisReportForm');
+
+            // 1. Restore Dynamic Rows
+            if (draft.dynamicCounts) {
+                for (const [id, count] of Object.entries(draft.dynamicCounts)) {
+                    const tbody = document.getElementById(id);
+                    if (tbody) {
+                        const currentCount = tbody.querySelectorAll('tr.data-row').length;
+                        for (let i = currentCount; i < count; i++) {
+                            addDynamicRow(id);
+                        }
+                    }
+                }
+            }
+
+            // 2. Restore Values
+            let inputIndex = 0;
+            Array.from(form.elements).forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                    const val = draft.values[inputIndex];
+                    if (val) {
+                        if (val.type === 'checkbox' || val.type === 'radio') {
+                            el.checked = val.checked;
+                        } else {
+                            el.value = val.value;
+                        }
+                    }
+                    inputIndex++;
+                }
+            });
+
+            // 3. Restore Signature Visual
+            const sigData = document.getElementById('signatureData').value;
+            if (sigData) {
+                const canvas = document.getElementById('signaturePad');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = sigData;
+            }
+            
+            // 4. Trigger Calculations
+            document.querySelectorAll('input').forEach(input => {
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        };
+    </script>
+
+    <!-- Print Preview Modal -->
+    <div class="modal fade" id="printPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-print me-2"></i>Report Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body bg-white p-5" id="printPreviewBody">
+                    <!-- Preview Content Injected Here -->
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-danger" onclick="saveAsPDF()"><i class="fas fa-file-pdf me-2"></i>Save as PDF</button>
+                    <button type="button" class="btn btn-primary" onclick="window.print()"><i class="fas fa-print me-2"></i>Print Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

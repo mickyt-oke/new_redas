@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Report - Investigation and Compliance</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        /* IC-specific color scheme */
+        .top-nav { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+        .btn-primary { background: linear-gradient(135deg, #7c3aed, #a855f7); border: none; }
+        .btn-primary:hover { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+        .nav-item.active { background: rgba(124, 58, 237, 0.08); color: #7c3aed; }
+        .nav-item.active::before { background: #7c3aed; }
+
+        .form-section-title { font-size: 1.1rem; font-weight: 700; color: #4a5568; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="container-fluid">
+            <div class="nav-wrapper">
+                <div class="nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <div class="nav-logo">
+                        <img src="../assets/images/nis-logo.png" alt="NIS Logo">
+                    </div>
+                    <h1 class="nav-brand">NIS REDAS</h1>
+                </div>
+                <div class="nav-right">
+                    <div class="user-menu" role="button" tabindex="0" onclick="window.location.href='user-profile.html'">
+                        <div class="user-avatar">IC</div>
+                        <div class="user-details">
+                            <span class="user-name">Investigation and Compliance</span>
+                            <span class="user-role">Officer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="ic-dashboard.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="ic-report-template.html" class="nav-item active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Report Submission</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <span>Supervisor Approvals</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="section-card">
+                    <div class="text-center mb-4">
+                        <h2 class="section-title mb-1">NIGERIA IMMIGRATION SERVICE</h2>
+                        <h3 class="h5 text-muted">INVESTIGATION AND COMPLIANCE REPORTING DASHBOARD</h3>
+                        <p class="small text-secondary">Monthly • Quarterly • Bi-Annual Report</p>
+                    </div>
+
+                    <form>
+                        <!-- Period -->
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label">Period of Return</label>
+                                <input type="text" class="form-control" placeholder="e.g., January 2026">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Command</label>
+                                <input type="text" class="form-control" placeholder="e.g., Headquarters">
+                            </div>
+                        </div>
+
+                        <!-- Investigation Activities -->
+                        <h4 class="form-section-title">Investigation Activities</h4>
+                        <div class="table-responsive mb-5">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Activity</th>
+                                        <th>Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Cases Opened</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Investigations Completed</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Interviews Conducted</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Evidence Collected</td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Compliance Checks -->
+                        <h4 class="form-section-title">Compliance Checks</h4>
+                        <div class="table-responsive mb-5">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Check Type</th>
+                                        <th>Inspections</th>
+                                        <th>Violations Found</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Immigration Compliance</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Border Security Audits</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Document Verification</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Work Permit Reviews</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Legal Actions and Outcomes -->
+                        <h4 class="form-section-title">Legal Actions and Outcomes</h4>
+                        <div class="table-responsive mb-5">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Action Type</th>
+                                        <th>Initiated</th>
+                                        <th>Resolved</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Legal Proceedings</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Deportation Orders</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Fines Imposed</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                    <tr><td>Appeals Processed</td><td><input type="number" class="form-control form-control-sm"></td><td><input type="number" class="form-control form-control-sm"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- General Report -->
+                        <h4 class="form-section-title">General Report</h4>
+                        <div class="mb-3">
+                            <label class="form-label">Summary of Operations</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Challenges Encountered</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label">Recommendations</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <!-- Officer Details -->
+                        <h4 class="form-section-title">Officer Details</h4>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Rank</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Phone Number</label>
+                                <input type="text" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary me-2">Save Draft</button>
+                            <button type="submit" class="btn btn-primary">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Works & Logistics Reporting Template - NIS REDAS</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <style>
+        /* WL-specific color scheme */
+        .top-nav { background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%); }
+        .btn-primary { background: linear-gradient(135deg, #7c2d12, #ea580c); border: none; }
+        .btn-primary:hover { background: linear-gradient(135deg, #ea580c, #7c2d12); }
+        .nav-item.active { background: rgba(124, 45, 18, 0.08); color: #7c2d12; }
+        .nav-item.active::before { background: #7c2d12; }
+        
+        .form-section-title { font-size: 1.1rem; font-weight: 700; color: #4a5568; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        .dark-mode .form-section-title { color: #e5e7eb; border-bottom-color: #374151; }
+        .table-sm td, .table-sm th { padding: 0.5rem; vertical-align: middle; }
+        .form-control-sm, .form-select-sm { font-size: 0.85rem; }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="container-fluid">
+            <div class="nav-wrapper">
+                <div class="nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <a href="hq-dashboard.html" class="nav-logo">
+                        <img src="../assets/images/nis-logo.png" alt="NIS Logo">
+                    </a>
+                    <h1 class="nav-brand">NIS REDAS</h1>
+                </div>
+                <div class="nav-right">
+                    <button class="nav-icon-btn" title="Notifications">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="notification-badge">7</span>
+                    </button>
+                    <div class="user-menu" role="button" tabindex="0" onclick="window.location.href='user-profile.html'">
+                        <div class="user-avatar">WL</div>
+                        <div class="user-details">
+                            <span class="user-name">Works & Logistics</span>
+                            <span class="user-role">Officer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="hq-dashboard.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    <span>Back to HQ Dashboard</span>
+                </a>
+                
+                <div class="nav-item-dropdown">
+                    <a href="#" class="nav-item dropdown-toggle">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span>Directorates</span>
+                        <svg class="chevron ms-auto" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </a>
+                    <div class="dropdown-menu-nav">
+                        <a href="hrm-dashboard.html" class="nav-item"><span>Human Resources</span></a>
+                        <a href="fa-dashboard.html" class="nav-item"><span>Finance & Accounts</span></a>
+                        <a href="prs-dashboard.html" class="nav-item"><span>Planning & Research</span></a>
+                        <a href="potd-dashboard.html" class="nav-item"><span>Passport & Travel Docs</span></a>
+                        <a href="ic-dashboard.html" class="nav-item"><span>Investigation</span></a>
+                        <a href="bm-dashboard.html" class="nav-item"><span>Border Management</span></a>
+                        <a href="migration-dashboard.html" class="nav-item"><span>Migration</span></a>
+                        <a href="vr-dashboard.html" class="nav-item"><span>Visa & Residency</span></a>
+                        <a href="ict-cs-dashboard.html" class="nav-item"><span>ICT & Cyber Security</span></a>
+                        <a href="wl-dashboard.html" class="nav-item"><span>Works & Logistics</span></a>
+                    </div>
+                </div>
+                
+                <div class="nav-divider"></div>
+                <div class="nav-section-title">OFFICER MENU</div>
+
+                <a href="wl-report-template.html" class="nav-item active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>Report Submission</span>
+                </a>
+                <a href="my-reports.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span>My Reports</span>
+                </a>
+
+                <div class="nav-divider"></div>
+                <div class="nav-section-title">SUPERVISOR MENU</div>
+
+                <a href="wl-dashboard.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Dashboard Overview</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <span>Approvals</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Legal Affairs</span>
+                </a>
+
+                <div class="nav-divider"></div>
+                <div class="nav-section-title">ADMINISTRATION</div>
+
+                <a href="user-management.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>User Management</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="#" class="nav-item" onclick="logout()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="section-card">
+                    <div class="text-center mb-4">
+                        <h2 class="section-title mb-1">NIGERIA IMMIGRATION SERVICE</h2>
+                        <h3 class="h5 text-muted">WORKS AND LOGISTICS REPORTING TEMPLATE</h3>
+                        <p class="small text-secondary">FOR MONTHLY, QUARTERLY, AND BI-ANNUAL REPORT</p>
+                    </div>
+
+                    <form>
+                        <!-- Period -->
+                        <div class="row g-3 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label">Period of Return</label>
+                                <input type="text" class="form-control" placeholder="e.g., January 2026" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Directorate Personnel Strength</label>
+                                <input type="file" class="form-control">
+                                <div class="form-text">Current nominal roll to be attached</div>
+                            </div>
+                        </div>
+
+                        <!-- Personnel Strength -->
+                        <h4 class="form-section-title">Personnel Strength</h4>
+                        <div class="table-responsive mb-5">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Cadres</th>
+                                        <th>Number</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="personnelTable"></tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th>Total</th>
+                                        <th><input type="text" class="form-control form-control-sm" readonly id="personnelTotal" placeholder="Auto-calculated"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Project Status -->
+                        <h4 class="form-section-title">Project Status</h4>
+                        <div class="table-responsive mb-3">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>S/N</th>
+                                        <th>Project Name</th>
+                                        <th>Contractor</th>
+                                        <th>Percentage Completion (%)</th>
+                                        <th>Remarks</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projectTable">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" onclick="addProjectRow()" class="btn btn-sm btn-secondary mb-5">+ Add Project</button>
+
+                        <!-- General Report -->
+                        <h4 class="form-section-title">General Report</h4>
+                        <div class="mb-3">
+                            <label class="form-label">I. Other Reports</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">II. Challenges</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">III. Recommendations / Way Forward</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">IV. Conclusion</label>
+                            <textarea class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="mb-5">
+                            <label class="form-label">Attachments (Pictures/Documents)</label>
+                            <input type="file" class="form-control" multiple>
+                            <div class="form-text">Pictures can be attached and clearly labelled or explained</div>
+                        </div>
+
+                        <!-- Officer Details -->
+                        <h4 class="form-section-title">Reporting Officer</h4>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4"><label class="form-label">Name</label><input type="text" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Rank</label><input type="text" class="form-control"></div>
+                            <div class="col-md-4"><label class="form-label">Phone Number</label><input type="text" class="form-control"></div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="button" class="btn btn-secondary me-2">Save Draft</button>
+                            <button type="submit" class="btn btn-primary">Submit Report</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // Helper to create dropdown options
+        function createDropdownOptions(max) {
+            let options = '<option value="">-</option>';
+            for (let i = 1; i <= max; i++) {
+                options += `<option value="${i}">${i}</option>`;
+            }
+            return options;
+        }
+
+        // 1. Personnel Strength
+        const personnelData = [
+            { cadre: "Comptroller", max: 20 },
+            { cadre: "Superintendent", max: 100 },
+            { cadre: "Inspectorate", max: 100 },
+            { cadre: "Assistant", max: 100 }
+        ];
+        const personnelTable = document.getElementById('personnelTable');
+        personnelData.forEach(p => {
+            const row = `<tr><td>${p.cadre}</td><td><select class="form-select form-select-sm personnel-select">${createDropdownOptions(p.max)}</select></td></tr>`;
+            personnelTable.insertAdjacentHTML('beforeend', row);
+        });
+
+        // 2. Project Status Row
+        function addProjectRow() {
+            const table = document.getElementById("projectTable");
+            const row = table.insertRow();
+            row.innerHTML = `
+                <td>${table.rows.length}</td>
+                <td><input class="form-control form-control-sm" placeholder="Project Name"></td>
+                <td><input class="form-control form-control-sm" placeholder="Contractor"></td>
+                <td><input type="number" class="form-control form-control-sm" placeholder="%" min="0" max="100"></td>
+                <td><input class="form-control form-control-sm" placeholder="Remarks"></td>
+                <td><button type="button" class="btn btn-sm btn-danger" onclick="this.closest('tr').remove()">×</button></td>
+            `;
+        }
+        addProjectRow(); // Add initial row
+
+        // ==========================================
+        // AUTO-CALCULATION LOGIC
+        // ==========================================
+        document.addEventListener('change', function(e) {
+            // Personnel Total
+            if(e.target.classList.contains('personnel-select')) {
+                let total = 0;
+                document.querySelectorAll('.personnel-select').forEach(sel => {
+                    total += Number(sel.value) || 0;
+                });
+                document.getElementById('personnelTotal').value = total;
+            }
+        });
+    </script>
+</body>
+</html>

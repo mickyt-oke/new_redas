@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directorate Overview - NIS REDAS</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+
+<body class="dashboard-body">
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="container-fluid">
+            <div class="nav-wrapper">
+                <div class="nav-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    <a href="hq-dashboard.html" class="nav-logo">
+                        <img src="../assets/images/nis-logo.png" alt="NIS Logo">
+                    </a>
+                    <h1 class="nav-brand">NIS REDAS</h1>
+                    <span class="system-status">
+                        <span class="status-dot"></span>
+                        Operational
+                    </span>
+                </div>
+                <div class="nav-right">
+                    <a href="login.html" class="btn btn-outline-light me-2">Login</a>
+                    <a href="register.html" class="btn btn-light">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="hq-dashboard.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="directorate-overview.html" class="nav-item active">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span>Directorate Overview</span>
+                </a>
+                <a href="user-management.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <span>User Management</span>
+                </a>
+                <a href="approval-queue.html" class="nav-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <span>Approval Queue</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <div class="page-header">
+                    <div>
+                        <h2 class="page-title">Directorate Overview</h2>
+                        <p class="page-subtitle">Aggregated metrics and performance indicators across all 10 directorates</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Export Summary
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Aggregated Stats -->
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-header"><span class="metric-label">TOTAL PERSONNEL</span></div>
+                            <div class="metric-value">24,580</div>
+                            <div class="metric-trend">Across 10 Directorates</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-header"><span class="metric-label">TOTAL REVENUE (YTD)</span></div>
+                            <div class="metric-value">₦8.4B</div>
+                            <div class="metric-trend trend-up">↑ 15% vs last year</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-header"><span class="metric-label">REPORTS SUBMITTED</span></div>
+                            <div class="metric-value">1,245</div>
+                            <div class="metric-trend">This Month</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="metric-card">
+                            <div class="metric-header"><span class="metric-label">AVG. APPROVAL TIME</span></div>
+                            <div class="metric-value">1.8 Days</div>
+                            <div class="metric-trend trend-up">↓ 0.5 days faster</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Chart -->
+                <div class="chart-card mb-4">
+                    <div class="chart-header">
+                        <h3 class="section-title">Report Submission Volume by Directorate</h3>
+                    </div>
+                    <div class="chart-body" style="height: 300px;">
+                        <canvas id="directorateChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Directorate Cards Grid -->
+                <div class="row g-4">
+                    <!-- 1. HRM -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #1e40af, #3b82f6); color: white;">HR</div>
+                                <span class="badge badge-success">98% Reporting</span>
+                            </div>
+                            <h4 class="h5 mb-3">Human Resources</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Staff Strength</span>
+                                <span class="fw-bold">24,580</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Pending Leaves</span>
+                                <span class="fw-bold">142</span>
+                            </div>
+                            <a href="hrm-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 2. Finance -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #10b981); color: white;">FA</div>
+                                <span class="badge badge-success">On Target</span>
+                            </div>
+                            <h4 class="h5 mb-3">Finance & Accounts</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Revenue (Mtd)</span>
+                                <span class="fw-bold">₦840M</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Budget Utilized</span>
+                                <span class="fw-bold">45%</span>
+                            </div>
+                            <a href="fa-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 3. Passport -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color: white;">PT</div>
+                                <span class="badge badge-warning">High Volume</span>
+                            </div>
+                            <h4 class="h5 mb-3">Passport & Travel Docs</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Passports Issued</span>
+                                <span class="fw-bold">12,450</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Backlog</span>
+                                <span class="fw-bold">850</span>
+                            </div>
+                            <a href="potd-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 4. Visa -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white;">VR</div>
+                                <span class="badge badge-success">Stable</span>
+                            </div>
+                            <h4 class="h5 mb-3">Visa & Residency</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Visas Issued</span>
+                                <span class="fw-bold">4,230</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">CERPAC Applications</span>
+                                <span class="fw-bold">1,120</span>
+                            </div>
+                            <a href="vr-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 5. Migration -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #c084fc); color: white;">MG</div>
+                                <span class="badge badge-primary">Active</span>
+                            </div>
+                            <h4 class="h5 mb-3">Migration</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Arrivals (Land)</span>
+                                <span class="fw-bold">45,200</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Departures (Land)</span>
+                                <span class="fw-bold">42,150</span>
+                            </div>
+                            <a href="migration-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 6. Border Management -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #7c2d12, #9a3412); color: white;">BM</div>
+                                <span class="badge badge-danger">Alerts: 3</span>
+                            </div>
+                            <h4 class="h5 mb-3">Border Management</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Patrols Conducted</span>
+                                <span class="fw-bold">156</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Interceptions</span>
+                                <span class="fw-bold">24</span>
+                            </div>
+                            <a href="bm-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 7. Investigation -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7); color: white;">IC</div>
+                                <span class="badge badge-success">Processing</span>
+                            </div>
+                            <h4 class="h5 mb-3">Investigation & Compliance</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Active Cases</span>
+                                <span class="fw-bold">85</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Resolved (Mtd)</span>
+                                <span class="fw-bold">32</span>
+                            </div>
+                            <a href="ic-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 8. PRS -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #ea580c, #f97316); color: white;">PR</div>
+                                <span class="badge badge-success">Updated</span>
+                            </div>
+                            <h4 class="h5 mb-3">Planning, Research & Stats</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Strategic Plans</span>
+                                <span class="fw-bold">12</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Data Requests</span>
+                                <span class="fw-bold">45</span>
+                            </div>
+                            <a href="prs-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 9. ICT -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white;">IT</div>
+                                <span class="badge badge-success">99.9% Uptime</span>
+                            </div>
+                            <h4 class="h5 mb-3">ICT & Cyber Security</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Support Tickets</span>
+                                <span class="fw-bold">128</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Threats Blocked</span>
+                                <span class="fw-bold">1,450</span>
+                            </div>
+                            <a href="ict-cs-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+
+                    <!-- 10. Welfare -->
+                    <div class="col-xl-4 col-md-6">
+                        <div class="section-card h-100 mb-0">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #ea580c, #fb923c); color: white;">WL</div>
+                                <span class="badge badge-success">Active</span>
+                            </div>
+                            <h4 class="h5 mb-3">Works & Logistics</h4>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Projects Ongoing</span>
+                                <span class="fw-bold">18</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <span class="text-muted small">Works Projects</span>
+                                <span class="fw-bold">56</span>
+                            </div>
+                            <a href="wl-dashboard.html" class="btn btn-sm btn-secondary w-100">View Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script>
+        // Initialize Directorate Chart
+        const ctxDir = document.getElementById('directorateChart');
+        if (ctxDir) {
+            new Chart(ctxDir, {
+                type: 'bar',
+                data: {
+                    labels: ['HRM', 'F&A', 'POTD', 'VR', 'MIG', 'BM', 'IC', 'PRS', 'ICT', 'W&L'],
+                    datasets: [{
+                        label: 'Reports Submitted',
+                        data: [150, 120, 350, 280, 200, 180, 90, 60, 110, 80],
+                        backgroundColor: [
+                            '#1e40af', '#059669', '#f59e0b', '#dc2626', '#7c3aed', 
+                            '#7c2d12', '#a855f7', '#ea580c', '#0f766e', '#fb923c'
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: true, color: '#f0f0f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
