@@ -23,6 +23,7 @@ class NotificationsWebTest extends TestCase
             'user_category' => $category,
             'primary_location_type' => $locationType,
             'primary_location_code' => 'AB',
+            'geo_state' => 'FC',
             'access_level' => $accessLevel,
             'email' => fake()->unique()->safeEmail(),
         ]);

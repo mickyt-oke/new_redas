@@ -1,5 +1,6 @@
-# TODO - Fix login authentication issues on login page
+# TODO - Technical README Update
 
-- [x] Update AuthController login role validation to accept super_admin alias used by login form.
-- [ ] Add/adjust AuthLogin feature test coverage for role validation + alias login flow.
-- [ ] Run focused auth login tests and verify all pass.
+- [x] Review current README and backend-related source files.
+- [x] Draft expanded technical README content with detailed backend documentation.
+- [x] Update README.md with new technical documentation.
+- [x] Mark completion after documentation update.

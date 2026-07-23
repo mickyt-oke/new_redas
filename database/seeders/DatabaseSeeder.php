@@ -1,7 +1,6 @@
 <?php
 
 namespace Database\Seeders;
-
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -16,7 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create mock users with different roles for NIS
+        $now = now();
+
         $users = [
             [
                 'name' => 'Admin User',
@@ -24,6 +24,23 @@ class DatabaseSeeder extends Seeder
                 'email' => 'admin@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'admin',
+                'user_category' => 'admin',
+                'primary_location_type' => 'headquarters',
+                'primary_location_code' => 'HQ',
+                'geo_state' => 'FC',
+                'access_level' => 5,
+            ],
+            [
+                'name' => 'Super Admin User',
+                'service_number' => 'NIS/SA/001',
+                'email' => 'superadmin@nis.gov.ng',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
+                'user_category' => 'super_admin',
+                'primary_location_type' => 'headquarters',
+                'primary_location_code' => 'HQ',
+                'geo_state' => 'FC',
+                'access_level' => 6,
             ],
             [
                 'name' => 'Zonal Commander North',
@@ -31,6 +48,11 @@ class DatabaseSeeder extends Seeder
                 'email' => 'zonal.north@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'zonal',
+                'user_category' => 'zonal_commander',
+                'primary_location_type' => 'zonal',
+                'primary_location_code' => 'ZONE-A',
+                'geo_state' => 'KD',
+                'access_level' => 4,
             ],
             [
                 'name' => 'Zonal Commander South',
@@ -38,6 +60,11 @@ class DatabaseSeeder extends Seeder
                 'email' => 'zonal.south@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'zonal',
+                'user_category' => 'zonal_commander',
+                'primary_location_type' => 'zonal',
+                'primary_location_code' => 'ZONE-B',
+                'geo_state' => 'LA',
+                'access_level' => 4,
             ],
             [
                 'name' => 'State Coordinator',
@@ -45,6 +72,11 @@ class DatabaseSeeder extends Seeder
                 'email' => 'state.lagos@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'state',
+                'user_category' => 'desk_admin',
+                'primary_location_type' => 'state',
+                'primary_location_code' => 'LA',
+                'geo_state' => 'LA',
+                'access_level' => 1,
             ],
             [
                 'name' => 'HQ State Coordinator',
@@ -52,6 +84,11 @@ class DatabaseSeeder extends Seeder
                 'email' => 'state.abuja@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'state',
+                'user_category' => 'desk_admin',
+                'primary_location_type' => 'state',
+                'primary_location_code' => 'FC',
+                'geo_state' => 'FC',
+                'access_level' => 1,
             ],
             [
                 'name' => 'State Desk Officer',
@@ -59,6 +96,11 @@ class DatabaseSeeder extends Seeder
                 'email' => 'officer1@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'officer',
+                'user_category' => 'state_user',
+                'primary_location_type' => 'state',
+                'primary_location_code' => 'KN',
+                'geo_state' => 'KN',
+                'access_level' => 0,
             ],
             [
                 'name' => 'Directorate Desk Officer',
@@ -66,26 +108,35 @@ class DatabaseSeeder extends Seeder
                 'email' => 'officer2@nis.gov.ng',
                 'password' => Hash::make('password123'),
                 'role' => 'directorate',
+                'user_category' => 'directorate_user',
+                'primary_location_type' => 'directorate',
+                'primary_location_code' => 'HRM',
+                'geo_state' => 'FC',
+                'access_level' => 2,
+            ],
+            [
+                'name' => 'Test User',
+                'service_number' => 'NIS/OF/999',
+                'email' => 'test@example.com',
+                'password' => Hash::make('password'),
+                'role' => 'officer',
+                'user_category' => 'state_user',
+                'primary_location_type' => 'state',
+                'primary_location_code' => 'AB',
+                'geo_state' => 'AB',
+                'access_level' => 0,
             ],
         ];
 
         foreach ($users as $userData) {
-            User::create($userData);
+            User::create($userData + ['email_verified_at' => $now]);
         }
-
-        // Also create a test user for general testing
-        User::create([
-            'name' => 'Test User',
-            'service_number' => 'NIS/OF/999',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'officer',
-        ]);
 
         $this->call([
             EmailTemplateSeeder::class,
             PrimaryLocationTypeSeeder::class,
             PrimaryLocationCodeSeeder::class,
+            SettingSeeder::class,
             NisDirectorySeeder::class,
         ]);
     }

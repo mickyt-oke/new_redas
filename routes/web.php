@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAuditLogController;
+use App\Http\Controllers\Admin\AdminSettingController;
 use App\Http\Controllers\ApiNotificationController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\AuthTokenController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MfaController;
+use App\Http\Controllers\Web\DashboardController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -41,7 +44,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // State user (officer) routes — full access to all user pages
-Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state,role=user|officer|admin|state|minLevel=0'])->group(function () {
+Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state,role=user|officer|admin|state|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/dashboard', function () {
         return view('user.dashboard');
     })->name('user.dashboard');
@@ -121,7 +124,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
 });
 
 // Directorate user routes — access only to directorate pages
-Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=2'])->group(function () {
+Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=2', 'abac.geo'])->group(function () {
     Route::get('/user/directorate', function () {
         return view('user.directorate');
     })->name('user.directorate.home');
@@ -129,7 +132,7 @@ Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,l
 
 // Shared directorate form routes — accessible by both state (officer) and directorate users
 
-Route::middleware(['auth', 'access:category=state_user|directorate_user|directorate_admin,location=state|directorate,role=user|admin|officer|directorate|minLevel=0'])->group(function () {
+Route::middleware(['auth', 'access:category=state_user|directorate_user|directorate_admin,location=state|directorate,role=user|admin|officer|directorate|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
     Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
 
@@ -146,16 +149,17 @@ Route::middleware(['auth', 'access:category=state_user|directorate_user|director
             '9' => 'ict',
             '10' => 'works-logistics',
         ];
+
         return redirect()->route('user.directorates.show', $legacyMap[$id] ?? 'hrm');
     })->name('user.directorate');
 });
-Route::middleware(['auth', 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6'])->group(function () {
+Route::middleware(['auth', 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
     Route::get('/superadmin/dashboard', function () {
         // Redirect to the superadmin users list until the dashboard view is available
         return redirect()->route('superadmin.users');
     })->name('superadmin.dashboard');
 });
-Route::middleware(['auth', 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6'])->group(function () {
+Route::middleware(['auth', 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
     Route::get('/superadmin/users', function () {
         return redirect()->route('superadmin.users.create');
     })->name('superadmin.users');
@@ -171,7 +175,7 @@ Route::middleware(['auth', 'access:category=super_admin,location=headquarters,ro
 });
 
 // Supervisor dashboards (state and zonal share the same view)
-Route::middleware(['auth', 'access:category=desk_admin|zonal_commander,location=state|zonal,role=admin|state|zonal|minLevel=1'])->group(function () {
+Route::middleware(['auth', 'access:category=desk_admin|zonal_commander,location=state|zonal,role=admin|state|zonal|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/dashboard/state', function () {
         return view('supervisor.dashboard');
     })->name('supervisor.dashboard.state');
@@ -185,15 +189,32 @@ Route::middleware(['auth', 'access:category=desk_admin|zonal_commander,location=
         $url = Auth::user()->user_category === 'zonal_commander'
             ? '/dashboard/zonal'
             : '/dashboard/state';
+
         return redirect($url);
     })->name('supervisor.dashboard');
 });
 
 // Admin dashboard
-Route::middleware(['auth', 'access:category=admin,location=headquarters,role=admin|minLevel=5'])->group(function () {
+Route::middleware(['auth', 'access:category=admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
+
+    Route::get('/admin/settings', [AdminSettingController::class, 'index'])->name('admin.settings.index');
+    Route::put('/admin/settings', [AdminSettingController::class, 'update'])->name('admin.settings.update');
+
+    Route::get('/admin/audit-log', [AdminAuditLogController::class, 'index'])->name('admin.audit-log.index');
+});
+
+
+// MFA challenge routes (pending login stage)
+Route::middleware(['mfa.pending'])->group(function () {
+    Route::get('/mfa/setup', [MfaController::class, 'setup'])->name('mfa.setup');
+    Route::post('/mfa/setup', [MfaController::class, 'verifySetup'])->name('mfa.setup.verify');
+    Route::get('/mfa/challenge', [MfaController::class, 'challenge'])->name('mfa.challenge');
+    Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])->name('mfa.challenge.verify');
+    Route::post('/mfa/complete', [MfaController::class, 'complete'])->name('mfa.complete');
+    Route::post('/mfa/cancel', [MfaController::class, 'cancel'])->name('mfa.cancel');
 });
 
 // Logout

@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'access' => \App\Http\Middleware\CheckAccess::class,
+            'abac.geo' => \App\Http\Middleware\AbacGeolocationMiddleware::class,
+            'mfa.pending' => \App\Http\Middleware\RequireMfaPending::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -6,10 +6,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bacon/bacon-qr-code": "*",
         "firebase/php-jwt": "^7.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^2.10.1",
+        "pragmarx/google2fa": "*",
         "resend/resend-php": "0.11",
         "silviolleite/laravelpwa": "^2.0"
     },

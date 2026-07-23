@@ -254,26 +254,48 @@
                             <div class="card-head-icon" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-shield-alt"></i></div>
                             Recent Security Events
                         </div>
-                        <a href="{{ url('/admin/audit-log') }}" class="btn-nis btn-ghost btn-sm">Full Log</a>
+                        <a href="{{ route('admin.audit-log.index') }}" class="btn-nis btn-ghost btn-sm">Full Log</a>
                     </div>
                     <div class="card-body no-pad">
-                        @foreach([
-                            ['danger', 'fas fa-lock',       'Account locked — 5 failed attempts',  '102.89.34.x',  '2h ago'],
-                            ['success','fas fa-sign-in-alt','Admin login — ACI M.O. Oke',           '10.0.0.4',     '3h ago'],
-                            ['info',   'fas fa-download',   'Report exported — PRS Analyst',        '10.0.0.12',    '5h ago'],
-                            ['warning','fas fa-user-plus',  'New user created — DCI A. Okafor',     '10.0.0.4',     '8h ago'],
-                        ] as [$type, $icon, $action, $ip, $time])
-                        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--gray-100);">
-                            <div style="width:28px;height:28px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;background:{{ $type === 'danger' ? '#fee2e2' : ($type === 'warning' ? '#fef9c3' : ($type === 'success' ? '#dcfce7' : '#dbeafe')) }};color:{{ $type === 'danger' ? '#dc2626' : ($type === 'warning' ? '#a16207' : ($type === 'success' ? '#15803d' : '#1d4ed8')) }};">
-                                <i class="{{ $icon }}"></i>
+                        @php
+                            $recentEvents = \App\Models\AuditLog::with('user')
+                                ->latest('created_at')
+                                ->limit(5)
+                                ->get();
+                        @endphp
+                        @forelse($recentEvents as $event)
+                            @php
+                                $eventType = match($event->status) {
+                                    'blocked' => 'danger',
+                                    'failure' => 'warning',
+                                    'success' => 'success',
+                                    default => 'info',
+                                };
+                                $icon = match($event->action) {
+                                    'auth.logout' => 'fas fa-sign-out-alt',
+                                    'auth.attempt' => 'fas fa-sign-in-alt',
+                                    'auth.blocked' => 'fas fa-lock',
+                                    'settings.update' => 'fas fa-cog',
+                                    default => 'fas fa-info-circle',
+                                };
+                                $description = $event->user?->name ?? 'System';
+                                $description .= ' — ' . str_replace('_', ' ', $event->action);
+                            @endphp
+                            <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--gray-100);">
+                                <div style="width:28px;height:28px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;background:{{ $eventType === 'danger' ? '#fee2e2' : ($eventType === 'warning' ? '#fef9c3' : ($eventType === 'success' ? '#dcfce7' : '#dbeafe')) }};color:{{ $eventType === 'danger' ? '#dc2626' : ($eventType === 'warning' ? '#a16207' : ($eventType === 'success' ? '#15803d' : '#1d4ed8')) }};">
+                                    <i class="{{ $icon }}"></i>
+                                </div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:.78rem;font-weight:600;color:var(--gray-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ ucfirst($description) }}</div>
+                                    <div style="font-size:.7rem;color:var(--gray-400);">IP: {{ $event->ip_address ?? '—' }} {{ $event->location ? '• ' . $event->location : '' }}</div>
+                                </div>
+                                <div style="font-size:.7rem;color:var(--gray-400);flex-shrink:0;">{{ $event->created_at->diffForHumans() }}</div>
                             </div>
-                            <div style="flex:1;min-width:0;">
-                                <div style="font-size:.78rem;font-weight:600;color:var(--gray-800);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $action }}</div>
-                                <div style="font-size:.7rem;color:var(--gray-400);">IP: {{ $ip }}</div>
+                        @empty
+                            <div style="padding:16px;text-align:center;color:var(--gray-400);font-size:.82rem;">
+                                No security events recorded yet.
                             </div>
-                            <div style="font-size:.7rem;color:var(--gray-400);flex-shrink:0;">{{ $time }}</div>
-                        </div>
-                        @endforeach
+                        @endforelse
                     </div>
                 </div>
             </div>

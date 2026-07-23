@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AuthToken;
 use App\Models\User;
+use App\Services\AuditLogger;
+use App\Services\GeolocationService;
 use App\Services\Messaging\ResendMailService;
+use App\Services\SettingService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     private const MAX_LOGIN_ATTEMPTS = 5;
+
     private const LOCKOUT_SECONDS = 60;
 
     /**
@@ -92,7 +97,7 @@ class AuthController extends Controller
         $magicLink = rtrim($frontendUrl, '/').'/verify-email/'.$rawToken;
 
         try {
-            $mailer = new ResendMailService();
+            $mailer = new ResendMailService;
             $mailer->sendFromTemplate(
                 'verify_email_magic_link',
                 [
@@ -132,7 +137,7 @@ class AuthController extends Controller
         $request->validate([
             'login' => 'required|string|max:255',
             'password' => 'required|string',
-            'role' => 'required|in:' . implode(',', $allowedLoginRoles),
+            'role' => 'required|in:'.implode(',', $allowedLoginRoles),
         ]);
 
         $loginInput = trim((string) $request->input('login'));
@@ -157,18 +162,101 @@ class AuthController extends Controller
 
         $user = $query->first();
 
-        if (!$user || !Hash::check($request->input('password'), $user->password) || !$this->userRoleMatches($user, (string) $request->input('role')) ) {
+        if (! $user || ! Hash::check($request->input('password'), $user->password) || ! $this->userRoleMatches($user, (string) $request->input('role'))) {
             RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
+
+            AuditLogger::logAuthAttempt(
+                user: $user,
+                status: 'failure',
+                details: [
+                    'reason' => 'invalid_credentials_or_role',
+                    'login_field' => $field,
+                    'requested_role' => $request->input('role'),
+                ],
+                ip: $request->ip() ?? '0.0.0.0',
+                location: null,
+            );
 
             throw ValidationException::withMessages([
                 'login' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        RateLimiter::clear($throttleKey);
-        Auth::login($user, $request->boolean('remember'));
+        // ABAC geolocation check
+        $ip = $request->ip() ?? '0.0.0.0';
+        $location = GeolocationService::resolve($ip);
+        $abacResult = $this->checkAbacPolicy($user, $location);
 
-        return redirect($this->getRedirectUrl($user));
+        if (! $abacResult['allowed']) {
+            RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
+
+            AuditLogger::logAuthBlocked(
+                user: $user,
+                reason: $abacResult['reason'],
+                details: [
+                    'required_state' => $user->requiredGeoState(),
+                    'detected_state' => $location['state_code'] ?? 'Unknown',
+                    'detected_country' => $location['country'] ?? 'Unknown',
+                    'detected_state_name' => $location['state'] ?? 'Unknown',
+                ],
+                ip: $ip,
+                location: $location['state'] ?? 'Unknown',
+            );
+
+            throw ValidationException::withMessages([
+                'login' => [$abacResult['message']],
+            ]);
+        }
+
+        RateLimiter::clear($throttleKey);
+
+        // Stage 2: require MFA before the session is fully authenticated.
+        $request->session()->put('mfa.pending_user_id', $user->id);
+        $request->session()->put('mfa.location', $location);
+        $request->session()->put('mfa.remember', $request->boolean('remember'));
+        $request->session()->put('mfa.redirect_url', $this->getRedirectUrl($user));
+
+        if ($user->isMfaEnabled()) {
+            return redirect()->route('mfa.challenge');
+        }
+
+        return redirect()->route('mfa.setup');
+    }
+
+    /**
+     * Complete the login flow after MFA has been verified.
+     *
+     * @param array{country:string,state:string,state_code:string,provider:string} $location
+     */
+    public function completeLogin(Request $request, User $user, array $location, bool $remember): RedirectResponse
+    {
+        $redirectUrl = $request->session()->get('mfa.redirect_url', $this->getRedirectUrl($user));
+
+        Auth::login($user, $remember);
+
+        $request->session()->forget([
+            'mfa.pending_user_id',
+            'mfa.location',
+            'mfa.remember',
+            'mfa.redirect_url',
+            'mfa.setup_verified',
+        ]);
+
+        $request->session()->put('abac.location', $location);
+        $request->session()->put('abac.resolved_at', now());
+
+        AuditLogger::logAuthAttempt(
+            user: $user,
+            status: 'success',
+            details: [
+                'detected_state' => $location['state_code'] ?? 'Unknown',
+                'detected_country' => $location['country'] ?? 'Unknown',
+            ],
+            ip: $request->ip() ?? '0.0.0.0',
+            location: $location['state'] ?? 'Unknown',
+        );
+
+        return redirect($redirectUrl);
     }
 
     private function userRoleMatches(User $user, string $requestedRole): bool
@@ -198,6 +286,75 @@ class AuthController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Check ABAC geolocation policy for a user attempting to log in.
+     *
+     * @return array{allowed:bool,reason:string,message:string}
+     */
+    private function checkAbacPolicy(User $user, array $location): array
+    {
+        if (! SettingService::getBool('abac_enabled', true)) {
+            return ['allowed' => true, 'reason' => '', 'message' => ''];
+        }
+
+        if (! SettingService::getBool('abac_location_enforcement', true)) {
+            return ['allowed' => true, 'reason' => '', 'message' => ''];
+        }
+
+        if (SettingService::getBool('abac_hq_bypass', false) && $user->isHeadquartersUser()) {
+            return ['allowed' => true, 'reason' => '', 'message' => ''];
+        }
+
+        $requiredState = $user->requiredGeoState();
+
+        if ($requiredState === null) {
+            return ['allowed' => true, 'reason' => '', 'message' => ''];
+        }
+
+        $allowedCountries = $this->allowedCountries();
+        $detectedCountry = $location['country'] ?? 'Unknown';
+
+        if (! in_array($detectedCountry, $allowedCountries, true)) {
+            return [
+                'allowed' => false,
+                'reason' => 'Login attempt from outside allowed country.',
+                'message' => 'Access denied: login is not permitted from your current country.',
+            ];
+        }
+
+        $detectedState = strtoupper($location['state_code'] ?? '');
+
+        if ($detectedState !== $requiredState) {
+            return [
+                'allowed' => false,
+                'reason' => 'Login attempt from outside required state.',
+                'message' => 'Access denied: your current location is not authorized for this account.',
+            ];
+        }
+
+        return ['allowed' => true, 'reason' => '', 'message' => ''];
+    }
+
+    /**
+     * Get the list of allowed countries from settings.
+     *
+     * @return list<string>
+     */
+    private function allowedCountries(): array
+    {
+        $value = SettingService::get('abac_allowed_countries', 'Nigeria');
+
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return array_values(array_filter(array_map('trim', explode(',', $value))));
+        }
+
+        return ['Nigeria'];
     }
 
     /**
@@ -269,13 +426,13 @@ class AuthController extends Controller
             ],
         ];
 
-        if (!array_key_exists($category, $map)) {
+        if (! array_key_exists($category, $map)) {
             return null;
         }
 
         $profile = $map[$category];
 
-        if (!in_array($role, $profile['role'], true)) {
+        if (! in_array($role, $profile['role'], true)) {
             return null;
         }
 
@@ -328,6 +485,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = $request->user();
+        $ip = $request->ip() ?? '0.0.0.0';
+
+        if ($user instanceof User) {
+            AuditLogger::logLogout($user, $ip);
+        }
+
         Auth::logout();
 
         $request->session()->invalidate();
@@ -335,5 +499,4 @@ class AuthController extends Controller
 
         return redirect()->route('home')->with('status', 'Logged out successfully.');
     }
-
 }

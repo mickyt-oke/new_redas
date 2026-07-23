@@ -27,7 +27,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['category', 'sort_order']);
-            $table->fullText('address');
+
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+                $table->fullText('address');
+            }
         });
     }
 

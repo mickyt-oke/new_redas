@@ -25,9 +25,15 @@ class User extends Authenticatable
         'user_category',
         'primary_location_type',
         'primary_location_code',
+        'geo_state',
         'access_level',
         'email',
         'password',
+        'mfa_secret',
+        'mfa_enabled',
+        'mfa_verified_at',
+        'mfa_backup_codes',
+        'mfa_last_used_at',
     ];
 
     /**
@@ -38,6 +44,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'mfa_secret',
+        'mfa_backup_codes',
     ];
 
     /**
@@ -49,6 +57,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'access_level' => 'integer',
+        'mfa_enabled' => 'boolean',
+        'mfa_verified_at' => 'datetime',
+        'mfa_last_used_at' => 'datetime',
+        'mfa_secret' => 'encrypted',
+        'mfa_backup_codes' => 'encrypted:array',
     ];
 
     public const ACCESS_CATEGORIES = [
@@ -101,5 +114,66 @@ class User extends Authenticatable
     public function hasMinimumAccessLevel(int $level): bool
     {
         return (int) $this->access_level >= $level;
+    }
+
+    /**
+     * Return the geographic state this user is expected to authenticate from.
+     * Falls back to the primary location code for state users when no explicit geo_state is set.
+     */
+    public function requiredGeoState(): ?string
+    {
+        if (filled($this->geo_state)) {
+            return strtoupper($this->geo_state);
+        }
+
+        if ($this->primary_location_type === 'state' && filled($this->primary_location_code)) {
+            return strtoupper($this->primary_location_code);
+        }
+
+        return null;
+    }
+
+    /**
+     * Whether this user is a headquarters / national-level user that can optionally bypass
+     * geolocation enforcement when the HQ bypass setting is enabled.
+     */
+    public function isHeadquartersUser(): bool
+    {
+        return in_array($this->primary_location_type, ['headquarters'], true)
+            || in_array($this->user_category, ['admin', 'super_admin'], true);
+    }
+
+    /**
+     * Whether the user's geographic state is explicitly enforced.
+     * Enforced when a required state exists and the user is not an HQ-only user.
+     */
+    public function isGeoStateEnforced(): bool
+    {
+        return $this->requiredGeoState() !== null
+            && $this->primary_location_type !== 'headquarters';
+    }
+
+    /**
+     * Whether the user has configured a TOTP secret.
+     */
+    public function hasMfaSecret(): bool
+    {
+        return filled($this->mfa_secret);
+    }
+
+    /**
+     * Whether MFA is fully enabled and verified for this user.
+     */
+    public function isMfaEnabled(): bool
+    {
+        return $this->mfa_enabled === true && $this->hasMfaSecret();
+    }
+
+    /**
+     * Whether the user is partway through MFA setup (has a secret but not verified).
+     */
+    public function isMfaSetupPending(): bool
+    {
+        return $this->hasMfaSecret() && ! $this->mfa_enabled;
     }
 }

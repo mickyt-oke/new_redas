@@ -81,7 +81,7 @@
             <span class="link-text">Document Archive</span>
         </a>
 
-        <a href="{{ url('/admin/audit-log') }}" class="sidebar-link">
+        <a href="{{ route('admin.audit-log.index') }}" class="sidebar-link">
             <span class="link-icon"><i class="fas fa-shield-alt"></i></span>
             <span class="link-text">Audit Log</span>
         </a>
@@ -95,6 +95,11 @@
         <a href="{{ url('/admin/system') }}" class="sidebar-link">
             <span class="link-icon"><i class="fas fa-heartbeat"></i></span>
             <span class="link-text">System Health</span>
+        </a>
+
+        <a href="{{ route('admin.settings.index') }}" class="sidebar-link">
+            <span class="link-icon"><i class="fas fa-cog"></i></span>
+            <span class="link-text">System Settings</span>
         </a>
 
         <hr class="sidebar-divider">
@@ -197,7 +202,8 @@
                 <div id="userMenuDrop" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:210px;background:white;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);border:1px solid var(--gray-100);z-index:200;overflow:hidden;">
                     <a href="{{ url('/admin/users') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-users-cog" style="width:16px;color:var(--gray-400);"></i> User Management</a>
                     <a href="{{ url('/admin/system') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-heartbeat" style="width:16px;color:var(--gray-400);"></i> System Health</a>
-                    <a href="{{ url('/admin/audit-log') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-shield-alt" style="width:16px;color:var(--gray-400);"></i> Audit Log</a>
+                    <a href="{{ route('admin.audit-log.index') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-shield-alt" style="width:16px;color:var(--gray-400);"></i> Audit Log</a>
+                    <a href="{{ route('admin.settings.index') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-cog" style="width:16px;color:var(--gray-400);"></i> System Settings</a>
                     <div style="border-top:1px solid var(--gray-100);"></div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
