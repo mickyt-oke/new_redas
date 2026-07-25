@@ -1032,6 +1032,24 @@ body.welcome-page {
     text-decoration: none;
 }
 
+/* Mobile nav toggle */
+.mobile-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    cursor: pointer;
+    transition: all var(--duration-fast);
+    flex-shrink: 0;
+}
+
+.mobile-nav-toggle:hover { background: rgba(255,255,255,0.2); }
+
 /* Hero */
 .welcome-hero {
     min-height: 100vh;
@@ -1696,12 +1714,43 @@ body.auth-page {
     .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .compliance-name { width: 110px; }
+
+    /* Welcome header */
+    .nav-container { padding: 0 16px; gap: 16px; justify-content: space-between; }
+    .nav-links {
+        display: none;
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: var(--nis-800);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px 16px 16px;
+        gap: 4px;
+        box-shadow: var(--shadow-lg);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        z-index: 999;
+        margin-left: 0;
+    }
+    .nav-links.open { display: flex; }
+    .mobile-nav-toggle { display: flex; }
+    .nav-link-item { padding: 12px 14px; width: 100%; }
+    .nav-cta { margin-left: 0; margin-top: 8px; justify-content: center; }
 }
 
 @media (max-width: 480px) {
     .stats-grid { grid-template-columns: 1fr; }
     .welcome-hero { padding: 90px 0 40px; }
     .page-header { flex-direction: column; }
+    .nav-brand-logo { height: 34px; }
+    .nav-container { height: 64px; }
+    .nav-links { top: 64px; }
+    .hero-title { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+    .hero-desc { font-size: 0.95rem; }
+    .hero-actions { flex-direction: column; align-items: stretch; }
+    .hero-actions .btn-nis { justify-content: center; }
+    .hero-stats { gap: 20px; justify-content: center; }
 }
 
 /* ─── Print ─── */

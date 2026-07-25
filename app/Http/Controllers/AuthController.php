@@ -132,15 +132,13 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $allowedLoginRoles = array_values(array_unique(array_merge(User::ROLE_TYPES, ['super_admin'])));
-
         $request->validate([
-            'login' => 'required|string|max:255',
+            'username' => 'nullable|string|max:255|required_without:login',
+            'login' => 'nullable|string|max:255|required_without:username',
             'password' => 'required|string',
-            'role' => 'required|in:'.implode(',', $allowedLoginRoles),
         ]);
 
-        $loginInput = trim((string) $request->input('login'));
+        $loginInput = trim((string) ($request->input('username') ?? $request->input('login') ?? ''));
         $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
         $normalizedLogin = $field === 'email' ? Str::lower($loginInput) : Str::upper($loginInput);
         $throttleKey = $this->throttleKey($normalizedLogin, $request);
@@ -155,29 +153,29 @@ class AuthController extends Controller
 
         $query = User::query();
         if ($field === 'email') {
-            $query->whereRaw('LOWER(email) = ?', [Str::lower($loginInput)]);
+            $query->whereRaw('LOWER(email) = ?', [Str::lower($loginInput)], 'and');
         } else {
             $query->where('service_number', $normalizedLogin);
         }
 
         $user = $query->first();
 
-        if (! $user || ! Hash::check($request->input('password'), $user->password) || ! $this->userRoleMatches($user, (string) $request->input('role'))) {
+        if (! $user || ! Hash::check($request->input('password'), $user->password)) {
             RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
 
             AuditLogger::logAuthAttempt(
                 user: $user,
                 status: 'failure',
                 details: [
-                    'reason' => 'invalid_credentials_or_role',
+                    'reason' => 'invalid_credentials',
                     'login_field' => $field,
-                    'requested_role' => $request->input('role'),
                 ],
                 ip: $request->ip() ?? '0.0.0.0',
                 location: null,
             );
 
             throw ValidationException::withMessages([
+                'username' => ['The provided credentials are incorrect.'],
                 'login' => ['The provided credentials are incorrect.'],
             ]);
         }
@@ -204,6 +202,7 @@ class AuthController extends Controller
             );
 
             throw ValidationException::withMessages([
+                'username' => [$abacResult['message']],
                 'login' => [$abacResult['message']],
             ]);
         }
@@ -363,13 +362,15 @@ class AuthController extends Controller
     private function getRedirectUrl(User $user): string
     {
         return match ($user->user_category) {
-            'super_admin' => '/superadmin/dashboard',
+            'super_admin' => '/super-admin/dashboard',
             'admin' => '/admin/dashboard',
             'zonal_commander' => '/dashboard/zonal',
-            'desk_admin' => '/dashboard/state',
-            'directorate_admin',
+            'desk_admin' => '/supervisor/dashboard',
+            'directorate_admin' => '/directorate/dashboard',
             'directorate_user' => '/user/directorate',
             'state_user' => '/user/dashboard',
+            'hq_admin' => '/admin/hq-admin',
+            'executive' => '/executive/dashboard',
             default => '/home',
         };
     }
@@ -397,7 +398,7 @@ class AuthController extends Controller
             'directorate_user' => [
                 'role' => ['directorate'],
                 'location' => 'directorate',
-                'level' => 2,
+                'level' => 0,
                 'canonical_role' => 'directorate',
             ],
             'directorate_admin' => [
@@ -418,11 +419,23 @@ class AuthController extends Controller
                 'level' => 5,
                 'canonical_role' => 'admin',
             ],
+            'hq_admin' => [
+                'role' => ['admin'],
+                'location' => 'headquarters',
+                'level' => 5,
+                'canonical_role' => 'analyst',
+            ],
             'super_admin' => [
                 'role' => ['admin'],
                 'location' => 'headquarters',
                 'level' => 6,
                 'canonical_role' => 'admin',
+            ],
+            'executive' => [
+                'role' => ['admin'],
+                'location' => 'headquarters',
+                'level' => 7,
+                'canonical_role' => 'cgis',
             ],
         ];
 

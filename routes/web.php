@@ -124,7 +124,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
 });
 
 // Directorate user routes — access only to directorate pages
-Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=2', 'abac.geo'])->group(function () {
+Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/directorate', function () {
         return view('user.directorate');
     })->name('user.directorate.home');

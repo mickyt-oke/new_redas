@@ -115,6 +115,33 @@ function initWelcomePage() {
         window.addEventListener('scroll', onScroll, { passive: true });
     }
 
+    /* Mobile nav toggle */
+    const mobileToggle = document.getElementById('mobileNavToggle');
+    const navLinks = document.querySelector('.nav-links');
+    if (mobileToggle && navLinks) {
+        const icon = mobileToggle.querySelector('i');
+        mobileToggle.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            mobileToggle.setAttribute('aria-expanded', String(isOpen));
+            if (icon) {
+                icon.classList.toggle('fa-bars', !isOpen);
+                icon.classList.toggle('fa-times', isOpen);
+            }
+        });
+
+        /* Close mobile menu when a link is clicked */
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                mobileToggle.setAttribute('aria-expanded', 'false');
+                if (icon) {
+                    icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-times');
+                }
+            });
+        });
+    }
+
     /* Scroll-reveal via IntersectionObserver */
     const io = new IntersectionObserver((entries) => {
         entries.forEach(entry => {

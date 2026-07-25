@@ -58,8 +58,7 @@
         </div>
 
         <!-- Mobile hamburger -->
-        <button class="topbar-toggle" id="mobileNavToggle" aria-label="Toggle navigation"
-            style="background:rgba(255,255,255,0.1);border:none;width:40px;height:40px;border-radius:8px;color:white;cursor:pointer;display:none;">
+        <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation" aria-expanded="false">
             <i class="fas fa-bars"></i>
         </button>
     </div>
@@ -284,26 +283,5 @@
     </div>
 </footer>
 
-<script>
-    /* Mobile nav toggle */
-    const mobileToggle = document.getElementById('mobileNavToggle');
-    const navLinks = document.querySelector('.nav-links');
-    if (mobileToggle && navLinks) {
-        mobileToggle.addEventListener('click', () => {
-            const isOpen = navLinks.style.display === 'flex';
-            navLinks.style.cssText = isOpen
-                ? ''
-                : 'display:flex;flex-direction:column;position:absolute;top:70px;left:0;right:0;background:#003d1a;padding:16px 24px;gap:4px;z-index:999;';
-        });
-    }
-
-    /* Show mobile toggle on small screens */
-    function checkMobile() {
-        if (mobileToggle) mobileToggle.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
-        if (navLinks && window.innerWidth > 768) navLinks.style.cssText = '';
-    }
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-</script>
 </body>
 </html>

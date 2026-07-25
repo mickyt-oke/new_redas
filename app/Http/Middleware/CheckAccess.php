@@ -150,6 +150,8 @@ class CheckAccess
                 'zonal' => 'admin',
                 'directorate' => 'user',
                 'super_admin' => 'admin',
+                'executive' => 'cgis',
+                'hq_admin' => 'analyst',
             ];
 
             $expandedLegacyRoles = $parsed['role'];
