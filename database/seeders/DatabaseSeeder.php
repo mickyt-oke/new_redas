@@ -133,6 +133,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call([
+            NewSeeder::class,
             EmailTemplateSeeder::class,
             PrimaryLocationTypeSeeder::class,
             PrimaryLocationCodeSeeder::class,

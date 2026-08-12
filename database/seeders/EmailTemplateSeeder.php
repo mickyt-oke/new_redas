@@ -28,5 +28,23 @@ HTML,
                 'is_active' => true,
             ]
         );
+
+        // Add or create password reset magic link template
+        EmailTemplate::updateOrCreate(
+            ['key' => 'password_reset_magic_link'],
+            [
+                'type' => 'workflow',
+                'subject' => 'Reset your NIS-REDAS password',
+                'body' => <<<HTML
+<p>Hello {{ name }},</p>
+<p>We received a request to reset your NIS-REDAS password.</p>
+<p>Please reset your password by clicking the link below:</p>
+<p><a href="{{ magic_link }}">Reset Password</a></p>
+<p>This link expires in {{ expires_in_minutes }} minutes.</p>
+<p>If you did not initiate this request, please ignore this email.</p>
+HTML,
+                'is_active' => true,
+            ]
+        );
     }
 }

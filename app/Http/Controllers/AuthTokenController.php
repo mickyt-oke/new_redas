@@ -130,6 +130,11 @@ class AuthTokenController extends Controller
         return redirect()->route('login')->with('status', 'If the email exists, a reset link has been sent.');
     }
 
+    public function showForgotForm()
+    {
+        return view('auth.forgot-password');
+    }
+
     /**
      * GET /password/reset/{token}
      */

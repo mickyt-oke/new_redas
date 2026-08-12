@@ -94,7 +94,7 @@
                             @endphp
 
                             @foreach($directorates as $dir)
-                                <a href="{{ route('user.directorates.show', $dir['slug']) }}"
+                                <a href="{{ route('user.directorates.show', ['slug' => $dir['slug']]) }}"
                                    style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border:1px solid var(--gray-200);border-radius:var(--radius-md);text-decoration:none;color:var(--gray-700);background:#fff;transition:.2s;"
                                    onmouseover="this.style.borderColor='var(--nis-500)';this.style.transform='translateY(-2px)'"
                                    onmouseout="this.style.borderColor='var(--gray-200)';this.style.transform='translateY(0)'">

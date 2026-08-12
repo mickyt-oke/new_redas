@@ -9,7 +9,7 @@ use Illuminate\View\View;
 class DashboardController extends Controller
 {
     /**
-     * Display user notifications.
+     * This Controller handles the dashboard functions for state users (officers) only. It provides methods to display the dashboard, notifications, and submissions for the authenticated user.
      */
     public function notifications(): View
     {
@@ -34,5 +34,16 @@ class DashboardController extends Controller
             ->get();
 
         return view('user.states.submissions', compact('submissions'));
+    }
+
+    public function dashboard(): View
+    {
+        $user = Auth::user();
+
+        $submissions = Application::query()->where(['officer_id' => $user->id])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('user.states.dashboard', compact('submissions'));
     }
 }

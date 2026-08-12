@@ -33,6 +33,7 @@ class AuthController extends Controller
         $request->merge([
             'service_number' => strtoupper((string) $request->input('service_number')),
             'primary_location_code' => strtoupper((string) $request->input('primary_location_code')),
+            'geo_state' => strtoupper((string) $request->input('geo_state')),
             'user_category' => $request->filled('user_category')
                 ? (string) $request->input('user_category')
                 : $this->inferUserCategoryFromRole($role),
@@ -48,6 +49,7 @@ class AuthController extends Controller
             'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_commander,admin,super_admin',
             'primary_location_type' => 'required|in:state,directorate,zonal,headquarters',
             'primary_location_code' => 'nullable|string|max:50',
+            'geo_state' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'terms' => 'accepted',
@@ -74,6 +76,7 @@ class AuthController extends Controller
             'user_category' => $normalized['user_category'],
             'primary_location_type' => $normalized['primary_location_type'],
             'primary_location_code' => $validated['primary_location_code'] ?: null,
+            'geo_state' => $validated['geo_state'] ?: null,
             'access_level' => $normalized['access_level'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
@@ -177,6 +180,26 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'username' => ['The provided credentials are incorrect.'],
                 'login' => ['The provided credentials are incorrect.'],
+            ]);
+        }
+
+        if ($user->is_enabled === false) {
+            RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
+
+            AuditLogger::logAuthAttempt(
+                user: $user,
+                status: 'failure',
+                details: [
+                    'reason' => 'account_disabled',
+                    'login_field' => $field,
+                ],
+                ip: $request->ip() ?? '0.0.0.0',
+                location: null,
+            );
+
+            throw ValidationException::withMessages([
+                'username' => ['This account has been disabled by an administrator.'],
+                'login' => ['This account has been disabled by an administrator.'],
             ]);
         }
 
@@ -362,14 +385,12 @@ class AuthController extends Controller
     private function getRedirectUrl(User $user): string
     {
         return match ($user->user_category) {
-            'super_admin' => '/super-admin/dashboard',
-            'admin' => '/admin/dashboard',
-            'zonal_commander' => '/dashboard/zonal',
-            'desk_admin' => '/supervisor/dashboard',
-            'directorate_admin' => '/directorate/dashboard',
-            'directorate_user' => '/user/directorate',
+            'super_admin' => '/superadmin/dashboard',
+            'admin', 'hq_admin' => '/admin/dashboard',
+            'zonal_commander' => '/zonal/dashboard',
+            'desk_admin', 'directorate_admin' => '/desk-admin/dashboard',
+            'directorate_user' => '/user/directorates/dashboard',
             'state_user' => '/user/dashboard',
-            'hq_admin' => '/admin/hq-admin',
             'executive' => '/executive/dashboard',
             default => '/home',
         };
@@ -466,6 +487,7 @@ class AuthController extends Controller
         return match ($role) {
             'officer' => 'state_user',
             'directorate' => 'directorate_user',
+            'directorate_admin' => 'directorate_admin',
             'state' => 'desk_admin',
             'zonal' => 'zonal_commander',
             'admin' => 'admin',

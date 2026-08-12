@@ -238,9 +238,9 @@
                     Keep me signed in
                 </label>
 
-                <button type="button" class="forgot-btn">
+                <a href="{{ route('password.forgot.form') }}" class="forgot-btn" style="text-decoration:none;">
                     Forgot Password?
-                </button>
+                </a>
             </div>
 
             <button type="submit" class="btn-auth" id="loginBtn">

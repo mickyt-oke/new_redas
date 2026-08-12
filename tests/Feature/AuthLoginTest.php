@@ -42,14 +42,14 @@ class AuthLoginTest extends TestCase
         $this->post('/mfa/complete')->assertRedirect();
     }
 
-    private function loginPayload(User $user): array
+    private function loginPayload(User $user, ?string $role = null): array
     {
         RateLimiter::clear(strtolower($user->service_number).'|127.0.0.1');
 
         return [
             'login' => $user->service_number,
             'password' => $this->password,
-            'role' => $user->role,
+            'role' => $role ?? $user->role,
         ];
     }
 

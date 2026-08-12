@@ -11,7 +11,6 @@ use App\Http\Controllers\ApiOtpController;
 
 Route::middleware('throttle:api')->group(function () {
     // Public routes
-    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [ApiAuthController::class, 'login']);
 
     // OTP (public; no JWT required)

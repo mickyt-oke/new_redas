@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,7 +21,11 @@ return new class extends Migration
 
             if (! Schema::hasColumn('users', 'role')) {
                 Schema::table('users', function (Blueprint $table) {
-                    $table->enum('role', ['admin', 'zonal', 'state', 'officer'])->default('officer')->after('service_number');
+                    if (DB::getDriverName() === 'mysql') {
+                        $table->enum('role', ['admin', 'zonal', 'state', 'officer'])->default('officer')->after('service_number');
+                    } else {
+                        $table->string('role', 20)->default('officer')->after('service_number');
+                    }
                 });
             }
         }

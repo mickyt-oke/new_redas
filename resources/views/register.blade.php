@@ -320,6 +320,50 @@
                     @enderror
                 </div>
 
+                    <!-- Primary Location Code -->
+                    <div class="auth-form-group mt-3">
+                    <label class="form-label-location" for="primaryLocationCode">
+                        <i class="fas fa-map-marker-alt me-1 text-nis"></i> Primary Location Code
+                    </label>
+                    <div class="auth-input-wrap">
+                        <input type="text"
+                            class="auth-input @error('primary_location_code') is-invalid @enderror"
+                            id="primaryLocationCode" name="primary_location_code"
+                            placeholder="e.g. LA, AB or HQ"
+                            value="{{ old('primary_location_code') }}"
+                            maxlength="50"
+                            autocomplete="off"
+                            inputmode="text">
+                        <span class="auth-input-icon"><i class="fas fa-map-marker-alt"></i></span>
+                    </div>
+                    <div class="small text-muted mt-1">Optional, but recommended for state-based access and reporting.</div>
+                    @error('primary_location_code')
+                    <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
+                    @enderror
+                </div>
+
+                    <!-- Geo State -->
+                    <div class="auth-form-group mt-3">
+                    <label class="form-label-geo-state" for="geoState">
+                        <i class="fas fa-globe me-1 text-nis"></i> Geographic State Code
+                    </label>
+                    <div class="auth-input-wrap">
+                        <input type="text"
+                            class="auth-input @error('geo_state') is-invalid @enderror"
+                            id="geoState" name="geo_state"
+                            placeholder="e.g. LA"
+                            value="{{ old('geo_state') }}"
+                            maxlength="10"
+                            autocomplete="off"
+                            inputmode="text">
+                        <span class="auth-input-icon"><i class="fas fa-globe"></i></span>
+                    </div>
+                    <div class="small text-muted mt-1">Optional override for geolocation-based access checks.</div>
+                    @error('geo_state')
+                    <div style="color:var(--color-danger);font-size:.76rem;margin-top:4px;"><i class="fas fa-circle-xmark me-1"></i>{{ $message }}</div>
+                    @enderror
+                </div>
+
                     <!-- Email -->
                     <div class="auth-form-group mt-3">
                     <label class="form-label-email" for="email">
@@ -434,6 +478,8 @@
         const passwordInput = document.getElementById('password');
         const passwordConfirmationInput = document.getElementById('passwordConfirmation');
         const passwordStrength = document.getElementById('passwordStrength');
+        const primaryLocationCodeInput = document.getElementById('primaryLocationCode');
+        const geoStateInput = document.getElementById('geoState');
 
         function debounce(fn, delay) {
             let t;
@@ -533,6 +579,10 @@
             serviceNumberInput.setCustomValidity(servicePattern.test(val) ? '' : 'Service Number must be in the format NIS/XXX/1234.');
         }
 
+        function normalizeCodeField(value) {
+            return String(value || '').trim().toUpperCase();
+        }
+
         function removeShakeState() {
             document.querySelector('.auth-right-inner')?.classList.remove('shake');
         }
@@ -570,6 +620,16 @@
 
         passwordConfirmationInput && passwordConfirmationInput.addEventListener('input', () => {
             validatePasswordMatch();
+            removeShakeState();
+        });
+
+        primaryLocationCodeInput && primaryLocationCodeInput.addEventListener('input', () => {
+            primaryLocationCodeInput.value = normalizeCodeField(primaryLocationCodeInput.value);
+            removeShakeState();
+        });
+
+        geoStateInput && geoStateInput.addEventListener('input', () => {
+            geoStateInput.value = normalizeCodeField(geoStateInput.value);
             removeShakeState();
         });
 
@@ -621,6 +681,8 @@
         validatePasswordMatch();
         syncRolePlaceholderState();
         syncAccessProfileInputs();
+        if (primaryLocationCodeInput) primaryLocationCodeInput.value = normalizeCodeField(primaryLocationCodeInput.value);
+        if (geoStateInput) geoStateInput.value = normalizeCodeField(geoStateInput.value);
 
         /* Shake on server-side validation error */
         @if($errors->any())

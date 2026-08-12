@@ -121,7 +121,7 @@
                 </p>
             </div>
 
-            <a href="{{ route('register') }}" class="btn btn-outline-secondary">Back to Register</a>
+            <a href="{{ route('login') }}" class="btn btn-outline-secondary">Back to Login</a>
         </section>
     </main>
 </body>

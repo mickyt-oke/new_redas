@@ -25,10 +25,16 @@ class User extends Authenticatable
         'user_category',
         'primary_location_type',
         'primary_location_code',
+        'assigned_state_code',
+        'assigned_directorate_code',
+        'assigned_cgis_unit_code',
+        'assigned_desk_admin_code',
+        'assigned_zonal_command_code',
         'geo_state',
         'access_level',
         'email',
         'password',
+        'is_enabled',
         'mfa_secret',
         'mfa_enabled',
         'mfa_verified_at',
@@ -57,6 +63,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'access_level' => 'integer',
+        'is_enabled' => 'boolean',
         'mfa_enabled' => 'boolean',
         'mfa_verified_at' => 'datetime',
         'mfa_last_used_at' => 'datetime',
@@ -122,6 +129,10 @@ class User extends Authenticatable
      */
     public function requiredGeoState(): ?string
     {
+        if ($this->primary_location_type === 'directorate') {
+            return null;
+        }
+
         if (filled($this->geo_state)) {
             return strtoupper($this->geo_state);
         }
@@ -175,5 +186,53 @@ class User extends Authenticatable
     public function isMfaSetupPending(): bool
     {
         return $this->hasMfaSecret() && ! $this->mfa_enabled;
+    }
+
+    /**
+     * Whether this account is a directorate-level user (user or admin).
+     */
+    public function isDirectorateAccount(): bool
+    {
+        return $this->primary_location_type === 'directorate'
+            || in_array($this->user_category, ['directorate_user', 'directorate_admin'], true);
+    }
+
+    /**
+     * Return the canonical directorate slug assigned to this account.
+     * Falls back through assigned_directorate_code and primary_location_code.
+     * Handles both the legacy 3-letter codes and the full view slugs.
+     */
+    public function directorateSlug(): ?string
+    {
+        $code = $this->assigned_directorate_code ?: $this->primary_location_code;
+
+        if (! filled($code)) {
+            return null;
+        }
+
+        $normalised = strtolower((string) $code);
+
+        $map = [
+            'hrm' => 'hrm',
+            'prs' => 'prs',
+            'fin' => 'finance',
+            'finance' => 'finance',
+            'inv' => 'investigation',
+            'investigation' => 'investigation',
+            'pas' => 'passport',
+            'passport' => 'passport',
+            'vis' => 'visa',
+            'visa' => 'visa',
+            'mig' => 'migration',
+            'migration' => 'migration',
+            'bor' => 'border',
+            'border' => 'border',
+            'ict' => 'ict',
+            'wks' => 'works-logistics',
+            'works-logistics' => 'works-logistics',
+            'works' => 'works-logistics',
+        ];
+
+        return $map[$normalised] ?? null;
     }
 }

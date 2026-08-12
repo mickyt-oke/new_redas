@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Officer Dashboard | NIS-REDAS</title>
+    <title>{{ in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin']) ? 'Desk Admin Dashboard' : (auth()->user()?->role === 'directorate' ? 'Directorate Dashboard' : 'Officer Dashboard') }} | NIS-REDAS</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
     @include('partials.head-meta')
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -23,28 +23,77 @@
 <aside class="redas-sidebar" id="redasSidebar">
 
     <!-- Brand -->
-    @if(auth()->user()?->role === 'directorate')
-    <a href="{{ route('user.directorate.home') }}" class="sidebar-brand">
-    @else
-    <a href="{{ route('user.dashboard') }}" class="sidebar-brand">
-    @endif
+    @php
+        $brandRoute = route('user.dashboard');
+        $brandText = 'State Officer Portal';
+
+        if (in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin'])) {
+            $brandRoute = route('user.desk.home');
+            $brandText = auth()->user()?->user_category === 'directorate_admin'
+                ? 'Directorate Admin Portal'
+                : 'Desk Admin Portal';
+        } elseif (auth()->user()?->user_category === 'zonal_commander') {
+            $brandRoute = route('user.zonal.home');
+            $brandText = 'Zonal Command Portal';
+        } elseif (auth()->user()?->role === 'directorate') {
+            $brandRoute = route('user.directorates.dashboard');
+            $brandText = 'Directorate Portal';
+        }
+    @endphp
+
+    <a href="{{ $brandRoute }}" class="sidebar-brand">
         <img src="{{ asset('assets/images/nis.png') }}" alt="NIS" class="sidebar-brand-logo">
         <div class="sidebar-brand-text">
             <span class="sidebar-brand-title">NIS&nbsp;REDAS</span>
-            <span class="sidebar-brand-sub">{{ auth()->user()?->role === 'directorate' ? 'Directorate Portal' : 'State Officer Portal' }}</span>
+            <span class="sidebar-brand-sub">{{ $brandText }}</span>
         </div>
     </a>
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Main Menu</div>
+        <div class="sidebar-section-label">{{ in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin']) ? 'Desk Admin Menu' : 'Main Menu' }}</div>
 
+        @if(in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin']))
+        <a href="{{ route('user.desk.home') }}" class="sidebar-link {{ request()->routeIs('user.desk.home') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-th-large"></i></span>
+            <span class="link-text">Review Dashboard</span>
+        </a>
+
+        <a href="{{ route('user.reports') }}" class="sidebar-link {{ request()->routeIs('user.reports') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-file-export"></i></span>
+            <span class="link-text">Cumulative Reports</span>
+        </a>
+
+        <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-archive"></i></span>
+            <span class="link-text">Archived Documents</span>
+        </a>
+
+        <a href="{{ route('user.submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-inbox"></i></span>
+            <span class="link-text">Officer Submissions</span>
+        </a>
+
+        <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-bell"></i></span>
+            <span class="link-text">Notifications</span>
+        </a>
+
+        @else
         @if(auth()->user()?->role === 'directorate')
         {{-- Directorate user: only directorate pages --}}
-        <a href="{{ route('user.directorate.home') }}" class="sidebar-link {{ request()->routeIs('user.directorate.home') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-building-columns"></i></span>
-            <span class="link-text">Directorates</span>
+        <a href="{{ route('user.directorates.dashboard') }}" class="sidebar-link {{ request()->routeIs('user.directorates.dashboard') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
+            <span class="link-text">Dashboard</span>
         </a>
+
+        @php $userDirectorateSlug = auth()->user()?->directorateSlug(); @endphp
+        @if($userDirectorateSlug)
+        <a href="{{ route('user.directorates.show', ['slug' => $userDirectorateSlug]) }}" class="sidebar-link {{ request()->routeIs('user.directorates.show') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-file-signature"></i></span>
+            <span class="link-text">Submit Return</span>
+        </a>
+        @endif
         @else
         {{-- State user (officer): full access --}}
         <a href="{{ route('user.dashboard') }}" class="sidebar-link {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
@@ -79,6 +128,7 @@
             <span class="link-text">Generate Report</span>
         </a>
         @endif
+        @endif
 </aside>
 
 <!-- ═══════ MAIN ═══════ -->
@@ -90,8 +140,10 @@
         <div class="topbar-breadcrumb">
             <span>NIS-REDAS</span>
             <span class="separator"><i class="fas fa-chevron-right" style="font-size:.6rem;"></i></span>
-            @if(auth()->user()?->role === 'directorate')
-            <a href="{{ route('user.directorate.home') }}" style="color:var(--gray-500);text-decoration:none;">Directorates</a>
+            @if(in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin']))
+            <a href="{{ route('user.desk.home') }}" style="color:var(--gray-500);text-decoration:none;">Desk Admin Dashboard</a>
+            @elseif(auth()->user()?->role === 'directorate')
+            <a href="{{ route('user.directorates.dashboard') }}" style="color:var(--gray-500);text-decoration:none;">Directorate Dashboard</a>
             @else
             <a href="{{ route('user.dashboard') }}" style="color:var(--gray-500);text-decoration:none;">Dashboard</a>
             @endif

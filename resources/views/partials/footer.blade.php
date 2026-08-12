@@ -337,7 +337,7 @@
             const rec = document.querySelector('[name="general[recommendations]"]')?.value;
             if (rec) html += `<div class="preview-section"><h6>Recommendations</h6><p style="font-size:.82rem;">${rec}</p></div>`;
 
-            html += `<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-200);font-size:.78rem;color:var(--gray-500);">Prepared by: <strong>{{ auth()->user()->name }}</strong> &mdash; {{ now()->format('d F Y') }}</div>`;
+            html += `<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-200);font-size:.78rem;color:var(--gray-500);">Prepared by: <strong>{{ auth()->user()?->name ?? 'NIS REDAS' }}</strong> &mdash; {{ now()->format('d F Y') }}</div>`;
             return html;
         }
 

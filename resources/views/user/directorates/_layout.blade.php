@@ -9,7 +9,11 @@
             </h1>
         </div>
         @if(auth()->user()?->role === 'directorate')
-        <a href="{{ route('user.directorate.home') }}" class="btn-nis btn-ghost">
+        <a href="{{ route('user.directorates.dashboard') }}" class="btn-nis btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        @elseif(auth()->user()?->user_category === 'directorate_admin')
+        <a href="{{ route('user.directorates.home') }}" class="btn-nis btn-ghost">
             <i class="fas fa-arrow-left"></i> Back to Directorates
         </a>
         @else
@@ -32,7 +36,7 @@
                 <i class="fas fa-shield-alt" style="color:#1d4ed8;font-size:1.1rem;margin-top:2px;"></i>
                 <div>
                     <strong style="color:#1e3a8a;display:block;margin-bottom:4px;">Data Protection Notice</strong>
-                    The information submitted on this form is processed for official NIS reporting and operational oversight.
+                    The information submitted on this form is processed for official records for the Service.
                     Only data that is adequate, relevant, and limited to what is necessary should be entered.
                     Personal data will be retained in accordance with NIS archival policy and applicable data-protection law.
                     <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Read the Privacy Policy</a>.
@@ -94,7 +98,11 @@
 
         <div class="redas-card">
             <div class="card-body" style="display:flex;justify-content:flex-end;gap:10px;">
+                @if(auth()->user()?->role === 'directorate')
+                <a href="{{ route('user.directorates.dashboard') }}" class="btn-nis btn-ghost">Cancel</a>
+                @else
                 <a href="{{ route('user.dashboard') }}" class="btn-nis btn-ghost">Cancel</a>
+                @endif
                 <button type="submit" class="btn-nis btn-primary-nis">
                     <i class="fas fa-paper-plane"></i> Submit {{ $directorateName ?? 'Directorate' }} Return
                 </button>
