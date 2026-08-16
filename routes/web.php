@@ -158,6 +158,12 @@ Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,l
     })->name('user.directorates.home');
 
     Route::get('/user/directorates/dashboard', [DashboardController::class, 'directorateDashboard'])->name('user.directorates.dashboard');
+
+    Route::get('/user/directorates/submissions/{application}', [DashboardController::class, 'showSubmission'])->name('user.directorates.submissions.show');
+    Route::get('/user/directorates/submissions/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.directorates.submissions.print');
+    Route::get('/user/directorates/submissions/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.directorates.submissions.edit');
+    Route::put('/user/directorates/submissions/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.directorates.submissions.update');
+
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
     Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
 });

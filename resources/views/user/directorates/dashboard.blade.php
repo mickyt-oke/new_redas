@@ -72,7 +72,7 @@
         <!-- Left column -->
         <div style="display:flex;flex-direction:column;gap:20px;">
             <!-- Directorate info -->
-            <div class="redas-card animate-fade-up delay-2">
+            {{-- <div class="redas-card animate-fade-up delay-2">
                 <div class="card-head">
                     <div class="card-head-title">
                         <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
@@ -96,7 +96,7 @@
                         <p style="margin:0;">No directorate assignment found.</p>
                     @endif
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Recent submissions -->
             <div class="redas-card animate-fade-up delay-2">
@@ -118,6 +118,7 @@
                                 <th>Period</th>
                                 <th>Status</th>
                                 <th>Date</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -138,10 +139,25 @@
                                         </span>
                                     </td>
                                     <td style="font-size:.78rem;color:var(--gray-500);">{{ $submission->created_at?->format('d M Y') ?? '—' }}</td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;">
+                                            <a href="{{ route('user.directorates.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Preview">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ route('user.directorates.submissions.print', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Print" target="_blank">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                            @if($status !== 'approved')
+                                                <a href="{{ route('user.directorates.submissions.edit', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Update">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" style="text-align:center;padding:24px;color:var(--gray-500);font-size:.84rem;">
+                                    <td colspan="4" style="text-align:center;padding:24px;color:var(--gray-500);font-size:.84rem;">
                                         No submissions yet. Use the button above to submit your first return.
                                     </td>
                                 </tr>
@@ -161,26 +177,28 @@
                         <div class="card-head-icon" style="background:#fef9c3;color:#a16207;">
                             <i class="fas fa-bell"></i>
                         </div>
-                        Notifications
+                        Directorate Information
                     </div>
-                    @if($unreadNotifications > 0)
-                        <span class="link-badge danger">{{ $unreadNotifications }}</span>
-                    @endif
                 </div>
                 <div class="card-body" style="font-size:.84rem;color:var(--gray-700);">
-                    @if($unreadNotifications > 0)
-                        <p style="margin:0 0 10px;">You have <strong>{{ $unreadNotifications }}</strong> unread notification{{ $unreadNotifications === 1 ? '' : 's' }}.</p>
+                    @if($directorate)
+                        <p style="margin:0 0 8px;">
+                            <strong>Directorate:</strong> {{ $directorate['name'] }}
+                        </p>
+                        <p style="margin:0 0 8px;">
+                            <strong>Report Period:</strong> {{ now()->format('F Y') }}
+                        </p>
+                        <p style="margin:0;">
+                            <strong>Reporting Officer:</strong> {{ auth()->user()?->name }}
+                        </p>
                     @else
-                        <p style="margin:0 0 10px;">No new notifications.</p>
+                        <p style="margin:0;">No directorate assignment found.</p>
                     @endif
-                    <a href="#" onclick="document.getElementById('notifBtn')?.click(); return false;" style="color:var(--nis-600);font-weight:600;text-decoration:none;font-size:.8rem;">
-                        View all <i class="fas fa-arrow-right" style="font-size:.7rem;"></i>
-                    </a>
                 </div>
             </div>
 
             <!-- Quick actions -->
-            <div class="redas-card animate-fade-up delay-4">
+            {{-- <div class="redas-card animate-fade-up delay-4">
                 <div class="card-head">
                     <div class="card-head-title">
                         <div class="card-head-icon" style="background:var(--gold-100);color:var(--gold-500);">
@@ -195,11 +213,11 @@
                             <i class="fas fa-file-signature"></i> Submit Monthly Return
                         </a>
                     @endif
-                    <a href="{{ route('user.directorates.home') }}" class="btn-nis btn-ghost" style="justify-content:center;">
-                        <i class="fas fa-building-columns"></i> Directorate Home
+                    <a href="{{ route('user.profile') }}" class="btn-nis btn-ghost" style="justify-content:center;">
+                        <i class="fas fa-user"></i> My Profile
                     </a>
                 </div>
-            </div>
+            </div> --}}
         </div>
     </div>
 </main>

@@ -214,4 +214,123 @@ class DashboardController extends Controller
             ->route('user.directorates.show', $slug)
             ->with('status', $directorate['name'] . ' return submitted successfully.');
     }
+
+    /**
+     * Display a previously submitted return for preview (screen).
+     */
+    public function showSubmission(Request $request, Application $application): View
+    {
+        abort_unless($application->user_id === $request->user()->id, 403);
+
+        return view('user.directorates.submission', $this->submissionViewData($application, false));
+    }
+
+    /**
+     * Display a previously submitted return in print mode (auto-prints).
+     */
+    public function printSubmission(Request $request, Application $application): View
+    {
+        abort_unless($application->user_id === $request->user()->id, 403);
+
+        return view('user.directorates.submission', $this->submissionViewData($application, true));
+    }
+
+    /**
+     * Show the directorate form prefilled with an existing submission for editing.
+     */
+    public function editSubmission(Request $request, Application $application): View|RedirectResponse
+    {
+        abort_unless($application->user_id === $request->user()->id, 403);
+
+        if (strtolower((string) $application->status) === 'approved') {
+            return redirect()
+                ->route('user.directorates.dashboard')
+                ->with('status', 'Approved submissions cannot be edited.');
+        }
+
+        $user = Auth::user();
+        $slug = $user?->directorateSlug();
+
+        if ($slug === null || ! isset(self::DIRECTORATES[$slug])) {
+            return redirect()
+                ->route('user.directorates.dashboard')
+                ->with('status', 'Your account is not assigned to a valid directorate.');
+        }
+
+        $directorate = self::DIRECTORATES[$slug];
+
+        return view('user.directorates.' . $slug, [
+            'slug' => $slug,
+            'directorateName' => $directorate['name'],
+            'directorateIcon' => $directorate['icon'],
+            'allDirectorates' => self::DIRECTORATES,
+            'editing' => $application,
+        ]);
+    }
+
+    /**
+     * Update an existing submission and re-enter it into the review workflow.
+     */
+    public function updateSubmission(Request $request, Application $application): RedirectResponse
+    {
+        abort_unless($application->user_id === $request->user()->id, 403);
+        abort_if(strtolower((string) $application->status) === 'approved', 403, 'Approved submissions cannot be edited.');
+
+        $validated = $request->validate([
+            'report_period' => ['required', 'date_format:Y-m'],
+            'reporting_officer' => ['required', 'string', 'max:120'],
+            'data_consent' => ['required', 'accepted'],
+        ]);
+
+        $user = Auth::user();
+        $slug = $user?->directorateSlug();
+        abort_if($slug === null || ! isset(self::DIRECTORATES[$slug]), 403);
+
+        // Mirror the initial-stage logic of SubmissionWorkflow::create() so the
+        // updated return re-enters the workflow where a fresh submission would.
+        $initialStage = SubmissionWorkflow::categoryForUser($user) === SubmissionWorkflow::CATEGORY_DIRECTORATE
+            ? SubmissionWorkflow::STAGE_DIRECTORATE_REVIEW
+            : SubmissionWorkflow::STAGE_DESK_REVIEW;
+
+        $path = $application->workflow_path ?? [];
+        $path[] = [
+            'stage' => SubmissionWorkflow::STAGE_SUBMITTED,
+            'by' => $user->id,
+            'at' => now()->toDateTimeString(),
+            'action' => 'resubmitted',
+        ];
+
+        $application->update([
+            'return_data' => array_merge(
+                $request->except(['_token', '_method', 'data_consent']),
+                ['directorate_slug' => $slug, 'report_period' => $validated['report_period']]
+            ),
+            'status' => 'pending',
+            'workflow_stage' => $initialStage,
+            'workflow_path' => $path,
+        ]);
+
+        return redirect()
+            ->route('user.directorates.dashboard')
+            ->with('status', 'Return updated and resubmitted successfully.');
+    }
+
+    /**
+     * Build the view data shared by the preview and print pages.
+     */
+    private function submissionViewData(Application $application, bool $isPrint): array
+    {
+        $user = Auth::user();
+        $slug = $application->return_data['directorate_slug'] ?? $user?->directorateSlug();
+        $directorate = ($slug !== null && isset(self::DIRECTORATES[$slug]))
+            ? self::DIRECTORATES[$slug]
+            : null;
+
+        return [
+            'application' => $application,
+            'slug' => $slug,
+            'directorate' => $directorate,
+            'isPrint' => $isPrint,
+        ];
+    }
 }

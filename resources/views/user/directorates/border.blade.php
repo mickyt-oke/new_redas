@@ -2,6 +2,15 @@
 
 @section('directorate-sections')
 
+<style>
+.border-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 0; margin-top:10px; border-top:1px solid var(--gray-200); position:sticky; bottom:0; background:#fff; z-index:20; }
+.border-actions-center { display:flex; gap:10px; }
+.border-preview-table { width:100%; border-collapse:collapse; font-size:.82rem; margin-bottom:14px; }
+.border-preview-table th, .border-preview-table td { border:1px solid var(--gray-200); padding:6px 8px; text-align:left; }
+.border-preview-table th { background:#f8fafc; font-weight:700; }
+.border-preview-section-title { font-size:.9rem; font-weight:700; margin:18px 0 8px; color:var(--nis-700); border-bottom:1px solid var(--gray-200); padding-bottom:4px; }
+</style>
+
 <!-- ==========================================================
     REDAS SECTION NAVIGATION
 ========================================================== -->
@@ -60,17 +69,20 @@
 <div class="tab-content-wrapper">
 
     <!-- ======================================================
-        PERSONNEL (sTAFF STRENGTH)
+        PERSONNEL (STAFF STRENGTH)
     ======================================================= -->
 
     <div class="tab-panel active" id="tab-personnel">
         <div class="redas-card" style="margin-bottom:14px;">
-                <div class="nis-section-head">
-                    <span class="sec-num">
-                        <i class="fas fa-users"></i>
-                    </span>
-                    <div style="display:flex;flex-direction:column;">Staff Strength <small style="font-weight:400;opacity:.8;">(Current nominal roll to be attached)</small></div>
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        1. Personnel
+                        <small style="font-weight:400;color:var(--gray-500);">(Current nominal roll to be attached)</small>
                     </div>
+                </div>
                     <div class="card-body">
 
                         <div class="table-responsive">
@@ -169,8 +181,14 @@
                         </div>
                     </div>
                 </div>
+        <div class="border-actions">
+            <button type="button" class="btn-nis btn-ghost border-prev-btn" disabled><i class="fas fa-arrow-left"></i> Previous</button>
+            <div class="border-actions-center">
+                <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
             </div>
+            <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
+            </div>
 
 
 
@@ -325,19 +343,23 @@
 
     @endphp
 
-    <div class="nis-section">
+    <div class="redas-card" style="margin-bottom:14px;">
 
-        <div class="nis-section-head">
+        <div class="card-head">
 
-            <span class="sec-num">
-                <i class="fas fa-map-marker-alt"></i>
-            </span>
+            <div class="card-head-title">
 
-            Arrival / Departure of Passengers through Nigerian Borders by Land
+                <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                    <i class="fas fa-road"></i>
+                </div>
+
+                2. Land Border
+
+            </div>
 
         </div>
 
-        <div class="nis-section-body">
+        <div class="card-body">
 
             @foreach($states as $state => $posts)
 
@@ -533,9 +555,17 @@
 
             @endforeach
 
-        </div> {{-- /.nis-section-body --}}
+        </div> {{-- /.card-body --}}
 
-    </div> {{-- /.nis-section --}}
+    </div> {{-- /.redas-card --}}
+
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+    </div>
 
 </div> {{-- /.tab-panel --}}
 
@@ -555,32 +585,21 @@
 
                 <div class="card-head-icon"
                      style="background:#DBEAFE;color:#1D4ED8;">
-
                     <i class="fas fa-passport"></i>
-
                 </div>
-
-                Land Border Returns by Nationality
-
+                3. Border Nationality
             </div>
 
             <div class="card-head-action">
-
                 <button
                     type="button"
                     id="btnAddCommand"
                     class="btn btn-success btn-sm">
-
                     <i class="fas fa-plus-circle"></i>
-
                     Add Border Command
-
                 </button>
-
             </div>
-
         </div>
-
     </div>
 
 
@@ -592,22 +611,14 @@
     <!-- ================= OVERALL SUMMARY ================= -->
 
     <div class="redas-card mt-4">
-
         <div class="card-head">
-
             <div class="card-head-title">
-
                 <div class="card-head-icon"
                      style="background:#ECFDF5;color:#15803D;">
-
                     <i class="fas fa-chart-bar"></i>
-
                 </div>
-
                 Overall Summary
-
             </div>
-
         </div>
 
         <div class="card-body">
@@ -849,44 +860,36 @@
             </td>
 
             <td><input type="number" class="ni arrivalMale" value="0" min="0"></td>
-
             <td><input type="number" class="ni arrivalFemale" value="0" min="0"></td>
-
             <td><input class="ni arrivalTotal" readonly></td>
-
             <td><input type="number" class="ni departureMale" value="0" min="0"></td>
-
             <td><input type="number" class="ni departureFemale" value="0" min="0"></td>
-
             <td><input class="ni departureTotal" readonly></td>
-
             <td><input class="ni grandTotal" readonly></td>
-
             <td class="text-center">
-
                 <button
                     type="button"
                     class="btn btn-sm btn-outline-danger btnRemoveNationality">
-
                     <i class="fas fa-times"></i>
-
                 </button>
-
             </td>
-
         </tr>
-
     </template>
 
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+    </div>
 </div>
     <!-- ======================================================
         SEAPORT & MARINE
     ======================================================= -->
 
     <div class="tab-panel" id="tab-seaport">
-
             @php
-
 $seaportStates = [
 
     'Lagos' => [ 'Tin Can Shift', 'Tin Can Jetty', 'Apapa Shift', 'Apapa Jetty', 'Ladol Free Zone', 'Marine Jetty', 'Badagry Patrol Base', 'Snake Island Free Zone' ],
@@ -895,61 +898,29 @@ $seaportStates = [
 
     'Cross River' => [ 'Calabar Marine Patrol Unit' ],
 
-    'Rivers' => [
-        'NPA Control Post',
-        'Onne Seaport',
-        'NPA Jetty'
-    ],
-
-    'Ondo' => [
-        'Igbokoda'
-    ],
-
-    'Adamawa' => [
-        'Adamawa Marine Patrol Unit'
-    ],
-
-    'Kebbi' => [
-        'Dole Kaina Marine Patrol',
-        'Yauri Marine Patrol'
-    ],
-
-    'Bayelsa' => [
-        'Government Jetty'
-    ],
-
-    'Ogun' => [
-        'Akere Marine'
-    ],
-
+    'Rivers' => ['NPA Control Post', 'Onne Seaport', 'NPA Jetty'],
+    'Ondo' => ['Igbokoda'], 'Adamawa' => ['Adamawa Marine Patrol Unit'],
+    'Kebbi' => ['Dole Kaina Marine Patrol','Yauri Marine Patrol'],
+    'Bayelsa' => ['Government Jetty'], 'Ogun' => ['Akere Marine'],
     'Akwa Ibom' => [
         'Oron',
         'Ibeno',
         'Ibaka',
         'Ebughu'
     ]
-
 ];
-
 @endphp
 
 
 <div class="redas-card mb-4">
-
     <div class="card-head">
-
         <div class="card-head-title">
-
-            <div class="card-head-icon">
+            <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
                 <i class="fas fa-ship"></i>
             </div>
-
-            Activities of the Service at the Seaport and Marine Base
-
+            4. Seaport & Marine
         </div>
-
     </div>
-
 </div>
 
 
@@ -1410,6 +1381,14 @@ $seaportStates = [
 
 @endforeach
 
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+    </div>
+
     </div>
 
 
@@ -1445,13 +1424,13 @@ $internationalAirports = [
 
         <div class="card-head-title">
 
-            <div class="card-head-icon">
+            <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
 
                 <i class="fas fa-plane"></i>
 
             </div>
 
-            Passenger Movement Across the International Airports
+            5. Int. Airports
 
         </div>
 
@@ -1595,7 +1574,7 @@ $internationalAirports = [
                     ];
 
                     @endphp
-                
+
                     @php
 $lastSection = '';
 @endphp
@@ -1676,8 +1655,8 @@ $lastSection = $category['section'];
 </tr>
 
 @endforeach
-                    
-                
+
+
                 {{-- =====================================
                     AIRPORT TOTAL
                  ====================================== --}}
@@ -1802,6 +1781,14 @@ $lastSection = $category['section'];
 
             @endforeach
 
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+    </div>
+
     </div>
 
 
@@ -1816,7 +1803,7 @@ $lastSection = $category['section'];
     <div class="card-head">
         <div class="card-head-title">
             <div class="card-head-icon" style="background:#DBEAFE;color:#1D4ED8;"><i class="fas fa-anchor"></i></div>
-            Offshore Activities
+            6. Offshore
         </div>
         <div class="card-head-action">
             <button type="button" id="btnAddState" class="btn btn-primary btn-sm"><i class="fas fa-plus-circle"></i>Add State</button>
@@ -1976,6 +1963,14 @@ $lastSection = $category['section'];
 
 </div>
 
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+    </div>
+
     </div>
 
 
@@ -1986,9 +1981,16 @@ $lastSection = $category['section'];
 
     <div class="tab-panel" id="tab-comments">
 
-                    <div class="nis-section" style="margin-top:8px;" id="generalReport">
-                <div class="nis-section-head"><span class="sec-num">§19</span> General Report</div>
-                <div class="nis-section-body">
+                    <div class="redas-card" style="margin-bottom:14px;" id="generalReport">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        7. General Reports
+                    </div>
+                </div>
+                <div class="card-body">
                     <div class="form-grid-2">
                         <div class="fg"><label>Security Report</label><textarea name="general[security]" class="ni" rows="4" placeholder="Security situation and incidents during the reporting period..."></textarea></div>
                         <div class="fg"><label>Other Reports</label><textarea name="general[other]" class="ni" rows="4" placeholder="Any other relevant operational reports..."></textarea></div>
@@ -2011,6 +2013,14 @@ $lastSection = $category['section'];
                 </div>
             </div>
 
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+    </div>
+
     </div>
 
 
@@ -2020,347 +2030,81 @@ $lastSection = $category['section'];
 
 <div class="tab-panel" id="tab-preview">
 
-    <div id="redasPreviewContainer"
-         style="
-            background:#f1f5f9;
-            padding:20px;
-            border-radius:10px;
-            width:100%;
-            box-sizing:border-box;
-         ">
+    <div class="redas-card" style="margin-bottom:14px;">
 
-        <!-- ==========================================
-             REPORT HEADER
-        =========================================== -->
+        <div class="card-head">
 
-        <div style="
-            background:#ffffff;
-            border:1px solid #dbe3ec;
-            border-radius:8px 8px 0 0;
-            padding:22px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:20px;
-         ">
+            <div class="card-head-title">
 
-            <div style="
-                display:flex;
-                align-items:center;
-                gap:15px;
-            ">
-
-                <div style="
-                    width:58px;
-                    height:58px;
-                    border-radius:50%;
-                    background:#005c2b;
-                    color:#ffffff;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:25px;
-                    flex-shrink:0;
-                ">
-
-                    <i class="fas fa-shield-alt"></i>
-
+                <div class="card-head-icon" style="background:#f0fdf4;color:#15803d;">
+                    <i class="fas fa-eye"></i>
                 </div>
 
-                <div>
+                8. Preview
 
-                    <div style="
-                        font-size:20px;
-                        font-weight:700;
-                        color:#172033;
-                        margin-bottom:4px;
-                    ">
-                        NIGERIA IMMIGRATION SERVICE
-                    </div>
+            </div>
 
-                    <div style="
-                        font-size:12px;
-                        color:#64748b;
-                        margin-bottom:4px;
-                    ">
-                        BORDER MANAGEMENT DIRECTORATE RETURNS
-                    </div>
+        </div>
 
-                    <div style="
-                        font-size:14px;
-                        font-weight:700;
+        <div class="card-body">
+
+            <p style="font-size:.82rem;color:var(--gray-600);margin-bottom:14px;">Review the generated report below before submitting. Use “Back to Edit” to make corrections.</p>
+
+            <!-- ==========================================
+                 DYNAMIC PREVIEW CONTENT
+            =========================================== -->
+
+            <div id="previewContent">
+
+                <div style="
+                    background:#ffffff;
+                    border:1px solid #dbe3ec;
+                    border-radius:8px;
+                    padding:50px 20px;
+                    text-align:center;
+                    color:#64748b;
+                ">
+
+                    <i class="fas fa-file-alt"
+                       style="
+                        font-size:40px;
+                        margin-bottom:15px;
+                        opacity:.5;
+                       "></i>
+
+                    <h5 style="
+                        margin:0 0 7px;
                         color:#334155;
                     ">
-                        REDAS REPORT
-                    </div>
+                        Preview not generated
+                    </h5>
+
+                    <p style="
+                        margin:0;
+                        font-size:13px;
+                    ">
+                        Click the Preview tab to generate the report preview.
+                    </p>
 
                 </div>
 
             </div>
-
-
-            <div>
-
-                <span style="
-                    display:inline-flex;
-                    align-items:center;
-                    gap:6px;
-                    background:#fef3c7;
-                    color:#92400e;
-                    border:1px solid #fcd34d;
-                    padding:7px 12px;
-                    border-radius:20px;
-                    font-size:12px;
-                    font-weight:700;
-                ">
-
-                    <i class="fas fa-eye"></i>
-
-                    PREVIEW
-
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==========================================
-             REPORT INFORMATION
-        =========================================== -->
-
-        <div style="
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:1px;
-            background:#dbe3ec;
-            border-left:1px solid #dbe3ec;
-            border-right:1px solid #dbe3ec;
-        ">
-
-            <div style="
-                background:#ffffff;
-                padding:14px 18px;
-            ">
-
-                <div style="
-                    font-size:10px;
-                    color:#64748b;
-                    text-transform:uppercase;
-                    font-weight:700;
-                    margin-bottom:5px;
-                ">
-                    Reporting Period
-                </div>
-
-                <strong id="previewReportingPeriod"
-                        style="font-size:14px;color:#1e293b;">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div style="
-                background:#ffffff;
-                padding:14px 18px;
-            ">
-
-                <div style="
-                    font-size:10px;
-                    color:#64748b;
-                    text-transform:uppercase;
-                    font-weight:700;
-                    margin-bottom:5px;
-                ">
-                    Formation / Command
-                </div>
-
-                <strong id="previewFormation"
-                        style="font-size:14px;color:#1e293b;">
-                    —
-                </strong>
-
-            </div>
-
-
-            <div style="
-                background:#ffffff;
-                padding:14px 18px;
-            ">
-
-                <div style="
-                    font-size:10px;
-                    color:#64748b;
-                    text-transform:uppercase;
-                    font-weight:700;
-                    margin-bottom:5px;
-                ">
-                    Date Prepared
-                </div>
-
-                <strong id="previewDate"
-                        style="font-size:14px;color:#1e293b;">
-                    —
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==========================================
-             DYNAMIC PREVIEW CONTENT
-        =========================================== -->
-
-        <div id="previewContent"
-             style="
-                margin-top:18px;
-             ">
-
-            <div style="
-                background:#ffffff;
-                border:1px solid #dbe3ec;
-                border-radius:8px;
-                padding:50px 20px;
-                text-align:center;
-                color:#64748b;
-            ">
-
-                <i class="fas fa-file-alt"
-                   style="
-                    font-size:40px;
-                    margin-bottom:15px;
-                    opacity:.5;
-                   "></i>
-
-                <h5 style="
-                    margin:0 0 7px;
-                    color:#334155;
-                ">
-                    Preview not generated
-                </h5>
-
-                <p style="
-                    margin:0;
-                    font-size:13px;
-                ">
-                    Click the Preview tab to generate the report preview.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==========================================
-             REVIEW NOTICE
-        =========================================== -->
-
-        <div style="
-            margin-top:18px;
-            padding:16px;
-            background:#fffbeb;
-            border:1px solid #fde68a;
-            border-radius:7px;
-            display:flex;
-            gap:14px;
-            align-items:flex-start;
-        ">
-
-            <div style="
-                color:#d97706;
-                font-size:21px;
-            ">
-
-                <i class="fas fa-exclamation-circle"></i>
-
-            </div>
-
-            <div>
-
-                <strong style="
-                    display:block;
-                    color:#92400e;
-                    margin-bottom:4px;
-                ">
-                    Review Before Submission
-                </strong>
-
-                <p style="
-                    margin:0;
-                    font-size:13px;
-                    line-height:1.6;
-                    color:#57534e;
-                ">
-                    Please carefully verify all figures, personnel
-                    strength, border movements, nationality returns,
-                    marine activities, airport movements, offshore
-                    activities and comments before submission.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==========================================
-             ACTIONS
-        =========================================== -->
-
-        <div style="
-            margin-top:18px;
-            background:#ffffff;
-            border:1px solid #dbe3ec;
-            border-radius:7px;
-            padding:15px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:10px;
-        ">
-
-            <button
-                type="button"
-                id="btnBackToEdit"
-                class="btn btn-secondary">
-
-                <i class="fas fa-arrow-left me-1"></i>
-
-                Back to Edit
-
-            </button>
-
-
-            <button
-                type="button"
-                id="btnConfirmSubmit"
-                class="btn btn-success">
-
-                <i class="fas fa-check-circle me-1"></i>
-
-                Confirm & Submit
-
-            </button>
-
-            
 
         </div>
 
     </div>
 
-    
+    <div class="border-actions">
+        <button type="button" class="btn-nis btn-ghost border-edit-btn"><i class="fas fa-arrow-left"></i> Back to Edit</button>
+        <div class="border-actions-center">
+            <button type="button" class="btn-nis btn-outline-nis border-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+        </div>
+        <button type="button" class="btn-nis btn-primary-nis border-submit-return-btn"><i class="fas fa-paper-plane"></i> Submit Return</button>
+    </div>
 
 </div>
-
 </div>
-
 </div>
-
-
-
-
-@endsection
 
 
 
@@ -2369,31 +2113,11 @@ $lastSection = $category['section'];
 <script>
 const landBorderStates = @json($states);
 
-
-document.querySelectorAll(".entry-tab").forEach(function(tab){
-
-    tab.addEventListener("click", function(){
-
-        document.querySelectorAll(".entry-tab").forEach(function(t){
-            t.classList.remove("active");
-        });
-
-        document.querySelectorAll(".tab-panel").forEach(function(panel){
-            panel.classList.remove("active");
-        });
-
-        tab.classList.add("active");
-
-        document
-            .getElementById("tab-" + tab.dataset.tab)
-            .classList.add("active");
-
-    });
-
-});
-
 /**************************************************************************
  * REDAS BORDER MANAGEMENT CALCULATIONS
+ *
+ * NOTE: Tab switching is handled centrally in partials/footer.blade.php
+ * (it also scrolls the tab bar), so it is intentionally NOT duplicated here.
  **************************************************************************/
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -2401,11 +2125,12 @@ document.addEventListener("DOMContentLoaded", function () {
     calculateStaffStrength();
     calculateLandBorder();
     calculateSeaport();
+    calculateAirportMovement();
 
 });
 
 /**************************************************************************
- * Auto Calculate on Input
+ * Auto Calculate on Input (consolidated)
  **************************************************************************/
 
 document.addEventListener("input", function (e) {
@@ -2422,7 +2147,107 @@ document.addEventListener("input", function (e) {
         calculateSeaport();
     }
 
+    if (e.target.closest(".airport-table")) {
+        calculateAirportMovement();
+    }
+
+    if (
+        e.target.classList.contains("tankerCount") ||
+        e.target.classList.contains("crewCount")
+    ) {
+        const offshoreCard = e.target.closest(".offshore-card");
+        calculateStateTotals(offshoreCard);
+        calculateGrandTotals();
+    }
+
+    /*
+     * Nationality rows — scoped to rows inside .nationality-table so
+     * keystrokes in other tables no longer throw on unguarded lookups.
+     */
+    const nationalityRow = e.target.closest(".nationality-table tbody tr");
+    if (nationalityRow) {
+        calculateNationalityRow(nationalityRow);
+        updateCommandTotals(
+            nationalityRow.closest(".nationality-card")
+        );
+    }
+
 });
+
+/**************************************************************************
+ * TAB NAVIGATION, DRAFT SAVE/RESTORE & SUBMIT (hrm-style)
+ **************************************************************************/
+
+(function () {
+    const form = document.querySelector('main form') || document.querySelector('form[action*="directorates"]');
+    const tabs = document.querySelectorAll('.entry-tab');
+    const tabIds = Array.from(tabs).map(t => t.dataset.tab);
+
+    function goToTab(id) {
+        const tab = document.querySelector(`.entry-tab[data-tab="${id}"]`);
+        if (tab) tab.click();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    }
+
+    function currentTabId() {
+        return document.querySelector('.tab-panel.active')?.id.replace('tab-', '');
+    }
+
+    function nextTab() {
+        const idx = tabIds.indexOf(currentTabId());
+        if (idx >= 0 && idx < tabIds.length - 1) goToTab(tabIds[idx + 1]);
+    }
+
+    function prevTab() {
+        const idx = tabIds.indexOf(currentTabId());
+        if (idx > 0) goToTab(tabIds[idx - 1]);
+    }
+
+    document.querySelectorAll('.border-next-btn').forEach(b => b.addEventListener('click', nextTab));
+    document.querySelectorAll('.border-prev-btn').forEach(b => b.addEventListener('click', prevTab));
+    document.querySelectorAll('.border-edit-btn').forEach(b => b.addEventListener('click', () => goToTab('personnel')));
+
+    /* Save / restore draft */
+    const DRAFT_KEY = 'redas_border_draft_' + (document.querySelector('[name="report_period"]')?.value || 'default');
+    function saveDraft() {
+        if (!form) return;
+        const data = {};
+        new FormData(form).forEach((v, k) => { data[k] = v; });
+        try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
+        alert('Draft saved successfully.');
+    }
+    document.querySelectorAll('.border-save-draft-btn').forEach(b => b.addEventListener('click', saveDraft));
+
+    function loadDraft() {
+        try {
+            const saved = localStorage.getItem(DRAFT_KEY);
+            if (!saved || !form) return;
+            const data = JSON.parse(saved);
+            Object.entries(data).forEach(([k, v]) => {
+                const el = form.querySelector(`[name="${CSS.escape(k)}"]`);
+                if (!el || el.readOnly) return;
+                if (el.type === 'checkbox') el.checked = v === '1' || v === 'on' || v === true;
+                else el.value = v;
+            });
+        } catch (e) {}
+    }
+
+    /* Submit from preview */
+    document.querySelectorAll('.border-submit-return-btn').forEach(b => b.addEventListener('click', () => {
+        const confirmed = window.confirm(
+            "Are you sure you want to submit this REDAS report?\n\n" +
+            "Please verify all information before continuing."
+        );
+        if (!confirmed) return;
+        if (form) {
+            if (form.requestSubmit) form.requestSubmit();
+            else form.submit();
+        }
+    }));
+
+    /* Init */
+    loadDraft();
+})();
 
 /**************************************************************************
  * Staff Strenght
@@ -2694,28 +2519,6 @@ function calculateSeaport(){
 }
 
 
-//  * LIVE CALCULATION
-
-document.addEventListener("input", function(e){
-
-    if(e.target.closest(".seaport-table")){
-
-        calculateSeaport();
-
-    }
-
-});
-
-
-//  * INITIAL LOAD
-
-document.addEventListener("DOMContentLoaded", function(){
-
-    calculateSeaport();
-
-});
-
-
 /**************************************************************
  * PASSENGER MOVEMENT ACROSS INTERNATIONAL AIRPORTS
  **************************************************************/
@@ -2832,26 +2635,8 @@ function calculateAirportMovement(){
 }
 
 
-//  * Live Calculation
-
-
-document.addEventListener("input", function(e){
-
-    if(e.target.closest(".airport-table")){
-
-        calculateAirportMovement();
-
-    }
-
-});
-
-//  * Initial Load
-
-document.addEventListener("DOMContentLoaded", function(){
-
-    calculateAirportMovement();
-
-});
+//  * Live calculation & initial load are handled by the consolidated
+//  * listeners at the top of this script.
 
 /**************************************************************************
  * OFFSHORE ACTIVITIES
@@ -3112,25 +2897,8 @@ function calculateGrandTotals(){
 
 }
 
-//  * LIVE CALCULATION
-
-
-document.addEventListener("input", function(e){
-
-    if(
-        e.target.classList.contains("tankerCount") ||
-        e.target.classList.contains("crewCount")
-    ){
-
-        const card = e.target.closest(".offshore-card");
-
-        calculateStateTotals(card);
-
-        calculateGrandTotals();
-
-    }
-
-});
+//  * Live calculation is handled by the consolidated input listener
+//  * at the top of this script.
 
 
 /*****************************************************************
@@ -3192,21 +2960,47 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // =========================================
-// LOAD CONTROL POSTS
+// LOAD CONTROL POSTS (+ duplicate state guard)
 // =========================================
 
 document.addEventListener("change", function(e){
 
     if(!e.target.classList.contains("command-state")) return;
 
-    const card = e.target.closest(".nationality-card");
+    const select = e.target;
+    const state = select.value;
+
+    const card = select.closest(".nationality-card");
 
     const controlPost = card.querySelector(".control-post");
 
     controlPost.innerHTML =
         '<option value="">Select Control Post</option>';
 
-    const state = e.target.value;
+    if(state === "") return;
+
+    // Prevent duplicate states
+    let duplicate = false;
+
+    document.querySelectorAll(".command-state").forEach(function(item){
+
+        if(item !== select && item.value === state){
+
+            duplicate = true;
+
+        }
+
+    });
+
+    if(duplicate){
+
+        alert(state + " has already been added.");
+
+        select.value = "";
+
+        return;
+
+    }
 
     if(!landBorderStates[state]) return;
 
@@ -3294,22 +3088,9 @@ document.addEventListener("click", function(e){
 });
 
 // =========================================
-// LIVE CALCULATION
+// LIVE CALCULATION is handled by the consolidated input listener
+// at the top of this script (scoped to .nationality-table rows).
 // =========================================
-
-document.addEventListener("input", function(e){
-
-    const row = e.target.closest("tbody tr");
-
-    if(!row) return;
-
-    calculateNationalityRow(row);
-
-    updateCommandTotals(
-        row.closest(".nationality-card")
-    );
-
-});
 
 // =========================================
 // SERIAL NUMBERS
@@ -3445,65 +3226,6 @@ function updateCommandTotals(card){
         grandTotal;
 
 }
-
-
-// =========================================
-// LOAD CONTROL POSTS
-// =========================================
-
-document.addEventListener("change", function(e){
-
-    if(!e.target.classList.contains("command-state")) return;
-
-    const select = e.target;
-    const state = select.value;
-
-    if(state === "") return;
-
-    // Prevent duplicate states
-    let duplicate = false;
-
-    document.querySelectorAll(".command-state").forEach(function(item){
-
-        if(item !== select && item.value === state){
-
-            duplicate = true;
-
-        }
-
-    });
-
-    if(duplicate){
-
-        alert(state + " has already been added.");
-
-        select.value = "";
-
-        return;
-
-    }
-
-    const card = select.closest(".nationality-card");
-
-    const controlPost = card.querySelector(".control-post");
-
-    controlPost.innerHTML =
-        '<option value="">Select Control Post</option>';
-
-    if(!landBorderStates[state]) return;
-
-    landBorderStates[state].forEach(function(post){
-
-        const option = document.createElement("option");
-
-        option.value = post;
-        option.textContent = post;
-
-        controlPost.appendChild(option);
-
-    });
-
-});
 
 
 // =========================================
@@ -5501,66 +5223,10 @@ function updateOverallTotals(){
 
 
     /**********************************************************************
-     * BACK TO EDIT
-     **********************************************************************/
-    function backToEdit() {
-
-        /*
-         * Prefer Personnel, otherwise activate the first available tab.
-         */
-        const personnelTab =
-            document.querySelector(
-                '.entry-tab[data-tab="personnel"]'
-            );
-
-
-        if (personnelTab) {
-
-            personnelTab.click();
-            return;
-
-        }
-
-
-        const firstTab =
-            document.querySelector(".entry-tab");
-
-
-        if (firstTab) {
-            firstTab.click();
-        }
-    }
-
-
-    /**********************************************************************
-     * CONFIRM SUBMISSION
-     **********************************************************************/
-    function confirmSubmission() {
-
-        const confirmed = window.confirm(
-            "Are you sure you want to submit this REDAS report?\n\n" +
-            "Please verify all information before continuing."
-        );
-
-
-        if (!confirmed) {
-            return;
-        }
-
-
-        /*
-         * The uploaded source does not contain the final form submission
-         * endpoint or submit logic. Therefore this button only confirms
-         * the user's review at this stage.
-         */
-        window.alert(
-            "Report confirmed. The submission process can now be connected to your form submission logic."
-        );
-    }
-
-
-    /**********************************************************************
      * INITIALIZE PREVIEW
+     *
+     * Back to Edit / Submit Return are wired in the navigation IIFE at
+     * the top of this script (.border-edit-btn / .border-submit-return-btn).
      **********************************************************************/
     function initializePreview() {
 
@@ -5593,40 +5259,6 @@ function updateOverallTotals(){
 
         }
 
-
-        /*
-         * Back to Edit
-         */
-        const backButton =
-            byId("btnBackToEdit");
-
-
-        if (backButton) {
-
-            backButton.addEventListener(
-                "click",
-                backToEdit
-            );
-
-        }
-
-
-        /*
-         * Confirm & Submit
-         */
-        const submitButton =
-            byId("btnConfirmSubmit");
-
-
-        if (submitButton) {
-
-            submitButton.addEventListener(
-                "click",
-                confirmSubmission
-            );
-
-        }
-
     }
 
 
@@ -5649,3 +5281,5 @@ function updateOverallTotals(){
 })();
 
 </script>
+
+@endsection

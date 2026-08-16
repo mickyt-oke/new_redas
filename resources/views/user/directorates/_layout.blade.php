@@ -45,8 +45,11 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('user.directorates.store', $slug) }}">
+    <form method="POST" action="{{ isset($editing) ? route('user.directorates.submissions.update', $editing) : route('user.directorates.store', $slug) }}">
         @csrf
+        @isset($editing)
+            @method('PUT')
+        @endisset
 
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
@@ -60,11 +63,11 @@
             <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
                 <div>
                     <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Report Period</label>
-                    <input type="month" class="ni" name="report_period" required value="{{ old('report_period', now()->format('Y-m')) }}">
+                    <input type="month" class="ni" name="report_period" required value="{{ old('report_period', $editing->return_data['report_period'] ?? now()->format('Y-m')) }}">
                 </div>
                 <div>
                     <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Reporting Officer</label>
-                    <input type="text" class="ni" name="reporting_officer" required value="{{ old('reporting_officer', auth()->user()->name) }}" autocomplete="off" readonly>
+                    <input type="text" class="ni" name="reporting_officer" required value="{{ old('reporting_officer', $editing->return_data['reporting_officer'] ?? auth()->user()->name) }}" autocomplete="off" readonly>
                 </div>
                 <div>
                     <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Directorate</label>
@@ -96,7 +99,7 @@
             </div>
         </div>
 
-        <div class="redas-card">
+        {{-- <div class="redas-card">
             <div class="card-body" style="display:flex;justify-content:flex-end;gap:10px;">
                 @if(auth()->user()?->role === 'directorate')
                 <a href="{{ route('user.directorates.dashboard') }}" class="btn-nis btn-ghost">Cancel</a>
@@ -107,8 +110,50 @@
                     <i class="fas fa-paper-plane"></i> Submit {{ $directorateName ?? 'Directorate' }} Return
                 </button>
             </div>
-        </div>
+        </div> --}}
     </form>
+
+    @isset($editing)
+    <script>
+        (function () {
+            var REDAS_PREFILL = @json($editing->return_data ?? []);
+            var form = document.querySelector('form[action*="directorates"]');
+            if (!form || !REDAS_PREFILL) { return; }
+
+            // Recursively flatten nested objects into bracket-notation field names,
+            // e.g. staff[deputy-comptroller-general][male].
+            var entries = [];
+            (function flatten(prefix, value) {
+                if (value === null || value === undefined) { return; }
+                if (typeof value === 'object') {
+                    Object.keys(value).forEach(function (key) {
+                        flatten(prefix ? prefix + '[' + key + ']' : key, value[key]);
+                    });
+                } else {
+                    entries.push([prefix, value]);
+                }
+            })('', REDAS_PREFILL);
+
+            entries.forEach(function (pair) {
+                var el;
+                try {
+                    el = form.querySelector('[name="' + CSS.escape(pair[0]) + '"]');
+                } catch (e) {
+                    el = null;
+                }
+                if (!el || el.readOnly || el.type === 'file') { return; }
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = !!pair[1] && pair[1] !== '0';
+                } else {
+                    el.value = pair[1];
+                }
+            });
+
+            // Let each page's recompute scripts refresh totals from the restored values.
+            form.dispatchEvent(new Event('input', { bubbles: true }));
+        })();
+    </script>
+    @endisset
 </main>
 
 @include('partials.footer')

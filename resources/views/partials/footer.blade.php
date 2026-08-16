@@ -581,6 +581,16 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
+        /*
+         * ACTU page only — requires its own staff inputs/totals so this
+         * never touches look-alike ids (e.g. #grandTotal) on other pages.
+         */
+        if (
+            !document.querySelector(".staff-male") ||
+            !document.getElementById("maleTotal") ||
+            !document.getElementById("femaleTotal")
+        ) return;
+
         function calculateStaffStrength() {
 
             let maleTotal = 0;
@@ -628,6 +638,9 @@
 
 
     function calculateCasesMatrix() {
+
+        /* ACTU cases matrix page only — no-op when its grid is absent. */
+        if (!document.querySelector('.case-input') || !document.getElementById('row-total-0')) return;
 
         // Row totals
 
@@ -700,6 +713,11 @@
     const strengthBody = document.getElementById("staffStrengthBody");
     const totalStrengthInput = document.getElementById("staffStrengthGrandTotal");
 
+    /*
+     * PROVOST/SECURITY UNIT page only — no-op when its distinctive
+     * elements are absent (e.g. on other directorate pages).
+     */
+    if (unitsBody && strengthBody && totalStrengthInput && document.getElementById("addProvostUnit")) {
 
     // STAFF STRENGTH
 
@@ -877,6 +895,8 @@
     });
 
     renderStaffStrengthTable();
+
+    } // end PROVOST/SECURITY UNIT page guard
 
     /*
     | FIREARMS TABLES
