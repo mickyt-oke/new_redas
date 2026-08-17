@@ -55,7 +55,7 @@ class TestUserSeeder extends Seeder
                     'service_number' => 'NIS/'.$directorate['code'].'/'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
                     'email' => strtolower($officer['last_name'].'.'.$directorate['code'].'@nis.gov.ng'),
                     'password' => $password,
-                    'role' => 'user',
+                    'role' => 'directorate',
                     'user_category' => 'directorate_user',
                     'primary_location_type' => 'directorate',
                     'primary_location_code' => $directorate['code'],
@@ -68,24 +68,24 @@ class TestUserSeeder extends Seeder
         }
 
         // Create directorate_admin user for each officers. Each officer has login for all directorates with access level 2
-        foreach ($officers as $index => $officer) {
-            foreach ($directorates as $directorate) {
-                $this->createOrUpdateUser([
-                    'name' => $officer['last_name'].' '.$officer['first_name'].' '.$directorate['code'].' Admin',
-                    'service_number' => 'NIS/'.$directorate['code'].'/'.str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT),
-                    'email' => strtolower($officer['last_name'].'.'.$officer['first_name'].'.'.$directorate['code'].'@nis.gov.ng'),
-                    'password' => $password,
-                    'role' => 'admin',
-                    'user_category' => 'directorate_admin',
-                    'primary_location_type' => 'directorate',
-                    'primary_location_code' => $directorate['code'],
-                    'geo_state' => 'FC',
-                    'access_level' => 2,
-                    'assigned_directorate_code' => $directorate['code'],
-                    'email_verified_at' => $now,
-                ]);
-            }
-        }
+        // foreach ($officers as $index => $officer) {
+        //     foreach ($directorates as $directorate) {
+        //         $this->createOrUpdateUser([
+        //             'name' => $officer['last_name'].' '.$officer['first_name'].' '.$directorate['code'].' Admin',
+        //             'service_number' => 'NIS/'.$directorate['code'].'/'.str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT),
+        //             'email' => strtolower($officer['last_name'].'.'.$officer['first_name'].'.'.$directorate['code'].'@nis.gov.ng'),
+        //             'password' => $password,
+        //             'role' => 'admin',
+        //             'user_category' => 'directorate_admin',
+        //             'primary_location_type' => 'directorate',
+        //             'primary_location_code' => $directorate['code'],
+        //             'geo_state' => 'FC',
+        //             'access_level' => 2,
+        //             'assigned_directorate_code' => $directorate['code'],
+        //             'email_verified_at' => $now,
+        //         ]);
+        //     }
+        // }
     }
 
     // create user if not exists, otherwise update the existing user with the new data
