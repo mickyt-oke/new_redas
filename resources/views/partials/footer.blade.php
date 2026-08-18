@@ -75,7 +75,7 @@
                 panels.forEach(p => p.classList.remove('active'));
                 tab.classList.add('active');
                 document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
-                tabsBar.scrollLeft = tab.offsetLeft - 60;
+                if (tabsBar) tabsBar.scrollLeft = tab.offsetLeft - 60;
             });
         });
 

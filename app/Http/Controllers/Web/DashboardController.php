@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\NisDirectory;
 use App\Models\UserNotification;
 use App\Services\SubmissionWorkflow;
 use Illuminate\Http\RedirectResponse;
@@ -116,12 +117,12 @@ class DashboardController extends Controller
             }
         }
 
-        return view('user.directorates.' . $slug, [
+        return view('user.directorates.' . $slug, array_merge([
             'slug' => $slug,
             'directorateName' => $directorate['name'],
             'directorateIcon' => $directorate['icon'],
             'allDirectorates' => self::DIRECTORATES,
-        ]);
+        ], $this->passportViewData($slug)));
     }
 
     /**
@@ -192,6 +193,10 @@ class DashboardController extends Controller
             'report_period' => ['required', 'date_format:Y-m'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
+            'supporting_documents' => ['nullable', 'array'],
+            'supporting_documents.*' => ['file', 'mimes:pdf,xls,xlsx,png,jpg,jpeg', 'max:20480'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
         ]);
 
         $user = Auth::user();
@@ -206,8 +211,13 @@ class DashboardController extends Controller
         }
 
         SubmissionWorkflow::create($user, array_merge(
-            $request->except(['_token', 'data_consent']),
-            ['directorate_slug' => $slug, 'report_period' => $validated['report_period']]
+            $request->except(['_token', 'data_consent', 'supporting_documents', 'attachments']),
+            [
+                'directorate_slug' => $slug,
+                'report_period' => $validated['report_period'],
+                'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
+                'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+            ]
         ));
 
         return redirect()
@@ -259,13 +269,46 @@ class DashboardController extends Controller
 
         $directorate = self::DIRECTORATES[$slug];
 
-        return view('user.directorates.' . $slug, [
+        return view('user.directorates.' . $slug, array_merge([
             'slug' => $slug,
             'directorateName' => $directorate['name'],
             'directorateIcon' => $directorate['icon'],
             'allDirectorates' => self::DIRECTORATES,
             'editing' => $application,
-        ]);
+        ], $this->passportViewData($slug)));
+    }
+
+    /**
+     * Extra view data for the passport directorate form: passport centre and
+     * foreign mission names used by its executive-summary dropdowns.
+     */
+    private function passportViewData(string $slug): array
+    {
+        if ($slug !== 'passport' || ! Schema::hasTable('nis_directories')) {
+            return ['processingCenters' => [], 'foreignMissions' => []];
+        }
+
+        return [
+            'processingCenters' => NisDirectory::where('category', '=', 'passport', 'and')->orderBy('name')->pluck('name')->all(),
+            'foreignMissions' => NisDirectory::where('category', '=', 'foreign_mission', 'and')->orderBy('name')->pluck('name')->filter()->values()->all(),
+        ];
+    }
+
+    /**
+     * Store uploaded files for the given input key and return their storage
+     * paths, keeping return_data free of UploadedFile objects (it is JSON-cast).
+     */
+    private function storeUploadedFiles(Request $request, string $key, string $slug): array
+    {
+        $paths = [];
+
+        foreach ((array) $request->file($key, []) as $file) {
+            if ($file && $file->isValid()) {
+                $paths[] = $file->store("supporting-documents/{$slug}");
+            }
+        }
+
+        return $paths;
     }
 
     /**
@@ -280,6 +323,10 @@ class DashboardController extends Controller
             'report_period' => ['required', 'date_format:Y-m'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
+            'supporting_documents' => ['nullable', 'array'],
+            'supporting_documents.*' => ['file', 'mimes:pdf,xls,xlsx,png,jpg,jpeg', 'max:20480'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
         ]);
 
         $user = Auth::user();
@@ -302,8 +349,13 @@ class DashboardController extends Controller
 
         $application->update([
             'return_data' => array_merge(
-                $request->except(['_token', '_method', 'data_consent']),
-                ['directorate_slug' => $slug, 'report_period' => $validated['report_period']]
+                $request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments']),
+                [
+                    'directorate_slug' => $slug,
+                    'report_period' => $validated['report_period'],
+                    'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
+                    'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                ]
             ),
             'status' => 'pending',
             'workflow_stage' => $initialStage,

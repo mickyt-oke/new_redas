@@ -1,16 +1,10 @@
 @extends('user.directorates._layout')
 
-@section('directorate-sections')
+{{-- This view renders its own tab bar; the Preview panel and action buttons
+     come from the shared layout. --}}
+@section('directorate-tabs', '1')
 
-<style>
-.hrm-tabs-wrap { background:#f8fafc; border-bottom:1px solid var(--gray-200); padding:10px 0; margin-bottom:14px; position:sticky; top:var(--topbar-height); z-index:30; }
-.hrm-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 0; margin-top:10px; border-top:1px solid var(--gray-200); position:sticky; bottom:0; background:#fff; z-index:20; }
-.hrm-actions-center { display:flex; gap:10px; }
-.hrm-preview-table { width:100%; border-collapse:collapse; font-size:.82rem; margin-bottom:14px; }
-.hrm-preview-table th, .hrm-preview-table td { border:1px solid var(--gray-200); padding:6px 8px; text-align:left; }
-.hrm-preview-table th { background:#f8fafc; font-weight:700; }
-.hrm-preview-section-title { font-size:.9rem; font-weight:700; margin:18px 0 8px; color:var(--nis-700); border-bottom:1px solid var(--gray-200); padding-bottom:4px; }
-</style>
+@section('directorate-sections')
 
 @php
 $rankRows = [
@@ -84,6 +78,7 @@ $states = ['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Bo
 $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt','Seme Border Command','Idiroko Border Command','Lagos Passport Command','NIS HQ Abuja'];
 @endphp
 
+{{-- The shared layout provides the <form>; do not nest another one here. --}}
 <div class="hrm-tabs-wrap">
     <div class="entry-tabs-wrap" style="margin-bottom:0;">
         <div class="entry-tabs" id="entryTabs">
@@ -108,7 +103,8 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                 ['pension','fas fa-hand-holding-usd','18. Pension'],
                 ['discipline','fas fa-gavel','19. Discipline'],
                 ['nimcos','fas fa-credit-card','20. NIMCOS'],
-                ['preview','fas fa-eye','21. Preview'],
+                ['general-report','fas fa-file-alt','21. General Report'],
+                ['preview','fas fa-eye','22. Preview'],
             ]; @endphp
             @foreach($tabs as $i => [$id,$icon,$label])
             <button type="button" class="entry-tab {{ $i === 0 ? 'active' : '' }}" data-tab="{{ $id }}">
@@ -1045,86 +1041,64 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div>
 
-    <!-- TAB 21: Preview -->
-    <div class="tab-panel" id="tab-preview">
-        <div class="redas-card" style="margin-bottom:14px;">
-            <div class="card-head">
-                <div class="card-head-title">
-                    <div class="card-head-icon" style="background:#f0fdf4;color:#15803d;"><i class="fas fa-eye"></i></div>
-                    21. Preview
+    <!-- TAB 21: GENERAL REPORT -->
+<div class="tab-panel" id="tab-general-report">
+            <div class="redas-card" style="margin-bottom:16px;">
+                <div class="card-head"><div class="card-head-title">GENERAL REPORT</div></div>
+                <div class="card-body">
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">i. Other Reports</label>
+                        <textarea name="general_report[other_reports]" class="ni" rows="3">{{ old('general_report.other_reports') }}</textarea>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">ii. Challenges</label>
+                        <textarea name="general_report[challenges]" class="ni" rows="3">{{ old('general_report.challenges') }}</textarea>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">iii. Recommendations / Way Forward</label>
+                        <textarea name="general_report[recommendations]" class="ni" rows="3">{{ old('general_report.recommendations') }}</textarea>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">iv. Conclusion</label>
+                        <textarea name="general_report[conclusion]" class="ni" rows="3">{{ old('general_report.conclusion') }}</textarea>
+                    </div>
                 </div>
             </div>
-            <div class="card-body">
-                <p style="font-size:.82rem;color:var(--gray-600);margin-bottom:14px;">Review the totals below before submitting. Use “Back to Edit” to make changes.</p>
-                <div id="hrmPreviewBody"></div>
+
+            <div class="redas-card" style="margin-bottom:16px;">
+                <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="card-head-title">SUPPORTING DOCUMENTS (Optional)</div>
+                    <button type="button" class="btn-nis btn-ghost btn-sm" id="passportAddDocumentRow">
+                        <i class="fas fa-plus"></i> Add Document
+                    </button>
+                </div>
+                <div class="card-body">
+                    <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:12px;">You can upload supporting documents or photos (PDF, Excel, PNG, JPG, JPEG).</p>
+                    <div id="documents-body">
+                        <div class="auth-form-group" style="margin-bottom:12px;">
+                            <input type="file" name="supporting_documents[]" class="ni" accept=".pdf,.xls,.xlsx,.png,.jpg,.jpeg">
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+
         <div class="hrm-actions">
-            <button type="button" class="btn-nis btn-ghost hrm-edit-btn"><i class="fas fa-arrow-left"></i> Back to Edit</button>
+            <button type="button" class="btn-nis btn-ghost hrm-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
             <div class="hrm-actions-center">
                 <button type="button" class="btn-nis btn-outline-nis hrm-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
             </div>
-            <button type="button" class="btn-nis btn-primary-nis hrm-submit-return-btn"><i class="fas fa-paper-plane"></i> Submit Return</button>
+            <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next: Preview <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
-
+        </div>
 </div>
+
 
 <script>
 (function() {
     const form = document.querySelector('main form') || document.querySelector('form[action*="directorates"]');
-    const tabs = document.querySelectorAll('.entry-tab');
-    const panels = document.querySelectorAll('.tab-panel');
-    const tabIds = Array.from(tabs).map(t => t.dataset.tab);
 
-    function goToTab(id) {
-        const tab = document.querySelector(`.entry-tab[data-tab="${id}"]`);
-        if (tab) tab.click();
-        window.scrollTo({top: 0, behavior: 'smooth'});
-    }
-
-    function currentTabId() {
-        return document.querySelector('.tab-panel.active')?.id.replace('tab-','');
-    }
-
-    function nextTab() {
-        const idx = tabIds.indexOf(currentTabId());
-        if (idx >= 0 && idx < tabIds.length - 1) goToTab(tabIds[idx + 1]);
-    }
-
-    function prevTab() {
-        const idx = tabIds.indexOf(currentTabId());
-        if (idx > 0) goToTab(tabIds[idx - 1]);
-    }
-
-    document.querySelectorAll('.hrm-next-btn').forEach(b => b.addEventListener('click', nextTab));
-    document.querySelectorAll('.hrm-prev-btn').forEach(b => b.addEventListener('click', prevTab));
-    document.querySelectorAll('.hrm-edit-btn').forEach(b => b.addEventListener('click', () => goToTab('cadre')));
-
-    /* Save / restore draft */
-    const DRAFT_KEY = 'redas_hrm_draft_' + (document.querySelector('[name="report_period"]')?.value || 'default');
-    function saveDraft() {
-        if (!form) return;
-        const data = {};
-        new FormData(form).forEach((v, k) => { data[k] = v; });
-        try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) {}
-        alert('Draft saved successfully.');
-    }
-    document.querySelectorAll('.hrm-save-draft-btn').forEach(b => b.addEventListener('click', saveDraft));
-
-    function loadDraft() {
-        try {
-            const saved = localStorage.getItem(DRAFT_KEY);
-            if (!saved || !form) return;
-            const data = JSON.parse(saved);
-            Object.entries(data).forEach(([k, v]) => {
-                const el = form.querySelector(`[name="${CSS.escape(k)}"]`);
-                if (!el || el.readOnly) return;
-                if (el.type === 'checkbox') el.checked = v === '1' || v === 'on' || v === true;
-                else el.value = v;
-            });
-        } catch (e) {}
-    }
+    /* Tab navigation (previous/next), draft save/restore and submit are wired
+       globally in user.directorates._layout for all directorate forms. */
 
     /* Helpers */
     function val(el) { return parseInt(el?.value || 0) || 0; }
@@ -1390,6 +1364,30 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         buildPreview();
     }
 
+    /* Section 21: General Report */
+    function addReformRow() {
+        const tbody = document.getElementById('reforms-body');
+        const nextIndex = tbody.children.length;
+        const sn = nextIndex + 1;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="reform-sn">${sn}</td>
+            <td><input type="text" name="reforms_innovations[${nextIndex}][title]" class="ni"></td>
+            <td><input type="date" name="reforms_innovations[${nextIndex}][date]" class="ni"></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function addDocumentRow() {
+        const container = document.getElementById('documents-body');
+        const div = document.createElement('div');
+        div.className = 'auth-form-group';
+        div.style.marginBottom = '12px';
+        div.innerHTML = '<input type="file" name="supporting_documents[]" class="ni" accept=".pdf,.xls,.xlsx,.png,.jpg,.jpeg">';
+        container.appendChild(div);
+    }
+
     /* Preview builder helpers */
     function previewSectionTitle(num, title) {
         return `<div class="hrm-preview-section-title">${num}. ${title}</div>`;
@@ -1609,10 +1607,10 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         let discRows = [];
         document.querySelectorAll('#tab-discipline .nis-table tbody tr').forEach(tr => {
             const cells = Array.from(tr.querySelectorAll('td'));
-            if (cells.length < 18 || tr.classList.contains('total-row')) return;
-            const label = cells[1].textContent.trim();
+            if (cells.length < 19 || tr.classList.contains('total-row')) return;
+            const label = cells[1]?.textContent.trim() || '—';
             const vals = cells.slice(2, 18).map(c => c.querySelector('input')?.value || '0');
-            const total = cells[18].querySelector('input')?.value || '0';
+            const total = cells[18]?.querySelector('input')?.value || '0';
             discRows.push([label, ...vals, total]);
         });
         html += previewSectionTitle(19, 'Discipline and Award');
@@ -1631,27 +1629,63 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         html += previewSectionTitle(20, 'NIMCOS');
         html += previewTable(nimcosRows, ['Activity', 'Number/Amount']);
 
-        html += `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-md);padding:12px 16px;margin-top:14px;font-size:.84rem;color:#1e3a8a;">
-            <i class="fas fa-info-circle" style="margin-right:6px;"></i>
-            Please review the details above. If everything is correct, click <strong>Submit Return</strong>. Otherwise, use <strong>Back to Edit</strong> to make corrections.
-        </div>`;
+        // html += `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-md);padding:12px 16px;margin-top:14px;font-size:.84rem;color:#1e3a8a;">
+        //     <i class="fas fa-info-circle" style="margin-right:6px;"></i>
+        //     Please review the details above. If everything is correct, click <strong>Submit Return</strong>. Otherwise, use <strong>Back to Edit</strong> to make corrections.
+        // </div>`;
+
+        /* 21. General Report Preview Section for other report and documents preview */
+        // Building the preview must not mutate the form. Calling addDocumentRow()
+        // here added a new upload field every time any value changed.
+        const escapePreviewText = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        }[character]));
+        html += previewSectionTitle(21, 'General Reports and Supporting Documents');
+        const generalReportFields = [
+            ['Other Reports', 'general_report[other_reports]', 'No other reports.'],
+            ['Challenges', 'general_report[challenges]', 'No challenges reported.'],
+            ['Recommendations', 'general_report[recommendations]', 'No recommendations provided.'],
+            ['Conclusion', 'general_report[conclusion]', 'No conclusion provided.']
+        ];
+        generalReportFields.forEach(([label, name, emptyText]) => {
+            html += `<div style="margin-top:12px;"><strong>${label}:</strong></div>`;
+            const value = document.querySelector(`[name="${name}"]`)?.value.trim() || '';
+            if (!value) {
+                html += `<p style="font-size:.82rem;color:var(--gray-600);margin-top:4px;">${emptyText}</p>`;
+            } else {
+                html += `<p style="font-size:.82rem;color:var(--gray-800);margin-top:4px;white-space:pre-wrap;">${escapePreviewText(value)}</p>`;
+            }
+        });
+        html += `<div style="margin-top:12px;"><strong>Supporting Documents:</strong></div>`;
+        const docInputs = Array.from(document.querySelectorAll('#documents-body input[type="file"]'))
+            .filter(input => input.files && input.files.length > 0);
+        if (docInputs.length === 0) {
+            html += `<p style="font-size:.82rem;color:var(--gray-600);margin-top:4px;">No supporting documents uploaded.</p>`;
+        } else {
+            html += `<ul style="margin-top:4px;">`;
+            docInputs.forEach((input, idx) => {
+                const fileName = escapePreviewText(input.files[0].name);
+                html += `<li style="font-size:.82rem;color:var(--gray-800);">Document ${idx + 1}: ${fileName}</li>`;
+            });
+            html += `</ul>`;
+        }
+
 
         container.innerHTML = html;
     }
 
-    /* Submit from preview */
-    document.querySelectorAll('.hrm-submit-return-btn').forEach(b => b.addEventListener('click', () => {
-        if (form) {
-            if (form.requestSubmit) form.requestSubmit();
-            else form.submit();
-        }
-    }));
+    document.getElementById('passportAddReformRow')?.addEventListener('click', addReformRow);
+    document.getElementById('passportAddDocumentRow')?.addEventListener('click', addDocumentRow);
+
+    /* Submit from preview is wired globally in the shared layout. */
 
     /* Listen for input */
     if (form) form.addEventListener('input', recomputeAll);
 
+    /* Let the layout's preview tab use this page-specific renderer. */
+    window.buildDirectoratePreview = buildPreview;
+
     /* Init */
-    loadDraft();
     recomputeAll();
 })();
 </script>
