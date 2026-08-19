@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\NisDirectory;
 use App\Models\UserNotification;
+use App\Services\ReportPdfService;
 use App\Services\SubmissionWorkflow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -107,12 +108,12 @@ class DashboardController extends Controller
             $validUserSlug = $userSlug !== null && isset(self::DIRECTORATES[$userSlug]);
 
             if ($validUserSlug && $userSlug !== $slug) {
-                return redirect()->route('user.directorates.show', $userSlug);
+                return redirect()->to('/user/directorates/' . $userSlug);
             }
 
             if (! $validUserSlug) {
                 return redirect()
-                    ->route('user.directorates.dashboard')
+                    ->to('/user/directorates')
                     ->with('status', 'Your account is not assigned to a valid directorate.');
             }
         }
@@ -365,6 +366,38 @@ class DashboardController extends Controller
         return redirect()
             ->route('user.directorates.dashboard')
             ->with('status', 'Return updated and resubmitted successfully.');
+    }
+
+    /**
+     * Download a submission's return as a PDF report (owner or in-scope approver).
+     */
+    public function downloadSubmissionPdf(Request $request, Application $application)
+    {
+        $user = Auth::user();
+
+        $isOwner = $user !== null && $application->user_id === $user->id;
+        $isApprover = $user !== null && SubmissionWorkflow::stageForApprover($user) !== null;
+
+        abort_unless($isOwner || $isApprover, 403);
+
+        if (! $isOwner) {
+            $scopeCode = SubmissionWorkflow::scopeCodeForApprover($user);
+
+            if ($scopeCode !== null) {
+                $applicationScope = $user->user_category === 'zonal_commander'
+                    ? ($application->zonal_code ?: $application->scope_code)
+                    : $application->scope_code;
+
+                abort_if($applicationScope !== $scopeCode, 403, 'This submission is outside your provisioned scope.');
+            }
+        }
+
+        $slug = $application->return_data['directorate_slug'] ?? null;
+        $directorateName = ($slug !== null && isset(self::DIRECTORATES[$slug]))
+            ? self::DIRECTORATES[$slug]['name']
+            : null;
+
+        return ReportPdfService::downloadSubmission($application, $directorateName);
     }
 
     /**

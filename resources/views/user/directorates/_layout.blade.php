@@ -30,7 +30,7 @@
             <i class="fas fa-arrow-left"></i> Back to Directorates
         </a>
         @else
-        <a href="{{ route('user.dashboard') }}" class="btn-nis btn-ghost">
+        <a href="{{ route('user.directorates.home') }}" class="btn-nis btn-ghost">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
         @endif
@@ -63,7 +63,7 @@
                     The information submitted on this form is processed for official records for the Service.
                     Only data that is adequate, relevant, and limited to what is necessary should be entered.
                     Personal data will be retained in accordance with NIS archival policy and applicable data-protection law.
-                    <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Read the Privacy Policy</a>.
+                    <a href="{{ url('/privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Read the Privacy Policy</a>.
                 </div>
             </div>
         </div>

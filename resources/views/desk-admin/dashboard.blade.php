@@ -12,6 +12,7 @@
         $approveRoute = $approveRoute ?? 'desk.admin.submissions.approve';
         $rejectRoute = $rejectRoute ?? 'desk.admin.submissions.reject';
         $pendingSubmissions = $pendingSubmissions ?? collect();
+        $approvedSubmissions = $approvedSubmissions ?? collect();
         $approvedCount = $approvedCount ?? 0;
         $rejectedCount = $rejectedCount ?? 0;
 
@@ -31,8 +32,8 @@
             <p class="page-subtitle">Welcome, <strong>{{ $user->name ?? 'Officer' }}</strong> — {{ $stageName }}</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-            <a href="{{ route('user.reports') }}" class="btn-nis btn-outline-nis">
-                <i class="fas fa-file-export"></i> Cumulative Reports
+            <a href="{{ route('desk.admin.reports') }}" class="btn-nis btn-outline-nis">
+                <i class="fas fa-file-export"></i> Generate Reports
             </a>
             <a href="{{ route('user.archive') }}" class="btn-nis btn-ghost">
                 <i class="fas fa-archive"></i> Archived Documents
@@ -46,7 +47,7 @@
         </div>
     @endif
 
-    <div class="redas-card" style="margin-bottom:20px;">
+    {{-- <div class="redas-card" style="margin-bottom:20px;">
         <div class="card-head">
             <div class="card-head-title">
                 <div class="card-head-icon" style="background:#e0f2fe;color:#0369a1;">
@@ -79,7 +80,7 @@
                 <strong>Workflow:</strong> {{ $currentFlow }}
             </div>
         </div>
-    </div>
+    </div> --}}
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
         <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;background:#fff;">
@@ -150,6 +151,68 @@
                         @empty
                             <tr>
                                 <td colspan="5" style="padding:16px;text-align:center;color:#64748b;">No pending submissions in your provisioned scope.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="redas-card" style="margin-top:20px;">
+        <div class="card-head">
+            <div class="card-head-title">
+                <div class="card-head-icon" style="background:#ecfdf5;color:#15803d;">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                Approved Submissions
+            </div>
+            <a href="{{ route('desk.admin.reports', ['status' => 'approved']) }}" class="btn-nis btn-ghost btn-sm">
+                <i class="fas fa-file-export"></i> Export Report
+            </a>
+        </div>
+        <div class="card-body no-pad">
+            <div style="overflow:auto;">
+                <table style="width:100%;border-collapse:collapse;min-width:720px;">
+                    <thead>
+                        <tr style="background:#f8fafc;">
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">ID</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Officer</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Report Period</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Status</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Approved</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($approvedSubmissions as $submission)
+                            <tr>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">#{{ $submission->id }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->user)->name ?? 'N/A' }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ $submission->return_data['report_period'] ?? '—' }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
+                                    <span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:.72rem;font-weight:700;">
+                                        {{ ucfirst($submission->status) }}
+                                    </span>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->updated_at)->format('d M Y, H:i') }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <a href="{{ route('desk.admin.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <a href="{{ route('user.submissions.pdf', $submission) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </a>
+                                        <a href="{{ route('desk.admin.submissions.download', $submission) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="padding:16px;text-align:center;color:#64748b;">No approved submissions in your provisioned scope yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

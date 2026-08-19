@@ -108,76 +108,73 @@
             </div>
         </div>
 
-        <!-- Archive List -->
-        <div class="redas-card animate-fade-up delay-1">
+        <!-- Completed Returns (downloadable PDF) -->
+        <div class="redas-card animate-fade-up delay-1" style="margin-bottom:24px;">
             <div class="card-head">
                 <div class="card-head-title">
-                    <div class="card-head-icon" style="background:var(--nis-50);color:var(--nis-600);"><i class="fas fa-archive"></i></div>
-                    Archived Documents
+                    <div class="card-head-icon" style="background:var(--nis-50);color:var(--nis-600);"><i class="fas fa-file-pdf"></i></div>
+                    Completed Returns — PDF Archive
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="search" id="archiveSearch" class="ni" placeholder="Search documents..." style="width:200px;font-size:.82rem;padding:6px 10px;">
-                    <select id="archiveFilter" class="ni ni-select" style="font-size:.82rem;padding:6px 10px;width:auto;">
-                        <option value="">All Types</option>
-                        <option value="Monthly Return">Monthly Return</option>
-                        <option value="Quarterly Return">Quarterly Return</option>
-                        <option value="Annual Return">Annual Return</option>
-                        <option value="Special Report">Special Report</option>
-                        <option value="Nominal Roll">Nominal Roll</option>
-                        <option value="Supporting Document">Supporting Document</option>
-                    </select>
+                    <input type="search" id="archiveSearch" class="ni" placeholder="Search returns..." style="width:200px;font-size:.82rem;padding:6px 10px;">
                 </div>
             </div>
             <div class="card-body no-pad">
                 <table class="redas-table searchable-table" id="archiveTable">
                     <thead>
                         <tr>
-                            <th>Document Title</th>
-                            <th>Type</th>
+                            <th>Return</th>
+                            <th>Officer</th>
                             <th>Period</th>
-                            <th>Uploaded</th>
-                            <th>Size</th>
+                            <th>Completed</th>
                             <th>Status</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach([
-                            ['January 2025 Monthly Return',     'Monthly Return',     'Jan 2025', '01 Feb 2025', '2.4 MB',  'archived'],
-                            ['Q1 2025 Quarterly Return',        'Quarterly Return',   'Q1 2025',  '05 Apr 2025', '3.1 MB',  'archived'],
-                            ['December 2024 Monthly Return',    'Monthly Return',     'Dec 2024', '02 Jan 2025', '1.9 MB',  'archived'],
-                            ['2024 Annual Report',              'Annual Return',      '2024',     '15 Jan 2025', '5.7 MB',  'archived'],
-                            ['Nominal Roll — April 2025',       'Nominal Roll',       'Apr 2025', '01 May 2025', '890 KB',  'archived'],
-                            ['Border Movement Data — Q4 2024',  'Supporting Document','Q4 2024',  '10 Jan 2025', '1.2 MB',  'archived'],
-                        ] as [$title, $type, $period, $date, $size, $status])
-                        <tr class="archive-row" data-type="{{ $type }}">
-                            <td>
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--nis-50);color:var(--nis-600);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;">
-                                        <i class="fas fa-file-alt"></i>
+                        @forelse($completedReturns ?? collect() as $return)
+                            @php
+                                $period = $return->return_data['report_period'] ?? null;
+                                $title = ($period ? \Carbon\Carbon::createFromFormat('Y-m', $period)->format('F Y') : 'Return')
+                                    . ' — Monthly Return';
+                            @endphp
+                            <tr class="archive-row">
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:#fef2f2;color:#b91c1c;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </div>
+                                        <div>
+                                            <span style="font-weight:600;font-size:.86rem;">{{ $title }}</span>
+                                            <div style="font-size:.72rem;color:var(--gray-400);">Submission #{{ $return->id }}</div>
+                                        </div>
                                     </div>
-                                    <span style="font-weight:600;font-size:.86rem;">{{ $title }}</span>
-                                </div>
-                            </td>
-                            <td style="font-size:.8rem;">{{ $type }}</td>
-                            <td style="font-size:.8rem;color:var(--gray-600);">{{ $period }}</td>
-                            <td style="font-size:.78rem;color:var(--gray-400);">{{ $date }}</td>
-                            <td style="font-size:.78rem;color:var(--gray-400);">{{ $size }}</td>
-                            <td>
-                                <span class="status-badge badge-approved">Archived</span>
-                            </td>
-                            <td>
-                                <div style="display:flex;gap:4px;">
-                                    <button class="btn-nis btn-ghost btn-sm" title="View" onclick="REDAS.showToast('Opening document…','info')">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="btn-nis btn-ghost btn-sm" title="Download" onclick="REDAS.showToast('Downloading…','success')">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
+                                </td>
+                                <td style="font-size:.8rem;">{{ optional($return->user)->name ?? 'N/A' }}</td>
+                                <td style="font-size:.8rem;color:var(--gray-600);">{{ $period ?? '—' }}</td>
+                                <td style="font-size:.78rem;color:var(--gray-400);">{{ optional($return->updated_at)->format('d M Y') }}</td>
+                                <td>
+                                    <span class="status-badge badge-approved">Approved</span>
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:4px;">
+                                        <a href="{{ route('user.submissions.pdf', $return) }}" class="btn-nis btn-ghost btn-sm" title="View PDF" target="_blank">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('user.submissions.pdf', $return) }}" class="btn-nis btn-ghost btn-sm" title="Download PDF">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="padding:24px;text-align:center;color:var(--gray-500);font-size:.86rem;">
+                                    <i class="fas fa-inbox" style="display:block;font-size:1.4rem;color:var(--gray-400);margin-bottom:8px;"></i>
+                                    No completed returns are archived yet. Approved returns will appear here as downloadable PDFs.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -198,20 +195,15 @@ function showSelectedFiles(input) {
     });
 }
 
-// Archive search / filter
+// Archive search
 const searchInput = document.getElementById('archiveSearch');
-const filterSelect = document.getElementById('archiveFilter');
 function filterArchive() {
     const q = searchInput.value.toLowerCase();
-    const t = filterSelect.value.toLowerCase();
     document.querySelectorAll('#archiveTable tbody .archive-row').forEach(row => {
-        const title = row.querySelector('td:first-child').textContent.toLowerCase();
-        const type  = (row.dataset.type || '').toLowerCase();
-        row.style.display = (title.includes(q) && (!t || type.includes(t))) ? '' : 'none';
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
 }
 searchInput.addEventListener('input', filterArchive);
-filterSelect.addEventListener('change', filterArchive);
 
 // Drag-and-drop highlight
 const dropZone = document.getElementById('archiveDropZone');

@@ -10,19 +10,26 @@ use App\Http\Controllers\MfaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionReviewController;
 use App\Http\Controllers\Web\DashboardController;
+use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+$homeView = 'welcome';
 
-Route::get('/home', function () {
-    return view('welcome');
-});
+Route::get('/', fn () => view()->exists($homeView)
+    ? view($homeView)
+    : redirect('/login'))->name('home');
 
-Route::view('/terms-and-conditions', 'legal.terms')->name('terms');
-Route::view('/privacy-policy', 'legal.privacy')->name('privacy');
+Route::get('/home', fn () => view()->exists($homeView)
+    ? view($homeView)
+    : redirect('/login'));
+
+Route::get('/terms-and-conditions', fn () => view()->exists('legal.terms')
+    ? view('legal.terms')
+    : redirect('/login'))->name('terms');
+Route::get('/privacy-policy', fn () => view()->exists('legal.privacy')
+    ? view('legal.privacy')
+    : redirect('/login'))->name('privacy');
 Route::get('/directory', [\App\Http\Controllers\Web\DirectoryController::class, 'index'])->name('directory');
 
 // Authentication Routes (guests only)
@@ -72,11 +79,32 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     Route::post('/user/notifications/{id}/read', [ApiNotificationController::class, 'markRead']);
 
     Route::get('/user/archive', function () {
-        return view('user.states.archive');
+        $user = Auth::user();
+        $archiveView = view()->exists('user.archive.index') ? 'user.archive.index' : 'user.states.archive';
+
+        $completedQuery = \App\Models\Application::query()
+            ->with('user')
+            ->where('status', 'approved')
+            ->latest('updated_at')
+            ->limit(50);
+
+        // Approvers see completed returns in their scope; officers see their own.
+        if (\App\Services\SubmissionWorkflow::stageForApprover($user) !== null) {
+            $scopeCode = \App\Services\SubmissionWorkflow::scopeCodeForApprover($user);
+            if ($scopeCode !== null) {
+                $completedQuery->where('scope_code', $scopeCode);
+            }
+        } else {
+            $completedQuery->where('user_id', $user?->id);
+        }
+
+        return view($archiveView, ['completedReturns' => $completedQuery->get()]);
     })->name('user.archive');
 
     Route::get('/user/archive/upload', function () {
-        return view('user.states.archive');
+        $archiveView = view()->exists('user.archive.upload') ? 'user.archive.upload' : 'user.states.archive';
+
+        return view($archiveView);
     })->name('user.archive.upload');
 
     Route::post('/user/archive/upload', function (\Illuminate\Http\Request $request) {
@@ -88,9 +116,9 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
             'data_consent' => ['required', 'accepted'],
         ]);
 
-        return redirect()->route('user.archive')
+        return redirect('/user/archive')
             ->with('status', 'Document(s) uploaded to archive successfully.');
-    })->middleware('throttle:database')->name('user.archive.store');
+    })->middleware('throttle:60,1')->name('user.archive.store');
 
     Route::get('/user/reports', function () {
         return view('user.states.reports');
@@ -107,7 +135,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
 
         return redirect()->route('user.reports')
             ->with('status', 'Your report has been generated and is ready for download.');
-    })->middleware('throttle:database')->name('user.reports.generate');
+    })->middleware('throttle:60,1')->name('user.reports.generate');
 
     Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
         $validated = $request->validate([
@@ -123,29 +151,35 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
             $request->except(['_token', 'data_consent'])
         );
 
-        return redirect()->route('user.submissions')
+        return redirect('/user/submissions')
             ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
-    })->middleware('throttle:database')->name('user.returns.store');
+    })->middleware('throttle:60,1')->name('user.returns.store');
 });
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/user/profile', [ProfileController::class, 'edit'])->name('user.profile');
-    Route::patch('/user/profile', [ProfileController::class, 'update'])->middleware('throttle:database')->name('user.profile.update');
+    Route::patch('/user/profile', [ProfileController::class, 'update'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('user.profile.update');
+
+    // PDF export of a submitted return — owner or in-scope approver only (checked in controller).
+    Route::get('/user/submissions/{application}/pdf', [DashboardController::class, 'downloadSubmissionPdf'])->name('user.submissions.pdf');
 });
 
 // Zonal commander routes — access only to zonal pages
 Route::middleware(['auth', 'access:category=zonal_commander,location=zonal,role=admin|zonal|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/zonal/dashboard', [SubmissionReviewController::class, 'index'])->name('user.zonal.home');
-    Route::patch('/zonal/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('zonal.submissions.approve');
-    Route::patch('/zonal/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware('throttle:database')->name('zonal.submissions.reject');
+    Route::patch('/zonal/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.approve');
+    Route::patch('/zonal/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
 });
 
 // Desk / directorate admin review routes
 Route::middleware(['auth', 'access:category=desk_admin|directorate_admin,location=state|directorate,role=admin|state|directorate|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/desk-admin/dashboard', [SubmissionReviewController::class, 'index'])->name('user.desk.home');
-    Route::patch('/desk-admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('desk.admin.submissions.approve');
-    Route::patch('/desk-admin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware('throttle:database')->name('desk.admin.submissions.reject');
+    Route::get('/desk-admin/reports', [SubmissionReviewController::class, 'reports'])->name('desk.admin.reports');
+    Route::patch('/desk-admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
+    Route::patch('/desk-admin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.reject');
     Route::get('/desk-admin/submissions/{application}', [SubmissionReviewController::class, 'show'])->name('desk.admin.submissions.show');
+    Route::get('/desk-admin/submissions/{application}/download', [SubmissionReviewController::class, 'download'])->name('desk.admin.submissions.download');
+    Route::get('/desk-admin/submissions/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('desk.admin.submissions.document');
 });
 
 // CGIS Units

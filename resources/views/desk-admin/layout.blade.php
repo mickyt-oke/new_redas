@@ -33,9 +33,9 @@
             <span class="link-icon"><i class="fas fa-th-large"></i></span>
             <span class="link-text">Review Dashboard</span>
         </a>
-        <a href="{{ route('user.reports') }}" class="sidebar-link {{ request()->routeIs('user.reports') ? 'active' : '' }}">
+        <a href="{{ route('desk.admin.reports') }}" class="sidebar-link {{ request()->routeIs('desk.admin.reports') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-file-export"></i></span>
-            <span class="link-text">Cumulative Reports</span>
+            <span class="link-text">Report Generation</span>
         </a>
         <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-archive"></i></span>
