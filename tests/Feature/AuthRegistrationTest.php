@@ -12,7 +12,7 @@ class AuthRegistrationTest extends TestCase
     {
         $response = $this->from('/register')->post('/register', [
             'name' => 'Jane Doe',
-            'service_number' => 'NIS/ADM/1234',
+            'service_number' => '12345',
             'role' => 'officer',
             'email' => 'jane@example.com',
             'password' => 'Password123!',
@@ -24,7 +24,7 @@ class AuthRegistrationTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'jane@example.com',
-            'service_number' => 'NIS/ADM/1234',
+            'service_number' => '12345',
             'user_category' => 'state_user',
             'primary_location_type' => 'state',
             'role' => 'officer',

@@ -18,10 +18,11 @@
 
     <!-- Section Body -->
     <div class="visa-card-body" style="padding: 24px;">
-        <div class="report-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
-            <div>
-                <label class="report-label" for="report_year" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
-                    Reporting Period (Year) <span style="color:var(--color-danger)">*</span>
+        <div class="report-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+            <!-- Reporting Period (Year) -->
+            <div class="report-group">
+                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
+                    Reporting Period (Year)
                 </label>
                 <select 
                     name="report_year" 
@@ -29,50 +30,88 @@
                     class="ni ni-select" 
                     required
                     style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
-                    <option value="{{ date('Y') }}" selected>Year {{ date('Y') }}</option>
-                    <option value="{{ date('Y') - 1 }}">Year {{ date('Y') - 1 }}</option>
-                    <option value="{{ date('Y') - 2 }}">Year {{ date('Y') - 2 }}</option>
+                    <option value="2026" {{ old('report_year', $period) == 2026 ? 'selected' : '' }}>Year 2026</option>
+                    <option value="2025" {{ old('report_year', $period) == 2025 ? 'selected' : '' }}>Year 2025</option>
+                    <option value="2024" {{ old('report_year', $period) == 2024 ? 'selected' : '' }}>Year 2024</option>
+                    <option value="2023" {{ old('report_year', $period) == 2023 ? 'selected' : '' }}>Year 2023</option>
                 </select>
             </div>
-            <div>
-                <label class="report-label" for="reporting_office" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
-                    Reporting Office <span style="color:var(--color-danger)">*</span>
+
+            <!-- Report Number -->
+            <div class="report-group">
+                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
+                    Report Number
                 </label>
-                <input 
-                    type="text" 
-                    id="reporting_office" 
-                    name="reporting_office" 
-                    class="ni" 
-                    required 
-                    value="ICT & Cybersecurity Directorate"
-                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
+                <input
+                    type="text"
+                    class="ni"
+                    readonly
+                    value="IR-{{ date('Y') }}-000001"
+                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
             </div>
-            <div>
-                <label class="report-label" for="reporting_officer" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
-                    Reporting Officer <span style="color:var(--color-danger)">*</span>
+
+
+            <!-- Directorate -->
+            <div class="report-group">
+                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
+                    Directorate
+                </label>
+                <input
+                    type="text"
+                    class="ni"
+                    readonly
+                    value="ICT & Cybersecurity Directorate"
+                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
+            </div>
+
+            <!-- Reporting Officer -->
+            <div class="report-group">
+                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
+                    Reporting Officer
                 </label>
                 <input 
                     type="text" 
                     id="reporting_officer" 
                     name="reporting_officer" 
                     class="ni" 
+                    readonly
                     required 
                     value="{{ auth()->user()->name }}"
-                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
+                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
             </div>
-            <div>
-                <label class="report-label" for="service_no" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
-                    Service Number <span style="color:var(--color-danger)">*</span>
+
+            <!-- Service Number -->
+            <div class="report-group">
+                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
+                    NIS No
                 </label>
                 <input 
                     type="text" 
                     id="service_no" 
                     name="service_no" 
                     class="ni" 
+                    readonly
                     required 
                     value="{{ auth()->user()->service_number }}"
+                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
+            </div>
+
+
+
+            <!-- Date -->
+            <div class="report-group">
+                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px; display: block;">
+                    Report Date
+                </label>
+                <input
+                    type="date"
+                    class="ni"
+                    name="report_date"
+                    value="{{ date('Y-m-d') }}"
                     style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
             </div>
+
+
         </div>
 
         <div style="margin-top: 24px;">
@@ -85,16 +124,9 @@
                 class="ni" 
                 rows="3" 
                 placeholder="Enter any notable remarks or notes for the supervisor..."
-                style="width: 100%; padding: 12px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff; resize: vertical; min-height: 100px;"></textarea>
+                style="width: 100%; padding: 12px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff; resize: vertical; min-height: 100px;">{{ old('remarks', $application->comments ?? '') }}</textarea>
         </div>
 
-        <!-- Summary -->
-        <div class="section-footer" style="display: flex; justify-content: flex-end; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
-            <div class="section-buttons">
-                <button type="button" class="btn-nis btn-primary-nis" style="padding: 10px 20px; border-radius: 8px; font-weight: 600;">
-                    <i class="fas fa-check-circle"></i> Save Section
-                </button>
-            </div>
-        </div>
+
     </div>
 </div>

@@ -147,16 +147,18 @@
                     @enderror
                 </div>
 
-                <!-- Service Number / Email -->
+                <!-- Service Number -->
                 <div class="auth-form-group">
                     <label class="form-label-nis" for="loginInput">
-                        <i class="fas fa-id-card me-1 text-nis"></i> Service Number or Email
+                        <i class="fas fa-id-card me-1 text-nis"></i> Service Number
                     </label>
                     <div class="auth-input-wrap">
                         <input type="text"
                             class="auth-input @error('login') is-invalid @enderror"
                             id="loginInput" name="login"
-                            placeholder="e.g. NIS/HQ/2023/1234 or officer@immigration.gov.ng"
+                            placeholder="e.g. 10007 (5-digit service number)"
+                            pattern="[0-9]{5}"
+                            maxlength="5"
                             value="{{ old('login') }}"
                             autocomplete="username"
                             required>

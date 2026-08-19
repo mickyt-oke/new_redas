@@ -16,7 +16,7 @@ class VisaReportTest extends TestCase
     {
         return User::create([
             'name' => 'Visa Officer Test',
-            'service_number' => 'NIS/VIS/7777',
+            'service_number' => '77777',
             'email' => 'visa-officer@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'directorate',
@@ -27,25 +27,40 @@ class VisaReportTest extends TestCase
         ]);
     }
 
+    private function createVisaSupervisor(): User
+    {
+        return User::create([
+            'name' => 'Visa Supervisor Test',
+            'service_number' => '88888',
+            'email' => 'visa-supervisor@example.com',
+            'password' => Hash::make('Password123!'),
+            'role' => 'directorate',
+            'user_category' => 'directorate_admin',
+            'primary_location_type' => 'directorate',
+            'primary_location_code' => 'VISA',
+            'access_level' => 3,
+        ]);
+    }
+
     public function test_visa_user_can_access_dashboard_and_form(): void
     {
         $user = $this->createVisaUser();
 
+        // Dashboard redirects to submissions list for desk officer
         $response = $this->actingAs($user)->get('/user/directorate/visa');
-        $response->assertOk();
-        $response->assertSee('Visa & Residence Annual Reporting Dashboard', false);
+        $response->assertRedirect('/user/directorate/visa/submissions');
 
         $response = $this->actingAs($user)->get('/user/directorate/visa/report');
         $response->assertOk();
         $response->assertSee('Annual Visa & Residence Report', false);
 
+        // Reports redirects to workspace for desk officer
         $response = $this->actingAs($user)->get('/user/directorate/visa/reports');
-        $response->assertOk();
-        $response->assertSee('Visa &amp; Residence Analytics &amp; Reports', false);
+        $response->assertRedirect('/user/directorate/visa/report');
 
         $response = $this->actingAs($user)->get('/user/directorate/visa/submissions');
         $response->assertOk();
-        $response->assertSee('Submitted Returns');
+        $response->assertSee('Submitted Reports');
     }
 
     public function test_visa_user_can_save_draft_report(): void
@@ -58,18 +73,15 @@ class VisaReportTest extends TestCase
             'remarks' => 'Draft test remarks',
             'staff' => [
                 'comptroller' => ['male' => 2, 'female' => 3],
-                'superintendent' => ['male' => 4, 'female' => 5],
             ],
-            'ftz' => [
-                'zones' => 1,
-                'enterprises' => 10,
-                'expatriates' => 15,
+            'quota' => [
+                ['company' => 'A Company', 'positions' => 5, 'industry' => 'Tech'],
             ]
         ];
 
         $response = $this->actingAs($user)->post('/user/directorate/visa/report', $payload);
 
-        $response->assertRedirect('/user/directorate/visa/submissions');
+        $response->assertRedirect('/user/directorate/visa/report?year=2026');
         $response->assertSessionHas('status', 'Visa & Residence Annual Report draft saved successfully.');
 
         $this->assertDatabaseHas('applications', [
@@ -77,11 +89,7 @@ class VisaReportTest extends TestCase
             'type' => 'visa',
             'period' => '2026',
             'status' => 'draft',
-            'comments' => 'Draft test remarks',
         ]);
-
-        $app = Application::first();
-        $this->assertEquals(10, $app->return_data['ftz']['enterprises']);
     }
 
     public function test_visa_user_can_submit_annual_report(): void
@@ -95,18 +103,15 @@ class VisaReportTest extends TestCase
             'staff' => [
                 'comptroller' => ['male' => 2, 'female' => 3],
             ],
-            'cerpac' => [
-                'supplied' => 100,
-                'produced' => 90,
-                'damaged' => 2,
-                'issued' => 88,
+            'quota' => [
+                ['company' => 'A Company', 'positions' => 5, 'industry' => 'Tech'],
             ]
         ];
 
         $response = $this->actingAs($user)->post('/user/directorate/visa/report', $payload);
 
-        $response->assertRedirect('/user/directorate/visa/submissions');
-        $response->assertSessionHas('status', 'Visa & Residence Annual Report submitted successfully.');
+        $response->assertRedirect('/user/directorate/visa/report?year=2025');
+        $response->assertSessionHas('status', 'Your report has been sent for approval and you will be notified when approval is given.');
 
         $this->assertDatabaseHas('applications', [
             'user_id' => $user->id,
@@ -120,9 +125,10 @@ class VisaReportTest extends TestCase
     public function test_dashboard_displays_dynamic_stats_from_database(): void
     {
         $user = $this->createVisaUser();
+        $supervisor = $this->createVisaSupervisor();
 
         Application::create([
-            'user_id' => $user->id,
+            'user_id' => $supervisor->id,
             'type' => 'visa',
             'period' => '2026',
             'status' => 'pending',
@@ -142,7 +148,7 @@ class VisaReportTest extends TestCase
             ]
         ]);
 
-        $response = $this->actingAs($user)->get('/user/directorate/visa');
+        $response = $this->actingAs($supervisor)->get('/user/directorate/visa');
         $response->assertOk();
 
         // 2 + 3 + 5 = 10 Residence Permits

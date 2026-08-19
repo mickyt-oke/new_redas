@@ -261,7 +261,7 @@
 
     /* ── Auto-save draft to localStorage ── */
     let saveTimer;
-    const DRAFT_KEY = 'redas_draft_' + (document.querySelector('[name="reporting_officer"]')?.value || 'officer');
+    const DRAFT_KEY = 'redas_draft_' + (document.querySelector('[name="reporting_officer"]')?.value || 'officer') + '_' + ((document.getElementById('report_year') || document.querySelector('[name="period"]') || document.querySelector('[name="report_year"]'))?.value || '');
     function triggerAutoSave() {
         const ind  = document.getElementById('autosaveIndicator');
         const text = document.getElementById('autosaveText');

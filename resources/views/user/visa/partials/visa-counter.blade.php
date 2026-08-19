@@ -90,5 +90,19 @@
                 </tfoot>
             </table>
         </div>
+
+        <div class="section-footer" style="margin-top: 20px;">
+            <div class="section-summary"></div>
+            <div class="section-buttons">
+                <button
+                    type="submit"
+                    name="action"
+                    value="draft"
+                    class="btn-nis btn-success">
+                    <i class="fas fa-save"></i>
+                    Save Section
+                </button>
+            </div>
+        </div>
     </div>
 </div>

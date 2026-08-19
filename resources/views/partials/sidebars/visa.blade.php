@@ -9,7 +9,7 @@
         Brand
     ============================ --}}
 
-    <a href="{{ route('visa.dashboard') }}"
+    <a href="{{ auth()->user()->user_category === 'directorate_user' ? route('visa.submissions') : route('visa.dashboard') }}"
        class="sidebar-brand">
 
         <img
@@ -70,24 +70,6 @@
         </a>
 
 
-        <a href="{{ route('visa.report') }}"
-           class="sidebar-link {{ request()->routeIs('visa.report') ? 'active' : '' }}">
-
-            <span class="link-icon">
-
-                <i class="fas fa-file-alt"></i>
-
-            </span>
-
-            <span class="link-text">
-
-                Annual Report
-
-            </span>
-
-        </a>
-
-
         <a href="{{ route('visa.submissions') }}"
            class="sidebar-link {{ request()->routeIs('visa.submissions') ? 'active' : '' }}">
 
@@ -104,9 +86,6 @@
             </span>
 
         </a>
-
-
-
 
 
         <hr class="sidebar-divider">
@@ -139,204 +118,7 @@
         </a>
 
 
-        <a href="{{ route('visa.report') }}#staff-strength"
-           class="sidebar-link">
 
-            <span class="link-icon">
-
-                <i class="fas fa-users"></i>
-
-            </span>
-
-            <span class="link-text">
-
-                Staff Strength
-
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#e-migrant"
-           class="sidebar-link">
-
-            <span class="link-icon">
-
-                <i class="fas fa-globe-africa"></i>
-
-            </span>
-
-            <span class="link-text">
-
-                e-Migrant Centre
-
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#quota"
-           class="sidebar-link">
-
-            <span class="link-icon">
-
-                <i class="fas fa-user-shield"></i>
-
-            </span>
-
-            <span class="link-text">
-
-                Quota Administration
-
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#residence"
-           class="sidebar-link">
-
-            <span class="link-icon">
-
-                <i class="fas fa-id-card"></i>
-
-            </span>
-
-            <span class="link-text">
-
-                Residence Permit
-
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#ftz"
-           class="sidebar-link">
-
-            <span class="link-icon">
-
-                <i class="fas fa-industry"></i>
-
-            </span>
-
-            <span class="link-text">
-
-                Free Trade Zone
-
-            </span>
-
-        </a>
-                <a href="{{ route('visa.report') }}#cerpac"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-address-card"></i>
-            </span>
-
-            <span class="link-text">
-                CERPAC Production
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#visa-applications"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-passport"></i>
-            </span>
-
-            <span class="link-text">
-                e-visa applications(svv)
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#trv"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-plane"></i>
-            </span>
-
-            <span class="link-text">
-                Temporary Resident Visa (TRV)
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#prv"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-stamp"></i>
-            </span>
-
-            <span class="link-text">
-                Permanent Residence Visa (PRV)
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#etwp"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-laptop"></i>
-            </span>
-
-            <span class="link-text">
-                e-TWP
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#visa-summary"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-clipboard-list"></i>
-            </span>
-
-            <span class="link-text">
-                Visa Summary
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#ecowas"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-flag"></i>
-            </span>
-
-            <span class="link-text">
-                ECOWAS
-            </span>
-
-        </a>
-
-
-        <a href="{{ route('visa.report') }}#african-affairs"
-           class="sidebar-link">
-
-            <span class="link-icon">
-                <i class="fas fa-earth-africa"></i>
-            </span>
-
-            <span class="link-text">
-                African Affairs
-            </span>
-
-        </a>
 
 
         <hr class="sidebar-divider">
@@ -351,8 +133,8 @@
         </div>
 
 
-        <a href="#"
-           class="sidebar-link">
+        <a href="{{ route('user.profile') }}"
+           class="sidebar-link {{ request()->routeIs('user.profile') && !str_contains(request()->fullUrl(), '#settings') ? 'active' : '' }}">
 
             <span class="link-icon">
 
@@ -369,7 +151,7 @@
         </a>
 
 
-        <a href="#"
+        <a href="{{ route('user.profile') }}#settings"
            class="sidebar-link">
 
             <span class="link-icon">
@@ -385,6 +167,18 @@
             </span>
 
         </a>
+
+        @if(auth()->user()->user_category === 'directorate_admin')
+        <a href="{{ route('admin.users') }}"
+           class="sidebar-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+            <span class="link-icon">
+                <i class="fas fa-users-cog"></i>
+            </span>
+            <span class="link-text">
+                User Management
+            </span>
+        </a>
+        @endif
 
 
         <form action="{{ route('logout') }}"
@@ -426,9 +220,13 @@
 
         <div class="sidebar-user-card">
 
-            <div class="sidebar-user-avatar">
+            <div class="sidebar-user-avatar" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
 
-                {{ strtoupper(substr(auth()->user()->name ?? 'V',0,2)) }}
+                @if(auth()->user()->profile_picture)
+                    <img src="/storage/{{ auth()->user()->profile_picture }}" style="width:100%;height:100%;object-fit:cover;">
+                @else
+                    {{ strtoupper(substr(auth()->user()->name ?? 'V',0,2)) }}
+                @endif
 
             </div>
 
@@ -441,9 +239,7 @@
                 </div>
 
                 <div class="sidebar-user-role">
-
-                    Visa Directorate Officer
-
+                    {{ auth()->user()->user_category === 'directorate_admin' ? 'Visa Directorate Admin' : 'Visa Directorate Desk Officer' }}
                 </div>
 
             </div>

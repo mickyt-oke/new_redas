@@ -5,7 +5,7 @@
             <div>
                 <h1 class="page-title">Directorate Dashboard</h1>
                 <p class="page-subtitle">
-                    Welcome, <strong>{{ auth()->user()->name ?? 'Officer' }}</strong> —
+                    Welcome, <strong>{{ auth()->user()->name ?? 'Officer' }}</strong> &bull;
                     {{ now()->format('l, d F Y') }}
                 </p>
             </div>

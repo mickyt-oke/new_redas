@@ -14,7 +14,7 @@
         <div>
             <h1 class="page-title">
                 <i class="fas fa-folder-open"></i>
-                Submitted Returns
+                Submitted Reports
             </h1>
             <p class="page-subtitle">Track the status of all your Visa & Residence Directorate Annual Operational Reports.</p>
         </div>
@@ -28,13 +28,13 @@
         @php
         $totalCount = $submissions->count();
         $pendingCount = $submissions->where('status', 'pending')->count();
-        $approvedCount = $submissions->where('status', 'approved')->count();
+        $approvedCount = $submissions->whereIn('status', ['approved', 'submitted'])->count();
         $draftCount = $submissions->where('status', 'draft')->count();
 
         $subStats = [
             ['Total Reports', $totalCount, 'fas fa-copy', 'green', 'All entries'],
-            ['Pending Review', $pendingCount, 'fas fa-hourglass-half', 'gold', 'Awaiting supervisor'],
-            ['Approved', $approvedCount, 'fas fa-check-circle', 'green', 'Finalized reports'],
+            ['Pending Approval', $pendingCount, 'fas fa-hourglass-half', 'gold', 'Awaiting supervisor'],
+            ['Approved / Submitted', $approvedCount, 'fas fa-check-circle', 'green', 'Finalized reports'],
             ['Drafts', $draftCount, 'fas fa-pencil-alt', 'warning', 'Work in progress'],
         ];
         @endphp
@@ -82,11 +82,12 @@
                     <tbody>
                         @php
                         $statusConfig = [
-                            'pending'  => ['badge-pending',  'Pending Review',  'fas fa-hourglass-half'],
-                            'approved' => ['badge-approved', 'Approved',        'fas fa-check-circle'],
-                            'queried'  => ['badge-review',   'Queried',         'fas fa-question-circle'],
-                            'rejected' => ['badge-rejected', 'Rejected',        'fas fa-times-circle'],
-                            'draft'    => ['badge-draft',    'Draft',           'fas fa-pencil-alt'],
+                            'pending'   => ['badge-pending',  'Awaiting Approval', 'fas fa-hourglass-half'],
+                            'approved'  => ['badge-approved', 'Approved',          'fas fa-check-circle'],
+                            'queried'   => ['badge-review',   'Queried',           'fas fa-question-circle'],
+                            'rejected'  => ['badge-rejected', 'Rejected',          'fas fa-times-circle'],
+                            'draft'     => ['badge-draft',    'Draft',             'fas fa-pencil-alt'],
+                            'submitted' => ['badge-approved', 'Submitted',         'fas fa-check-double'],
                         ];
                         @endphp
                         @foreach($submissions as $i => $sub)
@@ -116,14 +117,40 @@
                                 @endif
                             </td>
                             <td>
-                                <div style="display:flex;gap:4px;">
-                                    <button class="btn-nis btn-ghost btn-sm" onclick="viewModal({{ e(json_encode($sub)) }})" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    @if(in_array($sub->status, ['draft', 'queried']))
-                                        <a href="{{ route('visa.report') }}" class="btn-nis btn-sm" style="background:var(--gold-50);border:1px solid var(--gold-300);color:var(--gold-700);padding:4px 8px;" title="Edit Report">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                 <div style="display:flex;gap:4px;align-items:center;">
+                                      @if(in_array($sub->status, ['draft', 'queried']) && auth()->user()->user_category === 'directorate_user')
+                                          <a href="{{ route('visa.report', ['year' => $sub->period, 'id' => $sub->id]) }}" class="btn-nis btn-sm" style="background:var(--gold-50);border:1px solid var(--gold-300);color:var(--gold-700);padding:4px 8px;" title="Edit Report">
+                                              <i class="fas fa-edit"></i>
+                                          </a>
+                                      @endif
+
+                                      @if(in_array($sub->status, ['pending', 'approved', 'submitted']) || auth()->user()->user_category === 'directorate_admin' || auth()->user()->role === 'admin')
+                                          <a href="{{ route('visa.report', ['year' => $sub->period, 'id' => $sub->id]) }}" class="btn-nis btn-sm" style="background:#f3f4f6;border:1px solid #d1d5db;color:#374151;padding:4px 8px;display:inline-flex;align-items:center;" title="View Details">
+                                              <i class="fas fa-eye"></i>
+                                          </a>
+                                      @endif
+
+                                    @if($sub->status === 'approved')
+                                        <form action="{{ route('visa.submit', $sub->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <button type="submit" class="btn-nis btn-sm" style="background:#dcfce7;border:1px solid #86efac;color:#15803d;padding:4px 8px;font-weight:700;" title="Submit to Headquarters">
+                                                <i class="fas fa-paper-plane"></i> Submit
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    @if(auth()->user()->user_category === 'directorate_admin' || auth()->user()->role === 'admin')
+                                        @if($sub->status === 'pending')
+                                            <form action="{{ route('visa.approve', $sub->id) }}" method="POST" style="display:inline;">
+                                                @csrf
+                                                <button type="submit" class="btn-nis btn-sm" style="background:#dcfce7;border:1px solid #86efac;color:#15803d;padding:4px 8px;" title="Approve Report">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </form>
+                                            <button class="btn-nis btn-sm" style="background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;padding:4px 8px;" onclick="openQueryModal('visa', {{ $sub->id }})" title="Query Report">
+                                                <i class="fas fa-question-circle"></i> Query
+                                            </button>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -230,10 +257,17 @@
                 </div>
             </div>
             
-            <h6 style="font-weight: 700; color: var(--gray-700); margin: 0 0 10px 0;">Summary Metrics</h6>
-            <div id="mMetrics" style="font-size: 0.86rem; color: var(--gray-600); display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px;">
-                <!-- Filled dynamically -->
-            </div>
+            <table class="summary-metrics-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.88rem; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px 14px; text-align: left; font-size: 0.74rem; font-weight: 600; text-transform: uppercase; color: #475569;">Metric Category</th>
+                        <th style="padding: 12px 14px; text-align: right; font-size: 0.74rem; font-weight: 600; text-transform: uppercase; color: #475569;">Value / Count</th>
+                    </tr>
+                </thead>
+                <tbody id="mMetricsTableBody">
+                    <!-- Filled dynamically -->
+                </tbody>
+            </table>
 
             <h6 style="font-weight: 700; color: var(--gray-700); margin: 0 0 10px 0;">Remarks / Comments</h6>
             <div id="mRemarks" style="background: #f8fafc; border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 10px; font-size: 0.84rem; color: var(--gray-700);">
@@ -273,7 +307,10 @@ function viewModal(sub) {
         Object.keys(data.staff).forEach(cadre => {
             staffTotal += parseInt(data.staff[cadre].male || 0) + parseInt(data.staff[cadre].female || 0);
         });
-        metricsHtml += `<div><i class="fas fa-users" style="width: 20px;"></i> Staff Strength: <strong>${staffTotal} Officers</strong></div>`;
+        metricsHtml += `<tr>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-users" style="width: 20px; color:#475569; margin-right:8px;"></i> Staff Strength</td>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color:#0f172a;">${staffTotal} Officers</td>
+        </tr>`;
     }
     
     if (data.emigrant) {
@@ -281,7 +318,10 @@ function viewModal(sub) {
         data.emigrant.forEach(em => {
             migrantTotal += parseInt(em.regular || 0) + parseInt(em.irregular || 0);
         });
-        metricsHtml += `<div><i class="fas fa-globe-africa" style="width: 20px;"></i> e-Migrant Centre: <strong>${migrantTotal} Migrants</strong> (${data.emigrant.length} nationalities)</div>`;
+        metricsHtml += `<tr>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-globe-africa" style="width: 20px; color:#475569; margin-right:8px;"></i> e-Migrant Centre</td>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color:#0f172a;">${migrantTotal} Migrants (${data.emigrant.length} nat.)</td>
+        </tr>`;
     }
 
     if (data.quota) {
@@ -289,18 +329,27 @@ function viewModal(sub) {
         data.quota.forEach(q => {
             quotaTotal += parseInt(q.positions || 0);
         });
-        metricsHtml += `<div><i class="fas fa-users-cog" style="width: 20px;"></i> Quota Administration: <strong>${quotaTotal} Quota Positions</strong> (${data.quota.length} companies)</div>`;
+        metricsHtml += `<tr>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-users-cog" style="width: 20px; color:#475569; margin-right:8px;"></i> Quota Administration</td>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color:#0f172a;">${quotaTotal} Positions (${data.quota.length} companies)</td>
+        </tr>`;
     }
 
     if (data.cerpac) {
-        metricsHtml += `<div><i class="fas fa-address-card" style="width: 20px;"></i> CERPAC Cards Issued: <strong>${data.cerpac.issued || 0} Cards</strong></div>`;
+        metricsHtml += `<tr>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-address-card" style="width: 20px; color:#475569; margin-right:8px;"></i> CERPAC Cards Issued</td>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color:#0f172a;">${data.cerpac.issued || 0} Cards</td>
+        </tr>`;
     }
 
     if (data.ftz) {
-        metricsHtml += `<div><i class="fas fa-warehouse" style="width: 20px;"></i> FTZ Enterprises: <strong>${data.ftz.enterprises || 0} Enterprises</strong> (${data.ftz.zones || 0} Zones)</div>`;
+        metricsHtml += `<tr>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0;"><i class="fas fa-warehouse" style="width: 20px; color:#475569; margin-right:8px;"></i> FTZ Enterprises</td>
+            <td style="padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600; color:#0f172a;">${data.ftz.enterprises || 0} Enterprises (${data.ftz.zones || 0} Zones)</td>
+        </tr>`;
     }
     
-    document.getElementById('mMetrics').innerHTML = metricsHtml || '<div>No operational metrics saved.</div>';
+    document.getElementById('mMetricsTableBody').innerHTML = metricsHtml || '<tr><td colspan="2" style="text-align:center; padding:12px; color:var(--gray-400);">No operational metrics saved.</td></tr>';
     
     const modal = document.getElementById('subModal');
     modal.style.display = 'flex';
@@ -309,6 +358,46 @@ function viewModal(sub) {
 function closeModal() {
     document.getElementById('subModal').style.display = 'none';
 }
+
+function openQueryModal(type, id) {
+    const remarks = prompt("Enter supervisor remarks / query reason:", "Please review this report.");
+    if (remarks !== null) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/user/directorate/${type}/submissions/${id}/query`;
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+            || '{{ csrf_token() }}';
+        
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = csrfToken;
+        form.appendChild(tokenInput);
+        
+        const remarksInput = document.createElement('input');
+        remarksInput.type = 'hidden';
+        remarksInput.name = 'remarks';
+        remarksInput.value = remarks;
+        form.appendChild(remarksInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-view-details').forEach(btn => {
+        btn.addEventListener('click', function() {
+            try {
+                const sub = JSON.parse(this.getAttribute('data-report'));
+                viewModal(sub);
+            } catch (e) {
+                console.error("Error parsing report data:", e);
+            }
+        });
+    });
+});
 </script>
 
 @include('partials.footer')

@@ -17,8 +17,56 @@
     </div>
 </div>
 
+@if(auth()->user()->user_category === 'directorate_admin' || auth()->user()->role === 'admin')
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;padding:16px;border-radius:12px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+        <i class="fas fa-info-circle" style="font-size:1.5rem;color:#3b82f6;"></i>
+        <div>
+            <strong style="font-size:1.05rem;">Review Mode (Read-only)</strong><br>
+            <span style="font-size:0.9rem;">You are viewing the report submitted by the desk officer for Period {{ $period }}. The current status is: <strong>{{ ucfirst($application->status ?? 'Not Started') }}</strong>.</span>
+        </div>
+    </div>
+@endif
+
+@if($application)
+    @if($application->status === 'approved')
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:16px;border-radius:12px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+            <i class="fas fa-check-circle" style="font-size:1.5rem;color:#22c55e;"></i>
+            <div>
+                <strong style="font-size:1.05rem;">Report Approved!</strong><br>
+                <span style="font-size:0.9rem;">Your report for Period {{ $application->period }} has been reviewed and approved by the Admin. Please submit it using the button at the bottom of the page.</span>
+            </div>
+        </div>
+    @elseif($application->status === 'submitted')
+        <div style="background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:16px;border-radius:12px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+            <i class="fas fa-check-double" style="font-size:1.5rem;color:#10b981;"></i>
+            <div>
+                <strong style="font-size:1.05rem;">Report Submitted</strong><br>
+                <span style="font-size:0.9rem;">This report has been officially submitted to Headquarters. No further modifications are allowed.</span>
+            </div>
+        </div>
+    @elseif($application->status === 'pending')
+        <div style="background:#fefce8;border:1px solid #fef08a;color:#713f12;padding:16px;border-radius:12px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+            <i class="fas fa-hourglass-half" style="font-size:1.5rem;color:#eab308;"></i>
+            <div>
+                <strong style="font-size:1.05rem;">Awaiting Approval</strong><br>
+                <span style="font-size:0.9rem;">This report is currently pending approval. You will receive a notification once it is approved.</span>
+            </div>
+        </div>
+    @elseif($application->status === 'queried')
+        <div style="background:#fff5f5;border:1px solid #fed7d7;color:#9b2c2c;padding:16px;border-radius:12px;margin-bottom:20px;display:flex;gap:12px;align-items:center;">
+            <i class="fas fa-exclamation-circle" style="font-size:1.5rem;color:#e53e3e;"></i>
+            <div>
+                <strong style="font-size:1.05rem;">Report Queried</strong><br>
+                <span style="font-size:0.9rem;"><strong>Admin Remarks:</strong> {{ $application->comments ?? 'Please review operational figures.' }}</span>
+            </div>
+        </div>
+    @endif
+@endif
+
 <form id="ictAnnualReport" method="POST" action="{{ route('ict.store') }}">
     @csrf
+
+
 
     {{-- =========================================
         GENERAL INFORMATION
@@ -132,22 +180,48 @@
         @include('user.ict.partials.midas-deployment')
     </section>
 
+
+
     <div class="redas-card mt-4 animate-fade-up">
         <div class="card-body">
-            <div class="visa-actions">
-                <button type="reset" class="btn-nis btn-ghost">
-                    <i class="fas fa-rotate-left"></i> Reset
-                </button>
-                <button type="submit" name="action" value="draft" class="btn-nis btn-success">
-                    <i class="fas fa-save"></i> Save Draft
-                </button>
-                <button type="submit" name="action" value="submit" class="btn-nis btn-primary-nis">
-                    <i class="fas fa-paper-plane"></i> Submit Annual Report
-                </button>
+            <div class="visa-actions" style="display:flex;justify-content:flex-end;align-items:center;gap:12px;width:100%;">
+                @if(auth()->user()->user_category === 'directorate_admin' || auth()->user()->role === 'admin')
+                    <div style="background:#f3f4f6;color:#374151;padding:10px 20px;border-radius:8px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid #d1d5db;">
+                        <i class="fas fa-eye"></i> Viewing Desk Officer Return (Read-only Mode)
+                    </div>
+                @elseif($application && $application->status === 'approved')
+                    <button type="button" class="btn-nis btn-primary-nis" style="background:#22c55e;border:1px solid #16a34a;color:white;padding:12px 24px;font-size:1rem;font-weight:700;" onclick="event.preventDefault(); document.getElementById('ictFinalSubmitForm').submit();">
+                        <i class="fas fa-paper-plane"></i> Submit Final Return to Headquarters
+                    </button>
+                @elseif($application && $application->status === 'submitted')
+                    <div style="background:#ecfdf5;color:#065f46;padding:10px 20px;border-radius:8px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid #a7f3d0;">
+                        <i class="fas fa-check-double"></i> Report Officially Submitted to Headquarters
+                    </div>
+                @elseif($application && $application->status === 'pending')
+                    <div style="background:#fefce8;color:#713f12;padding:10px 20px;border-radius:8px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid #fef08a;">
+                        <i class="fas fa-hourglass-half"></i> Pending Awaiting Approval
+                    </div>
+                @else
+                    <button type="button" id="clearReportFormBtn" class="btn-nis btn-ghost">
+                        <i class="fas fa-rotate-left"></i> Reset
+                    </button>
+                    <button type="submit" name="action" value="draft" class="btn-nis btn-success">
+                        <i class="fas fa-save"></i> Save Draft
+                    </button>
+                    <button type="submit" name="action" value="submit" class="btn-nis btn-primary-nis">
+                        <i class="fas fa-paper-plane"></i> Send for Approval
+                    </button>
+                @endif
             </div>
         </div>
     </div>
 </form>
+
+@if($application && $application->status === 'approved')
+    <form id="ictFinalSubmitForm" action="{{ route('ict.submit', $application->id) }}" method="POST" style="display:none;">
+        @csrf
+    </form>
+@endif
 
 <script>
 (function() {
@@ -576,6 +650,162 @@
         initIctWorkspace();
     }
 })();
+</script>
+
+@if(isset($application) && $application->return_data)
+    <script id="draft-data" type="application/json">
+        {!! json_encode($application->return_data) !!}
+    </script>
+@endif
+
+<script>
+window.addEventListener('load', function() {
+    const draftDataEl = document.getElementById('draft-data');
+    if (!draftDataEl) return;
+    const savedDraftData = JSON.parse(draftDataEl.textContent);
+    if (!savedDraftData) return;
+
+    // 1. Recreate dynamic rows first
+    const ictPrefixes = [
+        'cybersecurity', 'maintenance', 'incidents_communication', 
+        'incidents_cybersecurity', 'incidents_hardware', 'incidents_network', 
+        'incidents_power', 'incidents_providers', 
+        'incidents_software', 'incidents_surveillance', 'midas', 'projects', 
+        'software', 'data_breach'
+    ];
+
+    ictPrefixes.forEach(prefix => {
+        if (savedDraftData[prefix]) {
+            const savedRows = Object.keys(savedDraftData[prefix]);
+            const btn = document.querySelector(`[data-ict-prefix="${prefix}"], [data-prefix="${prefix}"]`);
+            if (btn && savedRows.length > 0) {
+                const tbody = btn.closest('.visa-card')?.querySelector('tbody');
+                const currentRows = tbody ? tbody.querySelectorAll('tr').length : 1;
+                const needed = savedRows.length - currentRows;
+                for (let i = 0; i < needed; i++) {
+                    btn.click();
+                }
+            }
+        }
+    });
+
+    // 2. Iterate through all form elements and populate their value
+    const form = document.getElementById('ictAnnualReport');
+    if (form) {
+        const elements = form.querySelectorAll('input:not([type="submit"]):not([type="hidden"]):not([readonly]), textarea, select:not([readonly])');
+        elements.forEach(el => {
+            const name = el.name;
+            if (!name) return;
+
+            const keys = name.split(/[\[\]]+/).filter(Boolean);
+            const val = getValueFromPath(savedDraftData, keys);
+            if (val !== undefined && val !== null) {
+                if (el.type === 'checkbox' || el.type === 'radio') {
+                    el.checked = (el.value == val);
+                } else {
+                    el.value = val;
+                }
+            }
+        });
+    }
+
+    function getValueFromPath(obj, keys) {
+        let current = obj;
+        for (let i = 0; i < keys.length; i++) {
+            if (current === null || current === undefined) {
+                return undefined;
+            }
+            current = current[keys[i]];
+        }
+        return current;
+    }
+
+    // Trigger calculation updates
+    const event = new Event('input', { bubbles: true });
+    document.dispatchEvent(event);
+});
+
+// Redirect when year changes
+document.getElementById('report_year')?.addEventListener('change', function() {
+    const year = this.value;
+    const url = new URL(window.location.href);
+    url.searchParams.set('year', year);
+    window.location.href = url.toString();
+});
+
+// Clear/Reset entire report form
+document.getElementById('clearReportFormBtn')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!confirm('Are you sure you want to clear and reset the entire report form?')) return;
+    
+    const form = this.closest('form');
+    if (!form) return;
+
+    // Reset standard inputs (except those that should remain)
+    form.querySelectorAll('input:not([readonly]):not([type="hidden"]), textarea').forEach(input => {
+        if (input.type === 'number') {
+            input.value = 0;
+        } else {
+            input.value = '';
+        }
+    });
+
+    // Reset selects (except report_year)
+    form.querySelectorAll('select:not([readonly])').forEach(select => {
+        if (select.id !== 'report_year' && select.name !== 'report_year') {
+            select.selectedIndex = 0;
+        }
+    });
+
+    // Reset dynamic rows (remove all except first)
+    form.querySelectorAll('tbody').forEach(tbody => {
+        if (tbody.id === 'staff_strength_tbody') {
+            tbody.querySelectorAll('input:not([readonly])').forEach(input => {
+                input.value = 0;
+            });
+        } else {
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach((row, idx) => {
+                if (idx > 0) {
+                    row.remove();
+                } else {
+                    row.querySelectorAll('input:not([readonly]):not([type="hidden"]), textarea, select').forEach(input => {
+                        if (input.type === 'number') {
+                            input.value = 0;
+                        } else if (input.tagName === 'SELECT') {
+                            input.selectedIndex = 0;
+                        } else {
+                            input.value = '';
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
+    // Clear localStorage for this year
+    const officer = document.querySelector('[name="reporting_officer"]')?.value || 'officer';
+    const year = document.getElementById('report_year')?.value || '2026';
+    const draftKey = `redas_draft_${officer}_${year}`;
+    localStorage.removeItem(draftKey);
+    
+    // Trigger input event to update calculations
+    const ev = new Event('input', { bubbles: true });
+    form.dispatchEvent(ev);
+});
+// Disable fields when report status is pending, approved or submitted, or user is admin/supervisor (except year selector)
+window.addEventListener('DOMContentLoaded', function() {
+    @if(($application && in_array($application->status, ['pending', 'approved', 'submitted'])) || auth()->user()->user_category === 'directorate_admin' || auth()->user()->role === 'admin')
+        const form = document.getElementById('ictAnnualReport');
+        if (form) {
+            form.querySelectorAll('input, textarea, select, button').forEach(el => {
+                if (el.id !== 'report_year' && el.name !== 'report_year') {
+                    el.disabled = true;
+                }
+            });
+        }
+    @endif
+});
 </script>
 
 @include('partials.footer')

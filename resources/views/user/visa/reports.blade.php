@@ -11,7 +11,44 @@
             </h1>
             <p class="page-subtitle">Analyze cumulative performance data and generate formatted reports for the Visa Directorate.</p>
         </div>
+        <button onclick="window.print()" class="btn-nis btn-ghost" style="background:#e0f2fe;border:1px solid #bae6fd;color:#0369a1;">
+            <i class="fas fa-print"></i> Print Summary
+        </button>
     </div>
+
+    <style>
+    @media print {
+        body {
+            background: white !important;
+            color: black !important;
+        }
+        .redas-sidebar, .redas-topbar, .topbar, .btn-nis, button, a, .page-header, .grid-2 {
+            display: none !important;
+        }
+        .redas-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .redas-main {
+            margin-left: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+        .redas-card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .redas-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+        .redas-table th, .redas-table td {
+            border: 1px solid #ddd !important;
+            padding: 8px !important;
+            font-size: 10pt !important;
+        }
+    }
+    </style>
 
     <!-- Stats row -->
     <div class="stats-grid animate-fade-up" style="margin-bottom: 24px;">

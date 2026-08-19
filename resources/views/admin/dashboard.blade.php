@@ -11,6 +11,9 @@
                 </p>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="window.print()" class="btn-nis btn-ghost" style="background:#e0f2fe;border:1px solid #bae6fd;color:#0369a1;">
+                    <i class="fas fa-print"></i> Print Dashboard
+                </button>
                 <a href="{{ url('/admin/users/create') }}" class="btn-nis btn-ghost">
                     <i class="fas fa-user-plus"></i> Add User
                 </a>
@@ -22,6 +25,36 @@
                 </a>
             </div>
         </div>
+
+        <style>
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .sidebar, .redas-sidebar, .redas-topbar, .topbar, .btn-nis, button, a {
+                display: none !important;
+            }
+            .redas-content {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .redas-main {
+                margin-left: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+            .redas-card {
+                border: none !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 10px !important;
+            }
+        }
+        </style>
 
         <!-- ── National KPI Stats ── -->
         <div class="stats-grid animate-fade-up">

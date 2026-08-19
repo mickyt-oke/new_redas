@@ -28,6 +28,7 @@ class User extends Authenticatable
         'access_level',
         'email',
         'password',
+        'profile_picture',
     ];
 
     /**
@@ -101,5 +102,10 @@ class User extends Authenticatable
     public function hasMinimumAccessLevel(int $level): bool
     {
         return (int) $this->access_level >= $level;
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(Application::class, 'user_id');
     }
 }

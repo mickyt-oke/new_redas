@@ -8,7 +8,7 @@
     {{-- ===========================
         Brand
     ============================ --}}
-    <a href="{{ route('ict.dashboard') }}" class="sidebar-brand">
+    <a href="{{ auth()->user()->user_category === 'directorate_user' ? route('ict.submissions') : route('ict.dashboard') }}" class="sidebar-brand">
         <img src="{{ asset('assets/images/nis.png') }}" class="sidebar-brand-logo" alt="NIS">
         <div class="sidebar-brand-text">
             <span class="sidebar-brand-title">NIS REDAS</span>
@@ -29,15 +29,11 @@
             <span class="link-text">Dashboard</span>
         </a>
 
-        <a href="{{ route('ict.report') }}" class="sidebar-link {{ request()->routeIs('ict.report') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-file-alt"></i></span>
-            <span class="link-text">Annual Report</span>
-        </a>
-
         <a href="{{ route('ict.submissions') }}" class="sidebar-link {{ request()->routeIs('ict.submissions') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-folder-open"></i></span>
             <span class="link-text">Submitted Reports</span>
         </a>
+
 
         <hr class="sidebar-divider">
  
@@ -48,96 +44,29 @@
              <span class="link-icon"><i class="fas fa-circle-info"></i></span>
              <span class="link-text">General Information</span>
          </a>
- 
-         <a href="{{ route('ict.report') }}#staff-strength" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-users"></i></span>
-             <span class="link-text">Staff Strength</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#projects" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-laptop-code"></i></span>
-             <span class="link-text">Project/Programme Activities</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-hardware" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-screwdriver-wrench"></i></span>
-             <span class="link-text">Incident (Hardware)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-software" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-bug"></i></span>
-             <span class="link-text">Incident (Software)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-network" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-network-wired"></i></span>
-             <span class="link-text">Incident (Network)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-cybersecurity" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-shield-halved"></i></span>
-             <span class="link-text">Incident (Cybersecurity)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-power" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-plug"></i></span>
-             <span class="link-text">Incident (Power Supply System)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-communication" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-satellite-dish"></i></span>
-             <span class="link-text">Incident (Communication)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-surveillance" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-video"></i></span>
-             <span class="link-text">Incident (Surveillance)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#incidents-providers" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-handshake"></i></span>
-             <span class="link-text">Incident (Technical Services Providers)</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#hardware-maintenance" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-tools"></i></span>
-             <span class="link-text">Hardware Maintenance</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#software-data" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-database"></i></span>
-             <span class="link-text">Software & Data Management</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#cybersecurity-deployment" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-shield-halved"></i></span>
-             <span class="link-text">Cybersecurity Deployment</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#id-cards" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-id-card"></i></span>
-             <span class="link-text">E-Documentation / ID Card Activities</span>
-         </a>
- 
-         <a href="{{ route('ict.report') }}#midas-deployment" class="sidebar-link">
-             <span class="link-icon"><i class="fas fa-server"></i></span>
-             <span class="link-text">MIDAS Deployment</span>
-         </a>
 
         <hr class="sidebar-divider">
 
         {{-- ACCOUNT --}}
         <div class="sidebar-section-label">ACCOUNT</div>
 
-        <a href="#" class="sidebar-link">
+        <a href="{{ route('user.profile') }}" class="sidebar-link {{ request()->routeIs('user.profile') && !str_contains(request()->fullUrl(), '#settings') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-user"></i></span>
             <span class="link-text">My Profile</span>
         </a>
 
-        <a href="#" class="sidebar-link">
+        <a href="{{ route('user.profile') }}#settings" class="sidebar-link">
             <span class="link-icon"><i class="fas fa-gear"></i></span>
             <span class="link-text">Settings</span>
         </a>
+
+        @if(auth()->user()->user_category === 'directorate_admin')
+        <a href="{{ route('admin.users') }}"
+           class="sidebar-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-users-cog"></i></span>
+            <span class="link-text">User Management</span>
+        </a>
+        @endif
 
         <form action="{{ route('logout') }}" method="POST">
             @csrf
@@ -152,15 +81,19 @@
     {{-- SIDEBAR FOOTER --}}
     <div class="sidebar-footer">
         <div class="sidebar-user-card">
-            <div class="sidebar-user-avatar">
-                {{ strtoupper(substr(auth()->user()->name ?? 'I',0,2)) }}
+            <div class="sidebar-user-avatar" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                @if(auth()->user()->profile_picture)
+                    <img src="/storage/{{ auth()->user()->profile_picture }}" style="width:100%;height:100%;object-fit:cover;">
+                @else
+                    {{ strtoupper(substr(auth()->user()->name ?? 'I',0,2)) }}
+                @endif
             </div>
             <div class="sidebar-user-info">
                 <div class="sidebar-user-name">
                     {{ auth()->user()->name }}
                 </div>
                 <div class="sidebar-user-role">
-                    ICT Directorate Officer
+                    {{ auth()->user()->user_category === 'directorate_admin' ? 'ICT & Cybersecurity Admin' : 'ICT & Cybersecurity Desk Officer' }}
                 </div>
             </div>
         </div>

@@ -523,21 +523,20 @@ function initInputStatusHandlers() {
     SECTION SAVE SPINNERS
 =========================================================================*/
 function initSectionSaves() {
-    document.querySelectorAll('.visa-card-body').forEach(body => {
-        const saveBtn = body.querySelector('.section-buttons .btn-primary-nis');
-        if (!saveBtn) return;
-
+    document.querySelectorAll('.section-buttons .btn-primary-nis').forEach(saveBtn => {
         saveBtn.addEventListener('click', (e) => {
             e.preventDefault();
-            const originalHtml = saveBtn.innerHTML;
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-            saveBtn.disabled = true;
+            const button = e.currentTarget;
+            const originalHtml = button.innerHTML;
+            
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            button.disabled = true;
 
             setTimeout(() => {
-                saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved';
-                saveBtn.className = 'btn-nis btn-success';
+                button.innerHTML = '<i class="fas fa-check"></i> Saved';
+                button.className = 'btn-nis btn-success';
 
-                const card = body.closest('.visa-card');
+                const card = button.closest('.visa-card');
                 if (card) {
                     const badge = card.querySelector('.section-status');
                     if (badge) {
@@ -547,9 +546,9 @@ function initSectionSaves() {
                 }
 
                 setTimeout(() => {
-                    saveBtn.innerHTML = originalHtml;
-                    saveBtn.className = 'btn-nis btn-primary-nis';
-                    saveBtn.disabled = false;
+                    button.innerHTML = originalHtml;
+                    button.className = 'btn-nis btn-primary-nis';
+                    button.disabled = false;
                 }, 1500);
             }, 800);
         });

@@ -18,7 +18,7 @@
     </button>
 
     <div class="visa-card-body" style="padding: 24px;">
-        <div class="report-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
+        <div class="report-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
             <!-- Reporting Year -->
             <div class="report-group">
                 <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
@@ -26,13 +26,14 @@
                 </label>
                 <select
                     name="report_year"
+                    id="report_year"
                     class="ni"
                     required
                     style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
-                    @for($year=date('Y'); $year>=2020; $year--)
+                    @for($year=2026; $year>=2023; $year--)
                         <option
                             value="{{ $year }}"
-                            {{ old('report_year',date('Y'))==$year?'selected':'' }}>
+                            {{ old('report_year',$period)==$year?'selected':'' }}>
                             {{ $year }}
                         </option>
                     @endfor
@@ -74,37 +75,26 @@
                     type="text"
                     class="ni"
                     name="reporting_officer"
+                    readonly
                     value="{{ auth()->user()->name }}"
-                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
+                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
             </div>
 
             <!-- Service Number -->
             <div class="report-group">
                 <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
-                    NIS No (Service Number)
+                    NIS No
                 </label>
                 <input
                     type="text"
                     class="ni"
                     name="nis_no"
+                    readonly
                     value="{{ auth()->user()->service_number }}"
-                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
+                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
             </div>
 
-            <!-- Status -->
-            <div class="report-group">
-                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
-                    Report Status
-                </label>
-                <select 
-                    name="report_status" 
-                    class="ni"
-                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
-                    <option value="draft">Draft</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                </select>
-            </div>
+
 
             <!-- Date -->
             <div class="report-group">
@@ -119,18 +109,7 @@
                     style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff;">
             </div>
 
-            <!-- Time -->
-            <div class="report-group">
-                <label class="report-label" style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
-                    Generated Time
-                </label>
-                <input
-                    type="text"
-                    class="ni"
-                    readonly
-                    value="{{ now()->format('H:i') }}"
-                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 0.9rem; background-color: var(--gray-50); color: var(--gray-500); cursor: not-allowed; font-weight: 500;">
-            </div>
+
         </div>
 
         <hr style="border: 0; border-top: 1px solid var(--gray-200); margin: 24px 0;">
@@ -144,7 +123,7 @@
                 class="ni"
                 name="remarks"
                 placeholder="Enter any remarks about this annual report..."
-                style="width: 100%; padding: 12px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff; resize: vertical; min-height: 100px;"></textarea>
+                style="width: 100%; padding: 12px 14px; border: 1px solid var(--gray-300); border-radius: 8px; font-size: 0.9rem; transition: var(--visa-transition); background-color: #fff; resize: vertical; min-height: 100px;">{{ old('remarks', $application->comments ?? '') }}</textarea>
         </div>
     </div>
 </div>

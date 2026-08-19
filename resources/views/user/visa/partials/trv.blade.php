@@ -89,11 +89,16 @@
                 Total TRV Applications : <strong id="trvSummary">0 Applications</strong>
             </div>
             <div class="section-buttons">
+                <button
+                    type="submit"
+                    name="action"
+                    value="draft"
+                    class="btn-nis btn-success">
+                    <i class="fas fa-save"></i>
+                    Save Section
+                </button>
                 <button type="button" id="resetTRV" class="btn-nis btn-ghost">
                     <i class="fas fa-rotate-left"></i> Reset
-                </button>
-                <button type="button" id="saveTRV" class="btn-nis btn-primary-nis">
-                    <i class="fas fa-check-circle"></i> Save Section
                 </button>
             </div>
         </div>

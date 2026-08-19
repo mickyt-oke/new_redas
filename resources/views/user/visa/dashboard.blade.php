@@ -6,60 +6,137 @@
 
     <!-- Page header -->
     <div class="page-header">
-        <div>
-            <h1 class="page-title">
+        <div class="page-title-group">
+            <div class="page-title-icon" style="background: var(--nis-50); color: var(--nis-600);">
                 <i class="fas fa-passport"></i>
-                Visa & Residence Annual Reporting Dashboard
-            </h1>
-
-            <p class="page-subtitle">
-                Welcome back,
-                <strong>{{ auth()->user()->name ?? 'Visa Officer' }}</strong>
-                — {{ now()->format('l, d F Y') }}
-            </p>
+            </div>
+            <div>
+                <h1 class="page-title">Visa & Residency Operations Portal</h1>
+                <p class="page-subtitle">
+                    Welcome back, <strong>{{ auth()->user()->name ?? 'Visa Officer' }}</strong> &bull; {{ now()->format('l, d F Y') }}
+                </p>
+            </div>
         </div>
 
         <a href="{{ route('visa.report') }}" class="btn-nis btn-primary-nis">
-            <i class="fas fa-plus"></i>
-            Create Annual Report
+            <i class="fas fa-plus"></i> Create Annual Report
         </a>
     </div>
 
     <!-- Deadline alert -->
-    <div
-        class="animate-fade-up"
-        style="background:linear-gradient(135deg,#fef3c7,#fde68a);
-               border:1px solid #f59e0b;
-               border-radius:var(--radius-md);
-               padding:14px 18px;
-               display:flex;
-               align-items:center;
-               gap:14px;
-               margin-bottom:24px;">
-
-        <div style="width:40px;height:40px;background:#f59e0b;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:#fff;">
-            <i class="fas fa-calendar-exclamation"></i>
+    <div class="alert-banner-nis">
+        <div class="alert-banner-icon">
+            <i class="fas fa-calendar-check"></i>
         </div>
-
-        <div style="flex:1;">
-            <strong style="color:#92400e;">
-                Annual Reporting Exercise —
-                {{ now()->endOfMonth()->format('d F Y') }}
-            </strong>
-
-            <p style="margin:0;color:#b45309;font-size:.82rem;">
-               Complete and submit the Annual Report before the reporting deadline.
+        <div class="alert-banner-content">
+            <div class="alert-banner-title">
+                Annual Operational Reporting & Review
+            </div>
+            <p class="alert-banner-desc">
+                @if(auth()->user()->user_category === 'directorate_user')
+                    Please complete, verify, and forward the Visa & Residence Annual Report for supervisor approval.
+                @else
+                    Please review, verify, and approve pending annual reports submitted by desk officers.
+                @endif
             </p>
         </div>
-
     </div>
 
-    <!-- Statistics -->
-    <div class="stats-grid animate-fade-up">
+    @if(auth()->user()->user_category === 'directorate_user')
+        <!-- Officer Dashboard -->
+        <div class="stats-grid animate-fade-up" style="margin-bottom:20px;">
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <span class="stat-label">Draft Reports</span>
+                    <span class="stat-icon"><i class="fas fa-edit"></i></span>
+                </div>
+                <div class="stat-value">{{ $draftReportsCount }}</div>
+                <div class="stat-change neutral">Work in progress</div>
+            </div>
+            
+            <div class="stat-card info">
+                <div class="stat-header">
+                    <span class="stat-label">Pending Approval</span>
+                    <span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
+                </div>
+                <div class="stat-value">{{ $pendingReportsCount }}</div>
+                <div class="stat-change neutral">Awaiting supervisor review</div>
+            </div>
 
-        <!-- 1. Staff Strength -->
-        <div class="stat-card info">
-            <div class="stat-header">
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <span class="stat-label">Approved Reports</span>
+                    <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+                </div>
+                <div class="stat-value">{{ $approvedReportsCount }}</div>
+                <div class="stat-change neutral">Ready to submit</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity List -->
+        <div class="redas-card animate-fade-up">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#eff6ff;color:#1e40af;"><i class="fas fa-history"></i></div>
+                    Recent Activity
+                </div>
+            </div>
+            <div class="card-body no-pad" style="overflow-x:auto;">
+                <table class="redas-table">
+                    <thead>
+                        <tr>
+                            <th style="padding-left: 20px;">Reporting Period</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th style="width: 160px; text-align: right; padding-right: 20px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($recentSubmissions as $sub)
+                            <tr>
+                                <td style="padding-left: 20px;"><strong>Year {{ $sub->period }}</strong></td>
+                                <td>
+                                    @php
+                                        $statusConfig = [
+                                            'pending'   => ['badge-pending',  'Awaiting Approval', 'fas fa-hourglass-half'],
+                                            'approved'  => ['badge-approved', 'Approved',          'fas fa-check-circle'],
+                                            'queried'   => ['badge-review',   'Queried',           'fas fa-question-circle'],
+                                            'rejected'  => ['badge-rejected', 'Rejected',          'fas fa-times-circle'],
+                                            'draft'     => ['badge-draft',    'Draft',             'fas fa-pencil-alt'],
+                                            'submitted' => ['badge-approved', 'Submitted',         'fas fa-check-double'],
+                                        ];
+                                        [$badgeClass, $statusLabel, $statusIcon] = $statusConfig[$sub->status] ?? ['badge-draft', $sub->status, 'fas fa-circle'];
+                                    @endphp
+                                    <span class="status-badge {{ $badgeClass }}">
+                                        <i class="{{ $statusIcon }}" style="margin-right: 4px;"></i> {{ $statusLabel }}
+                                    </span>
+                                </td>
+                                <td>{{ $sub->updated_at->format('d M Y, H:i') }}</td>
+                                <td style="text-align: right; padding-right: 20px;">
+                                    <a href="{{ route('visa.report', ['year' => $sub->period]) }}" class="btn-nis btn-primary-nis btn-sm" style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-folder-open"></i> Open Workspace
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" style="text-align:center;padding:30px;color:var(--gray-400);">
+                                    <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                                    No operational reports recorded yet. Click "Create Annual Report" to start.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @else
+        <!-- Statistics -->
+        <div class="stats-grid animate-fade-up">
+
+            <!-- 1. Staff Strength -->
+            <div class="stat-card info">
+                <div class="stat-header">
                 <span class="stat-label">Staff Strength</span>
                 <span class="stat-icon"><i class="fas fa-users"></i></span>
             </div>
@@ -283,8 +360,8 @@
                     <div style="display: flex; gap: 10px; background: var(--nis-50); border: 1px solid var(--nis-100); color: var(--nis-800); border-radius: var(--radius-md); padding: 10px 12px;">
                         <i class="fas fa-info-circle" style="margin-top: 2px;"></i>
                         <div>
-                            <strong>Reporting Deadline Active</strong><br>
-                            <span style="font-size: 0.76rem;">Please ensure all annual reports are completed by the end of the month.</span>
+                            <strong>Reporting Cycle Active</strong><br>
+                            <span style="font-size: 0.76rem;">Please ensure all annual operational reports are completed and forwarded for approval promptly.</span>
                         </div>
                     </div>
                 </div>
@@ -292,10 +369,11 @@
 
         </div>
 
-    </div>
+    @endif
 
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const ctx = document.getElementById('visaPerformanceChart');

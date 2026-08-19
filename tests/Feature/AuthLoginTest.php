@@ -15,7 +15,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'Login Test User',
-            'service_number' => 'NIS/OF/7777',
+            'service_number' => '77777',
             'email' => 'login@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'officer',
@@ -38,7 +38,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'Super Admin Test',
-            'service_number' => 'NIS/AD/1234',
+            'service_number' => '12345',
             'email' => 'superadmin@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'admin',
@@ -48,7 +48,7 @@ class AuthLoginTest extends TestCase
         ]);
 
         $response = $this->post('/login', [
-            'login' => $user->email,
+            'login' => $user->service_number,
             'password' => 'Password123!',
             'role' => 'super_admin',
         ]);
@@ -61,7 +61,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'Role Mismatch Test',
-            'service_number' => 'NIS/OF/8888',
+            'service_number' => '88888',
             'email' => 'wrongrole@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'officer',
@@ -85,7 +85,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'State Dashboard User',
-            'service_number' => 'NIS/OF/9999',
+            'service_number' => '99991',
             'email' => 'state-dashboard@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'officer',
@@ -103,7 +103,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'Admin Dashboard User',
-            'service_number' => 'NIS/AD/9999',
+            'service_number' => '99992',
             'email' => 'admin-dashboard@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'admin',
@@ -121,7 +121,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'Visa Officer Test',
-            'service_number' => 'NIS/VIS/7777',
+            'service_number' => '77778',
             'email' => 'visa-officer@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'directorate',
@@ -137,7 +137,7 @@ class AuthLoginTest extends TestCase
             'role' => 'directorate',
         ]);
 
-        $response->assertRedirect('/user/directorate/visa');
+        $response->assertRedirect('/user/directorate/visa/submissions');
         $this->assertAuthenticatedAs($user);
     }
 
@@ -145,7 +145,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'Visa Admin Test',
-            'service_number' => 'NIS/VIS/8888',
+            'service_number' => '88889',
             'email' => 'visa-admin@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'admin',
@@ -169,7 +169,7 @@ class AuthLoginTest extends TestCase
     {
         $user = User::create([
             'name' => 'HRM Officer Test',
-            'service_number' => 'NIS/HRM/7777',
+            'service_number' => '77779',
             'email' => 'hrm-officer@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'directorate',

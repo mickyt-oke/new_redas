@@ -10,6 +10,15 @@ class IctController extends Controller
     // Dashboard
     public function dashboard()
     {
+        if (auth()->user()->user_category === 'directorate_user') {
+            return redirect()->route('ict.submissions');
+        }
+
+        $submissionsQuery = Application::where('user_id', auth()->id())->where('type', 'ict_cybersecurity');
+        $draftReportsCount = (clone $submissionsQuery)->where('status', 'draft')->count();
+        $pendingReportsCount = (clone $submissionsQuery)->where('status', 'pending')->count();
+        $approvedReportsCount = (clone $submissionsQuery)->where('status', 'approved')->count();
+
         $latest = Application::where('user_id', auth()->id())
             ->where('type', 'ict_cybersecurity')
             ->latest()
@@ -136,14 +145,39 @@ class IctController extends Controller
             'cybersecurityCount',
             'idCardCount',
             'midasCount',
-            'recentSubmissions'
+            'recentSubmissions',
+            'draftReportsCount',
+            'pendingReportsCount',
+            'approvedReportsCount'
         ));
     }
 
     // Annual Report Workspace
-    public function create()
+    public function create(Request $request)
     {
-        return view('user.ict.report');
+        $period = $request->query('year', date('Y'));
+        $id = $request->query('id');
+
+        if ($id) {
+            $application = Application::where('type', 'ict_cybersecurity')
+                ->where('id', $id)
+                ->first();
+            
+            if ($application) {
+                $period = $application->period;
+                $user = auth()->user();
+                if ($user->user_category === 'directorate_user' && $application->user_id !== $user->id) {
+                    abort(403, 'Unauthorized access.');
+                }
+            }
+        } else {
+            $application = Application::where('user_id', auth()->id())
+                ->where('type', 'ict_cybersecurity')
+                ->where('period', $period)
+                ->first();
+        }
+
+        return view('user.ict.report', compact('application', 'period'));
     }
 
     // Store Report
@@ -174,18 +208,65 @@ class IctController extends Controller
             ]
         );
 
+        if ($status === 'pending') {
+            $admins = \App\Models\User::where(function ($query) {
+                $query->where('user_category', 'admin')
+                      ->orWhere(function ($q) {
+                          $q->where('user_category', 'directorate_admin')
+                            ->whereIn('primary_location_code', ['ICT', 'ICT_CYBERSECURITY']);
+                      });
+            })->get();
+            foreach ($admins as $adm) {
+                \App\Models\UserNotification::create([
+                    'user_id' => $adm->id,
+                    'type' => 'pending',
+                    'title' => 'New Report Awaiting Approval (ICT & Cybersecurity - ' . $period . ')',
+                    'description' => 'A report has been forwarded for approval by ' . auth()->user()->name . '.',
+                    'tag' => 'info',
+                    'action_url' => route('ict.submissions'),
+                    'is_read' => false,
+                ]);
+            }
+        }
+
         $message = $status === 'draft' 
             ? 'ICT & Cybersecurity Annual Report draft saved successfully.'
-            : 'ICT & Cybersecurity Annual Report submitted successfully.';
+            : 'Your report has been sent for approval and you will be notified when approval is given.';
+
+        if ($status === 'draft') {
+            return redirect()
+                ->route('ict.report', ['year' => $period])
+                ->with('status', $message);
+        }
+
+        // Find next available year that is not pending, approved, or submitted
+        $nextYear = null;
+        for ($y = date('Y'); $y >= 2023; $y--) {
+            $exists = Application::where('user_id', auth()->id())
+                ->where('type', 'ict_cybersecurity')
+                ->where('period', $y)
+                ->whereIn('status', ['pending', 'approved', 'submitted'])
+                ->exists();
+            if (!$exists) {
+                $nextYear = $y;
+                break;
+            }
+        }
+
+        $params = $nextYear ? ['year' => $nextYear] : [];
 
         return redirect()
-            ->route('ict.submissions')
+            ->route('ict.report', $params)
             ->with('status', $message);
     }
 
     // Reports Statistics
     public function reports()
     {
+        if (auth()->user()->user_category === 'directorate_user') {
+            return redirect()->route('ict.report');
+        }
+
         $submissions = Application::where('user_id', auth()->id())
             ->where('type', 'ict_cybersecurity')
             ->orderBy('period', 'desc')
@@ -264,11 +345,111 @@ class IctController extends Controller
     // Submitted Reports List
     public function submissions()
     {
-        $submissions = Application::where('user_id', auth()->id())
-            ->where('type', 'ict_cybersecurity')
-            ->orderBy('created_at', 'desc')
-            ->get();
+
+        $user = auth()->user();
+        $query = Application::where('type', 'ict_cybersecurity');
+
+        if ($user->user_category === 'directorate_admin' || $user->role === 'admin') {
+            // Supervisors see all ICT submissions
+        } else {
+            $query->where('user_id', $user->id);
+        }
+
+        $submissions = $query->orderBy('created_at', 'desc')->get();
 
         return view('user.ict.submissions', compact('submissions'));
+    }
+
+    // Approve Return
+    public function approve(Request $request, $id)
+    {
+        if (auth()->user()->user_category === 'directorate_user') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $application = Application::where('type', 'ict_cybersecurity')->findOrFail($id);
+        
+        $application->update([
+            'status' => 'approved',
+            'comments' => $request->input('remarks') ?? 'Approved by supervisor.',
+        ]);
+
+        \App\Models\UserNotification::create([
+            'user_id' => $application->user_id,
+            'type' => 'approval',
+            'title' => 'Report Approved (ICT & Cybersecurity - ' . $application->period . ')',
+            'description' => 'Your report has been approved by the Admin. You can now submit it.',
+            'tag' => 'success',
+            'action_url' => route('ict.report', ['year' => $application->period]),
+            'is_read' => false,
+        ]);
+
+        return redirect()
+            ->route('ict.submissions')
+            ->with('status', 'ICT & Cybersecurity Annual Report approved successfully.');
+    }
+
+    // Query Return
+    public function query(Request $request, $id)
+    {
+        if (auth()->user()->user_category === 'directorate_user') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $application = Application::where('type', 'ict_cybersecurity')->findOrFail($id);
+        
+        $application->update([
+            'status' => 'queried',
+            'comments' => $request->input('remarks') ?? 'Queried by supervisor.',
+        ]);
+
+        \App\Models\UserNotification::create([
+            'user_id' => $application->user_id,
+            'type' => 'query',
+            'title' => 'Report Queried (ICT & Cybersecurity - ' . $application->period . ')',
+            'description' => 'Your report has been queried: ' . ($request->input('remarks') ?? 'Please review details.'),
+            'tag' => 'warning',
+            'action_url' => route('ict.report', ['year' => $application->period]),
+            'is_read' => false,
+        ]);
+
+        return redirect()
+            ->route('ict.submissions')
+            ->with('status', 'ICT & Cybersecurity Annual Report queried successfully.');
+    }
+
+    // Submit Approved Return
+    public function submit($id)
+    {
+        // Officers can submit their own approved returns
+        $query = Application::where('type', 'ict_cybersecurity')->where('status', 'approved');
+        if (auth()->user()->user_category === 'directorate_user') {
+            $query->where('user_id', auth()->id());
+        }
+        $application = $query->findOrFail($id);
+
+        $application->update([
+            'status' => 'submitted',
+        ]);
+
+        // Find next available year that is not pending, approved, or submitted
+        $nextYear = null;
+        for ($y = date('Y'); $y >= 2023; $y--) {
+            $exists = Application::where('user_id', auth()->id())
+                ->where('type', 'ict_cybersecurity')
+                ->where('period', $y)
+                ->whereIn('status', ['pending', 'approved', 'submitted'])
+                ->exists();
+            if (!$exists) {
+                $nextYear = $y;
+                break;
+            }
+        }
+
+        $params = $nextYear ? ['year' => $nextYear] : [];
+
+        return redirect()
+            ->route('ict.report', $params)
+            ->with('status', 'ICT & Cybersecurity Annual Report submitted successfully to Headquarters.');
     }
 }

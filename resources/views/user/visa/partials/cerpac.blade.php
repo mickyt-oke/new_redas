@@ -90,11 +90,16 @@
                 Total CERPAC Issued : <strong id="cerpacSummary">0 Cards</strong>
             </div>
             <div class="section-buttons">
+                <button
+                    type="submit"
+                    name="action"
+                    value="draft"
+                    class="btn-nis btn-success">
+                    <i class="fas fa-save"></i>
+                    Save Section
+                </button>
                 <button type="button" id="resetCERPAC" class="btn-nis btn-ghost">
                     <i class="fas fa-rotate-left"></i> Reset
-                </button>
-                <button type="button" id="saveCERPAC" class="btn-nis btn-primary-nis">
-                    <i class="fas fa-check-circle"></i> Save Section
                 </button>
             </div>
         </div>

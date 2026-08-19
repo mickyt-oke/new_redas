@@ -98,11 +98,16 @@
                 Total Staff Strength : <strong id="staffSummary">0 Officers</strong>
             </div>
             <div class="section-buttons">
+                <button
+                    type="submit"
+                    name="action"
+                    value="draft"
+                    class="btn-nis btn-success">
+                    <i class="fas fa-save"></i>
+                    Save Section
+                </button>
                 <button type="button" class="btn-nis btn-ghost" id="resetStaffStrength">
                     <i class="fas fa-rotate-left"></i> Reset
-                </button>
-                <button type="button" class="btn-nis btn-primary-nis" id="saveStaffStrength">
-                    <i class="fas fa-check-circle"></i> Save Section
                 </button>
             </div>
         </div>

@@ -150,8 +150,12 @@
             <!-- User menu -->
             <div style="position:relative;">
                 <button class="topbar-user" id="userMenuBtn" onclick="const d=document.getElementById('userMenuDrop');if(d){const show=d.style.display==='none'||!d.style.display;d.style.display=show?'block':'none';d.classList.toggle('open',show);}event.stopPropagation();" style="border:none;background:transparent;cursor:pointer;">
-                    <div class="topbar-avatar" style="background:var(--gold-500);">
-                        {{ strtoupper(substr(auth()->user()->name ?? 'S', 0, 2)) }}
+                    <div class="topbar-avatar" style="background:var(--gold-500); padding:0; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                        @if(auth()->user()->profile_picture)
+                            <img src="/storage/{{ auth()->user()->profile_picture }}" style="width:100%;height:100%;object-fit:cover;">
+                        @else
+                            {{ strtoupper(substr(auth()->user()->name ?? 'S', 0, 2)) }}
+                        @endif
                     </div>
                     <div class="topbar-user-info" style="text-align:left;">
                         <div class="topbar-user-name">{{ auth()->user()->name ?? 'Supervisor' }}</div>

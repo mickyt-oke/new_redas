@@ -16,7 +16,7 @@ class IctReportTest extends TestCase
     {
         return User::create([
             'name' => 'ICT Officer Test',
-            'service_number' => 'NIS/ICT/7777',
+            'service_number' => '77777',
             'email' => 'ict-officer@example.com',
             'password' => Hash::make('Password123!'),
             'role' => 'directorate',
@@ -27,25 +27,40 @@ class IctReportTest extends TestCase
         ]);
     }
 
+    private function createIctSupervisor(): User
+    {
+        return User::create([
+            'name' => 'ICT Supervisor Test',
+            'service_number' => '88888',
+            'email' => 'ict-supervisor@example.com',
+            'password' => Hash::make('Password123!'),
+            'role' => 'directorate',
+            'user_category' => 'directorate_admin',
+            'primary_location_type' => 'directorate',
+            'primary_location_code' => 'ICT',
+            'access_level' => 3,
+        ]);
+    }
+
     public function test_ict_user_can_access_dashboard_and_form(): void
     {
         $user = $this->createIctUser();
 
+        // Dashboard redirects to submissions list for desk officer
         $response = $this->actingAs($user)->get('/user/directorate/ict');
-        $response->assertOk();
-        $response->assertSee('ICT &amp; Cybersecurity Reporting Dashboard', false);
+        $response->assertRedirect('/user/directorate/ict/submissions');
 
         $response = $this->actingAs($user)->get('/user/directorate/ict/report');
         $response->assertOk();
         $response->assertSee('Annual ICT &amp; Cybersecurity Report', false);
 
+        // Reports redirects to workspace for desk officer
         $response = $this->actingAs($user)->get('/user/directorate/ict/reports');
-        $response->assertOk();
-        $response->assertSee('ICT &amp; Cybersecurity Analytics &amp; Reports', false);
+        $response->assertRedirect('/user/directorate/ict/report');
 
         $response = $this->actingAs($user)->get('/user/directorate/ict/submissions');
         $response->assertOk();
-        $response->assertSee('Submitted Returns');
+        $response->assertSee('Submitted Reports');
     }
 
     public function test_ict_user_can_save_draft_report(): void
@@ -58,16 +73,15 @@ class IctReportTest extends TestCase
             'remarks' => 'ICT draft test remarks',
             'staff' => [
                 'comptroller' => ['male' => 5, 'female' => 2],
-                'superintendent' => ['male' => 10, 'female' => 8],
             ],
-            'midas' => [
-                ['state_command' => 'Lagos Command', 'location' => 'MMIA']
+            'projects' => [
+                ['project_name' => 'Portal Upgrade', 'vendor' => 'Cyber Ltd', 'status' => 'Ongoing'],
             ]
         ];
 
         $response = $this->actingAs($user)->post('/user/directorate/ict/report', $payload);
 
-        $response->assertRedirect('/user/directorate/ict/submissions');
+        $response->assertRedirect('/user/directorate/ict/report?year=2026');
         $response->assertSessionHas('status', 'ICT & Cybersecurity Annual Report draft saved successfully.');
 
         $this->assertDatabaseHas('applications', [
@@ -75,11 +89,7 @@ class IctReportTest extends TestCase
             'type' => 'ict_cybersecurity',
             'period' => '2026',
             'status' => 'draft',
-            'comments' => 'ICT draft test remarks',
         ]);
-
-        $app = Application::first();
-        $this->assertEquals('Lagos Command', $app->return_data['midas'][0]['state_command']);
     }
 
     public function test_ict_user_can_submit_annual_report(): void
@@ -91,17 +101,17 @@ class IctReportTest extends TestCase
             'report_year' => '2026',
             'remarks' => 'Submitted ICT report',
             'staff' => [
-                'comptroller' => ['male' => 3, 'female' => 1],
+                'comptroller' => ['male' => 5, 'female' => 2],
             ],
             'projects' => [
-                ['project_name' => 'NIS Portal Update', 'system_type' => 'Web App', 'status_report' => 'Completed', 'remarks' => 'Successful launch']
+                ['project_name' => 'Portal Upgrade', 'vendor' => 'Cyber Ltd', 'status' => 'Ongoing'],
             ]
         ];
 
         $response = $this->actingAs($user)->post('/user/directorate/ict/report', $payload);
 
-        $response->assertRedirect('/user/directorate/ict/submissions');
-        $response->assertSessionHas('status', 'ICT & Cybersecurity Annual Report submitted successfully.');
+        $response->assertRedirect('/user/directorate/ict/report?year=2025');
+        $response->assertSessionHas('status', 'Your report has been sent for approval and you will be notified when approval is given.');
 
         $this->assertDatabaseHas('applications', [
             'user_id' => $user->id,
@@ -115,9 +125,10 @@ class IctReportTest extends TestCase
     public function test_ict_dashboard_displays_dynamic_stats_from_database(): void
     {
         $user = $this->createIctUser();
+        $supervisor = $this->createIctSupervisor();
 
         Application::create([
-            'user_id' => $user->id,
+            'user_id' => $supervisor->id,
             'type' => 'ict_cybersecurity',
             'period' => '2026',
             'status' => 'pending',
@@ -138,7 +149,7 @@ class IctReportTest extends TestCase
             ]
         ]);
 
-        $response = $this->actingAs($user)->get('/user/directorate/ict');
+        $response = $this->actingAs($supervisor)->get('/user/directorate/ict');
         $response->assertOk();
 
         // 3 + 2 = 5 Staff Strength

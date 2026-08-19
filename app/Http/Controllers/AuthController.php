@@ -38,7 +38,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{3}\/[0-9]{4}$/', 'unique:users'],
+            'service_number' => ['required', 'string', 'regex:/^[0-9]{5}$/', 'unique:users'],
             'role' => 'required|in:admin,zonal,state,officer,directorate',
             'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_commander,admin,super_admin',
             'primary_location_type' => 'required|in:state,directorate,zonal,headquarters',
@@ -47,7 +47,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'terms' => 'accepted',
         ], [
-            'service_number.regex' => 'Service number must be in the format NIS/XX/1234.',
+            'service_number.regex' => 'Service number must be exactly 5 digits (no letters or symbols).',
         ]);
 
         $normalized = $this->normalizeAccessProfile(
@@ -127,17 +127,24 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        if (Auth::check()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         $allowedLoginRoles = array_values(array_unique(array_merge(User::ROLE_TYPES, ['super_admin'])));
 
         $request->validate([
-            'login' => 'required|string|max:255',
+            'login' => ['required', 'string', 'regex:/^[0-9]{5}$/'],
             'password' => 'required|string',
             'role' => 'required|in:' . implode(',', $allowedLoginRoles),
+        ], [
+            'login.regex' => 'Service number must be exactly 5 digits (no letters or symbols).',
         ]);
 
         $loginInput = trim((string) $request->input('login'));
-        $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
-        $normalizedLogin = $field === 'email' ? Str::lower($loginInput) : Str::upper($loginInput);
+        $normalizedLogin = $loginInput;
         $throttleKey = $this->throttleKey($normalizedLogin, $request);
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_LOGIN_ATTEMPTS)) {
@@ -148,14 +155,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $query = User::query();
-        if ($field === 'email') {
-            $query->whereRaw('LOWER(email) = ?', [Str::lower($loginInput)]);
-        } else {
-            $query->where('service_number', $normalizedLogin);
-        }
-
-        $user = $query->first();
+        $user = User::where('service_number', $normalizedLogin)->first();
 
         if (!$user || !Hash::check($request->input('password'), $user->password) || !$this->userRoleMatches($user, (string) $request->input('role')) ) {
             RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
@@ -193,7 +193,7 @@ class AuthController extends Controller
             return true;
         }
 
-        if ($requestedRole === 'directorate' && $user->role === 'directorate') {
+        if ($requestedRole === 'directorate' && in_array($user->user_category, ['directorate_user', 'directorate_admin'], true)) {
             return true;
         }
 
@@ -205,7 +205,17 @@ class AuthController extends Controller
      */
     private function getRedirectUrl(User $user): string
     {
-        if (in_array($user->user_category, ['directorate_admin', 'directorate_user'], true)) {
+        if ($user->user_category === 'directorate_user') {
+            $loc = strtoupper($user->primary_location_code ?? '');
+            if ($loc === 'VISA') {
+                return '/user/directorate/visa/submissions';
+            }
+            if ($loc === 'ICT' || $loc === 'ICT_CYBERSECURITY') {
+                return '/user/directorate/ict/submissions';
+            }
+        }
+
+        if ($user->user_category === 'directorate_admin') {
             $loc = strtoupper($user->primary_location_code ?? '');
             if ($loc === 'VISA') {
                 return '/user/directorate/visa';
@@ -344,6 +354,60 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home')->with('status', 'Logged out successfully.');
+    }
+
+    /**
+     * Show authenticated user profile page.
+     */
+    public function profile()
+    {
+        return view('user.profile');
+    }
+
+    /**
+     * Update user profile settings (details or password).
+     */
+    public function profileUpdate(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        // Check if updating password
+        if ($request->filled('new_password') || $request->filled('current_password')) {
+            $request->validate([
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8|confirmed',
+            ]);
+
+            if (!Hash::check($request->input('current_password'), $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['The provided current password does not match our records.'],
+                ]);
+            }
+
+            $user->password = Hash::make($request->input('new_password'));
+            $user->save();
+
+            return redirect()->back()->with('status', 'Security credentials updated successfully.');
+        }
+
+        // Updating basic information
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $user->profile_picture = $path;
+        }
+
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->save();
+
+        return redirect()->back()->with('status', 'Profile details updated successfully.');
     }
 
 }

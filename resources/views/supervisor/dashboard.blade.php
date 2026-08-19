@@ -7,7 +7,7 @@
             <div>
                 <h1 class="page-title">Supervisor Dashboard</h1>
                 <p class="page-subtitle">
-                    {{ auth()->user()->role === 'zonal' ? 'Zonal Command Overview' : 'State Command Overview' }} —
+                    {{ auth()->user()->role === 'zonal' ? 'Zonal Command Overview' : 'State Command Overview' }} &bull;
                     {{ now()->format('l, d F Y') }}
                 </p>
             </div>

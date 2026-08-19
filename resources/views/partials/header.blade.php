@@ -109,7 +109,13 @@
             </div>
             <div style="position:relative;">
                 <button class="topbar-user" id="userMenuBtn" onclick="const d=document.getElementById('userMenuDrop');if(d){const show=d.style.display==='none'||!d.style.display;d.style.display=show?'block':'none';d.classList.toggle('open',show);}event.stopPropagation();" style="border:none;background:transparent;cursor:pointer;">
-                    <div class="topbar-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</div>
+                    <div class="topbar-avatar" style="padding:0;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+                        @if(auth()->user()->profile_picture)
+                            <img src="/storage/{{ auth()->user()->profile_picture }}" style="width:100%;height:100%;object-fit:cover;">
+                        @else
+                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}
+                        @endif
+                    </div>
                     <div class="topbar-user-info">
                         <div class="topbar-user-name">{{ auth()->user()->name ?? 'Officer' }}</div>
                         <div class="topbar-user-role">{{ auth()->user()?->role === 'directorate' ? 'Directorate User' : 'State User' }}</div>

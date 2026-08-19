@@ -18,7 +18,7 @@ class NotificationsWebTest extends TestCase
         int $accessLevel = 0
     ): User {
         return User::factory()->create([
-            'service_number' => fake()->unique()->regexify('NIS/[A-Z]{3}/[0-9]{4}'),
+            'service_number' => fake()->unique()->numerify('#####'),
             'role' => $role,
             'user_category' => $category,
             'primary_location_type' => $locationType,

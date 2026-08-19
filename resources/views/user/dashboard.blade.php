@@ -7,7 +7,7 @@
             <div>
                 <h1 class="page-title">Officer Dashboard</h1>
                 <p class="page-subtitle">
-                    Welcome back, <strong>{{ auth()->user()->name ?? 'Officer' }}</strong> —
+                    Welcome back, <strong>{{ auth()->user()->name ?? 'Officer' }}</strong> &bull;
                     {{ now()->format('l, d F Y') }}
                 </p>
             </div>
