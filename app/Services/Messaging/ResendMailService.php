@@ -29,7 +29,13 @@ class ResendMailService
         // Resend accepts html/text; we’ll treat body as HTML.
         $bodyHtml = $renderer->render((string) $tpl->body, $variables);
 
-        $resendApiKey = config('services.resend.key');
+        $resendApiKey = config('mail.mailers.resend.api_key')
+            ?? config('services.resend.key', null)
+            ?? env('RESEND_API_KEY');
+
+        if (empty($resendApiKey)) {
+            $resendApiKey = env('RESEND_API_KEY');
+        }
 
         if (! is_string($resendApiKey) || trim($resendApiKey) === '') {
             throw new \RuntimeException('RESEND_API_KEY is not configured. Set it in your environment and clear config cache.');

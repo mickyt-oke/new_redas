@@ -48,7 +48,9 @@
         return (string) $value;
     };
 
-    $skipKeys = ['directorate_slug', 'data_consent', 'supporting_documents', 'attachments'];
+    // Exclude the report header metadata and uploaded document arrays from the
+    // generic body renderer so the PDF mirrors the structured on-screen view.
+    $skipKeys = ['directorate_slug', 'data_consent', 'report_period', 'reporting_officer', 'supporting_documents', 'attachments'];
 
     // Same recursive renderer as the on-screen directorate return preview.
     $renderData = function ($data, int $depth = 0) use (&$renderData, $humanize, $isAssoc, $formatValue, $skipKeys) {

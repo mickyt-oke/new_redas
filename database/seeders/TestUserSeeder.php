@@ -67,6 +67,8 @@ class TestUserSeeder extends Seeder
             }
         }
 
+        // Create a super admin user with access level 3
+
         // Create directorate_admin user for each officers. Each officer has login for all directorates with access level 2
         // foreach ($officers as $index => $officer) {
         //     foreach ($directorates as $directorate) {

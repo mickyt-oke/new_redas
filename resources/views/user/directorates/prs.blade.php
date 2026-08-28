@@ -2,6 +2,7 @@
 
 @section('directorate-sections')
 
+
 <div class="redas-card" style="margin-bottom:14px;">
     <div class="card-head">
         <div class="card-head-title">

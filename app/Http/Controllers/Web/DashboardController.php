@@ -164,17 +164,30 @@ class DashboardController extends Controller
                 ->count()
             : 0;
 
-        return view('user.directorates.dashboard', [
-            'slug' => $slug,
-            'directorate' => $directorate,
-            'allDirectorates' => self::DIRECTORATES,
-            'submissions' => $submissions,
-            'totalSubmissions' => $totalSubmissions,
-            'pendingSubmissions' => $pendingSubmissions,
-            'approvedSubmissions' => $approvedSubmissions,
-            'queriedSubmissions' => $queriedSubmissions,
-            'unreadNotifications' => $unreadNotifications,
-        ]);
+        $viewNames = [
+            'user.directorates.dashboard',
+            'user.dashboard',
+            'directorates.dashboard',
+            'dashboard',
+        ];
+
+        foreach ($viewNames as $viewName) {
+            if (view()->exists($viewName)) {
+                return view($viewName, [
+                    'slug' => $slug,
+                    'directorate' => $directorate,
+                    'allDirectorates' => self::DIRECTORATES,
+                    'submissions' => $submissions,
+                    'totalSubmissions' => $totalSubmissions,
+                    'pendingSubmissions' => $pendingSubmissions,
+                    'approvedSubmissions' => $approvedSubmissions,
+                    'queriedSubmissions' => $queriedSubmissions,
+                    'unreadNotifications' => $unreadNotifications,
+                ]);
+            }
+        }
+
+        abort(500, 'Directorate dashboard view not found.');
     }
 
     /**
@@ -255,7 +268,7 @@ class DashboardController extends Controller
 
         if (strtolower((string) $application->status) === 'approved') {
             return redirect()
-                ->route('user.directorates.dashboard')
+                ->to('/user/directorates')
                 ->with('status', 'Approved submissions cannot be edited.');
         }
 
@@ -264,7 +277,7 @@ class DashboardController extends Controller
 
         if ($slug === null || ! isset(self::DIRECTORATES[$slug])) {
             return redirect()
-                ->route('user.directorates.dashboard')
+                ->to('/user/directorates')
                 ->with('status', 'Your account is not assigned to a valid directorate.');
         }
 

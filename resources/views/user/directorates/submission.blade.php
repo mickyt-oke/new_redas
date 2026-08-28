@@ -39,6 +39,7 @@
         }
     </style>
 </head>
+
 <body>
 @php
     $data = is_array($application->return_data) ? $application->return_data : [];
@@ -61,7 +62,10 @@
         return (string) $value;
     };
 
-    $skipKeys = ['directorate_slug', 'data_consent'];
+    // Exclude the report header metadata and uploaded document arrays from the
+    // generic body renderer so the return content stays structured without
+    // duplicate rows for the report summary.
+    $skipKeys = ['directorate_slug', 'data_consent', 'report_period', 'reporting_officer', 'supporting_documents', 'attachments'];
 
     // Recursive renderer: assoc arrays -> key/value table (nested arrays become
     // sub-sections); indexed arrays of arrays -> table with columns from keys;
