@@ -38,7 +38,7 @@ Route::middleware('guest')->group(function () {
         return view('login');
     })->name('login');
 
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:database')->name('login.submit');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.submit');
 
     Route::get('/password/forgot', [AuthTokenController::class, 'showForgotForm'])->name('password.forgot.form');
 
@@ -49,15 +49,17 @@ Route::middleware('guest')->group(function () {
 
     // Magic link verification + password reset (web)
     Route::get('/verify-email/{token}', [AuthTokenController::class, 'verifyEmail'])->name('verify.email');
-    Route::post('/password/forgot', [AuthTokenController::class, 'requestPasswordReset'])->middleware('throttle:database')->name('password.forgot');
+    Route::post('/password/forgot', [AuthTokenController::class, 'requestPasswordReset'])->middleware('throttle:10,1')->name('password.forgot');
     Route::get('/password/reset/{token}', [AuthTokenController::class, 'showResetForm'])->name('password.reset.form');
-    Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->middleware('throttle:database')->name('password.reset');
+    Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset');
 });
 
 // State user (officer) routes — full access to all user pages
-Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state,role=user|officer|admin|state|minLevel=0', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
     Route::get('/user/dashboard', function () {
-        return view('user.dashboard');
+        $dashboardView = view()->exists('user.dashboard') ? 'user.dashboard' : 'user.states.dashboard';
+
+        return view($dashboardView);
     })->name('user.dashboard');
 
     Route::get('/user/returns/create', function () {
@@ -156,7 +158,7 @@ Route::middleware(['auth', 'access:category=state_user|desk_admin,location=state
     })->middleware('throttle:60,1')->name('user.returns.store');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware([Authenticate::class])->group(function () {
     Route::get('/user/profile', [ProfileController::class, 'edit'])->name('user.profile');
     Route::patch('/user/profile', [ProfileController::class, 'update'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('user.profile.update');
 
@@ -165,14 +167,14 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Zonal commander routes — access only to zonal pages
-Route::middleware(['auth', 'access:category=zonal_commander,location=zonal,role=admin|zonal|minLevel=1', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=zonal_commander,location=zonal,role=admin|zonal|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/zonal/dashboard', [SubmissionReviewController::class, 'index'])->name('user.zonal.home');
     Route::patch('/zonal/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.approve');
     Route::patch('/zonal/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
 });
 
 // Desk / directorate admin review routes
-Route::middleware(['auth', 'access:category=desk_admin|directorate_admin,location=state|directorate,role=admin|state|directorate|minLevel=1', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin,location=state|directorate,role=admin|state|directorate|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/desk-admin/dashboard', [SubmissionReviewController::class, 'index'])->name('user.desk.home');
     Route::get('/desk-admin/reports', [SubmissionReviewController::class, 'reports'])->name('desk.admin.reports');
     Route::patch('/desk-admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
@@ -186,7 +188,7 @@ Route::middleware(['auth', 'access:category=desk_admin|directorate_admin,locatio
 
 // Directorate user routes — access only to directorate pages
 // Note: Each Directorate user has a unique slug (e.g., hrm, prs, finance) that is used to access their specific directorate form.
-Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=0', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/directorates', function () {
         return redirect()->route('user.directorates.dashboard');
     })->name('user.directorates.home');
@@ -204,7 +206,7 @@ Route::middleware(['auth', 'access:category=directorate_user|directorate_admin,l
 
 // Shared directorate form routes — accessible by both state (officer) and directorate users
 
-Route::middleware(['auth', 'access:category=state_user|directorate_user|directorate_admin,location=state|directorate,role=user|admin|officer|directorate|minLevel=0', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=state_user|directorate_user|directorate_admin,location=state|directorate,role=user|admin|officer|directorate|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
     Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
 
@@ -225,13 +227,13 @@ Route::middleware(['auth', 'access:category=state_user|directorate_user|director
         return redirect()->route('user.directorates.show', $legacyMap[$id] ?? 'hrm');
     })->name('user.directorate');
 });
-Route::middleware(['auth', 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
     Route::get('/superadmin/dashboard', function () {
         // Redirect to the superadmin users list until the dashboard view is available
         return redirect()->route('superadmin.users');
     })->name('superadmin.dashboard');
 });
-Route::middleware(['auth', 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
     Route::get('/superadmin/submissions', [SubmissionReviewController::class, 'index'])->name('superadmin.submissions');
     Route::patch('/superadmin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('superadmin.submissions.approve');
     Route::patch('/superadmin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware('throttle:database')->name('superadmin.submissions.reject');
@@ -251,7 +253,7 @@ Route::middleware(['auth', 'access:category=super_admin,location=headquarters,ro
 });
 
 // Supervisor dashboards (state and zonal share the same view)
-Route::middleware(['auth', 'access:category=desk_admin|zonal_commander,location=state|zonal,role=admin|state|zonal|minLevel=1', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=desk_admin|zonal_commander,location=state|zonal,role=admin|state|zonal|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/dashboard/state', function () {
         return view('supervisor.dashboard');
     })->name('supervisor.dashboard.state');
@@ -271,7 +273,7 @@ Route::middleware(['auth', 'access:category=desk_admin|zonal_commander,location=
 });
 
 // Admin dashboard
-Route::middleware(['auth', 'access:category=admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
