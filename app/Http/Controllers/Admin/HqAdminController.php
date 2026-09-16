@@ -8,6 +8,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use App\Services\ExcelReportService;
 use App\Services\SubmissionWorkflow;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -290,7 +291,7 @@ class HqAdminController extends Controller
         ]);
     }
 
-    public function generateReport(Request $request, ExcelReportService $excel): BinaryFileResponse
+    public function generateReport(Request $request, ExcelReportService $excel): BinaryFileResponse|RedirectResponse
     {
         $validated = $request->validate([
             'report_type' => ['required', 'in:quarterly,biannual,annual'],
@@ -302,41 +303,64 @@ class HqAdminController extends Controller
         $year = (int) $validated['year'];
         $part = isset($validated['part']) ? (int) $validated['part'] : null;
 
-        [$title, $label, $from, $to] = ExcelReportService::periodFor($reportType, $year, $part);
+        try {
+            if ($reportType !== 'annual'
+                && ($part === null || ! isset(ExcelReportService::TEMPLATES[$reportType]['parts'][$part]))) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Please choose a valid period part for the selected report template.');
+            }
 
-        $applications = Application::query()
-            ->with('user:id,name,service_number,assigned_cgis_unit_code')
-            ->whereBetween('created_at', [$from, $to])
-            ->orderBy('scope_code')
-            ->orderBy('created_at')
-            ->get();
+            [$title, $label, $from, $to] = ExcelReportService::periodFor($reportType, $year, $part);
 
-        $path = $excel->generate($reportType, $year, $part, $applications);
+            $applications = Application::query()
+                ->with('user:id,name,service_number,assigned_cgis_unit_code')
+                ->whereBetween('created_at', [$from, $to])
+                ->orderBy('scope_code')
+                ->orderBy('created_at')
+                ->get();
 
-        AuditLog::create([
-            'user_id' => $request->user()->id,
-            'action' => 'hq_report_generated',
-            'entity_type' => 'report',
-            'entity_id' => null,
-            'details' => [
-                'report_type' => $reportType,
-                'year' => $year,
-                'part' => $part,
-                'period' => "{$from->toDateString()} to {$to->toDateString()}",
-                'returns_included' => $applications->count(),
-            ],
-            'ip_address' => $request->ip(),
-            'status' => 'success',
-            'created_at' => now(),
-        ]);
+            if ($applications->isEmpty()) {
+                return back()
+                    ->withInput()
+                    ->with('error', "No returns were submitted in {$label} {$year}.");
+            }
 
-        $filename = str(sprintf('redas-%s-report-%d', $reportType, $year))
-            ->when($part, fn ($name) => $name->append('-part-' . $part))
-            ->append('.xlsx')
-            ->toString();
+            $path = $excel->generate($reportType, $year, $part, $applications);
 
-        return response()->download($path, $filename, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ])->deleteFileAfterSend();
+            AuditLog::create([
+                'user_id' => $request->user()->id,
+                'action' => 'hq_report_generated',
+                'entity_type' => 'report',
+                'entity_id' => null,
+                'details' => [
+                    'report_type' => $reportType,
+                    'year' => $year,
+                    'part' => $part,
+                    'period' => "{$from->toDateString()} to {$to->toDateString()}",
+                    'returns_included' => $applications->count(),
+                ],
+                'ip_address' => $request->ip(),
+                'status' => 'success',
+                'created_at' => now(),
+            ]);
+
+            $filename = str(sprintf('redas-%s-report-%d', $reportType, $year))
+                ->when($part, fn ($name) => $name->append('-part-' . $part))
+                ->append('.xlsx')
+                ->toString();
+
+            return response()->download($path, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend();
+        } catch (\InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'The report could not be generated. Please try again.');
+        }
     }
 }
