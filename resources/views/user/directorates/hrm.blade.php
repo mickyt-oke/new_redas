@@ -468,7 +468,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="hrmAddTrainingRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="hrmAddTrainingRow" data-row-target="hrmTrainingBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -596,7 +596,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="hrmAddApuRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="hrmAddApuRow" data-row-target="hrmApuBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -638,7 +638,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="hrmAddRecruitmentRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="hrmAddRecruitmentRow" data-row-target="hrmRecruitmentBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -680,7 +680,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="hrmAddCareerRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="hrmAddCareerRow" data-row-target="hrmCareerBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -764,7 +764,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="hrmAddUpgradingConversionRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="hrmAddUpgradingConversionRow" data-row-target="hrmUpgradingConversionBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -937,7 +937,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="hrmAddPensionRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="hrmAddPensionRow" data-row-target="hrmPensionBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">

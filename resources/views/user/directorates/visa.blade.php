@@ -219,7 +219,7 @@ $visaStatCols = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="visaAddEmigrantRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="visaAddEmigrantRow" data-row-target="visaEmigrantBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -270,7 +270,7 @@ $visaStatCols = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="visaAddQuotaRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="visaAddQuotaRow" data-row-target="visaQuotaBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -592,7 +592,7 @@ $visaStatCols = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="visaAddCounterRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="visaAddCounterRow" data-row-target="visaCounterBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">
@@ -646,7 +646,7 @@ $visaStatCols = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="visaAddEcowasRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="visaAddEcowasRow" data-row-target="visaEcowasBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
 
@@ -690,7 +690,7 @@ $visaStatCols = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="visaAddAfricanRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="visaAddAfricanRow" data-row-target="visaAfricanBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">

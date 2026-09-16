@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -118,13 +119,32 @@ class DashboardController extends Controller
             }
         }
 
-        return view('user.directorates.' . $slug, array_merge([
-            'slug' => $slug,
-            'directorateName' => $directorate['name'],
-            'directorateIcon' => $directorate['icon'],
-            'allDirectorates' => self::DIRECTORATES,
-        ], $this->passportViewData($slug)));
-    }
+        if ($slug === 'works-logistics') {
+			$commands = [
+				'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
+				'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe',
+				'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara',
+				'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau',
+				'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
+			];
+			return view('user.directorates.' . $slug, array_merge([
+				'commands' => $commands,
+				'slug' => $slug,
+				'directorateName' => self::DIRECTORATES[$slug]['name'],
+				'directorateIcon' => self::DIRECTORATES[$slug]['icon'],
+				'directorate' => self::DIRECTORATES[$slug],
+				'allDirectorates' => self::DIRECTORATES,
+			], $this->passportViewData($slug)));
+		}
+
+		return view('user.directorates.' . $slug, array_merge([
+			'slug' => $slug,
+			'directorateName' => self::DIRECTORATES[$slug]['name'],
+			'directorateIcon' => self::DIRECTORATES[$slug]['icon'],
+			'directorate' => self::DIRECTORATES[$slug],
+			'allDirectorates' => self::DIRECTORATES,
+		], $this->passportViewData($slug)));
+	}
 
     /**
      * Display the directorate user landing page.
@@ -198,12 +218,13 @@ class DashboardController extends Controller
      * @throws \Illuminate\Http\Exceptions\HttpResponseException If the slug is invalid or validation fails.
      */
 
-    public function storeDirectorate(Request $request, string $slug): RedirectResponse
+    /**
+     * Validation rules for a directorate return (metadata and uploads only;
+     * directorate-specific fields are stored as-is in return_data).
+     */
+    private function returnValidationRules(): array
     {
-        $directorate = self::DIRECTORATES[$slug] ?? null;
-        abort_if($directorate === null, 404);
-
-        $validated = $request->validate([
+        return [
             'report_period' => ['required', 'date_format:Y-m'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
@@ -211,7 +232,36 @@ class DashboardController extends Controller
             'supporting_documents.*' => ['file', 'mimes:pdf,xls,xlsx,png,jpg,jpeg', 'max:20480'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
-        ]);
+        ];
+    }
+
+    /**
+     * Friendly validation messages shown on the form when submission fails.
+     */
+    private function returnValidationMessages(): array
+    {
+        return [
+            'report_period.required' => 'Please select the report period for this return.',
+            'report_period.date_format' => 'The report period must be a valid month (e.g. ' . now()->format('Y-m') . ').',
+            'reporting_officer.required' => 'The reporting officer name is required.',
+            'reporting_officer.max' => 'The reporting officer name may not exceed 120 characters.',
+            'data_consent.required' => 'Please tick the declaration and consent box before submitting.',
+            'data_consent.accepted' => 'Please tick the declaration and consent box before submitting.',
+            'supporting_documents.*.file' => 'One of the supporting documents could not be uploaded. Please try again.',
+            'supporting_documents.*.mimes' => 'Supporting documents must be PDF, Excel (xls/xlsx), or image (png/jpg/jpeg) files.',
+            'supporting_documents.*.max' => 'Each supporting document must not be larger than 20 MB.',
+            'attachments.*.file' => 'One of the attachments could not be uploaded. Please try again.',
+            'attachments.*.mimes' => 'Attachments must be PDF, Word (doc/docx), or image (jpg/jpeg/png) files.',
+            'attachments.*.max' => 'Each attachment must not be larger than 20 MB.',
+        ];
+    }
+
+    public function storeDirectorate(Request $request, string $slug): RedirectResponse
+    {
+        $directorate = self::DIRECTORATES[$slug] ?? null;
+        abort_if($directorate === null, 404);
+
+        $validated = $request->validate($this->returnValidationRules(), $this->returnValidationMessages());
 
         $user = Auth::user();
 
@@ -224,15 +274,23 @@ class DashboardController extends Controller
             }
         }
 
-        SubmissionWorkflow::create($user, array_merge(
-            $request->except(['_token', 'data_consent', 'supporting_documents', 'attachments']),
-            [
-                'directorate_slug' => $slug,
-                'report_period' => $validated['report_period'],
-                'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
-                'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
-            ]
-        ));
+        try {
+            SubmissionWorkflow::create($user, array_merge(
+                $request->except(['_token', 'data_consent', 'supporting_documents', 'attachments']),
+                [
+                    'directorate_slug' => $slug,
+                    'report_period' => $validated['report_period'],
+                    'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
+                    'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                ]
+            ));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'The return could not be submitted because of a system error. Your entries are preserved below — please try again, or use Save Draft and contact support if the problem persists.');
+        }
 
         return redirect()
             ->route('user.directorates.show', $slug)
@@ -257,6 +315,35 @@ class DashboardController extends Controller
         abort_unless($application->user_id === $request->user()->id, 403);
 
         return view('user.directorates.submission', $this->submissionViewData($application, true));
+    }
+
+    /**
+     * Stream one of a submission's uploaded documents to its owner
+     * (inline for preview, or as a download with ?download=1).
+     */
+    public function submissionDocument(Request $request, Application $application, string $collection, int $index)
+    {
+        abort_unless($application->user_id === $request->user()->id, 403);
+        abort_unless(in_array($collection, ['supporting', 'attachments'], true), 404);
+
+        $key = $collection === 'supporting' ? 'supporting_documents' : 'attachments';
+        $files = array_values(array_filter(
+            (array) ($application->return_data[$key] ?? []),
+            'is_string'
+        ));
+
+        $path = $files[$index] ?? null;
+        abort_unless(is_string($path) && $path !== '', 404);
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk();
+        abort_unless($disk->exists($path), 404);
+
+        if ($request->boolean('download')) {
+            return $disk->download($path, basename($path));
+        }
+
+        return $disk->response($path, basename($path));
     }
 
     /**
@@ -333,15 +420,7 @@ class DashboardController extends Controller
         abort_unless($application->user_id === $request->user()->id, 403);
         abort_if(strtolower((string) $application->status) === 'approved', 403, 'Approved submissions cannot be edited.');
 
-        $validated = $request->validate([
-            'report_period' => ['required', 'date_format:Y-m'],
-            'reporting_officer' => ['required', 'string', 'max:120'],
-            'data_consent' => ['required', 'accepted'],
-            'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['file', 'mimes:pdf,xls,xlsx,png,jpg,jpeg', 'max:20480'],
-            'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
-        ]);
+        $validated = $request->validate($this->returnValidationRules(), $this->returnValidationMessages());
 
         $user = Auth::user();
         $slug = $user?->directorateSlug();
@@ -361,20 +440,28 @@ class DashboardController extends Controller
             'action' => 'resubmitted',
         ];
 
-        $application->update([
-            'return_data' => array_merge(
-                $request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments']),
-                [
-                    'directorate_slug' => $slug,
-                    'report_period' => $validated['report_period'],
-                    'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
-                    'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
-                ]
-            ),
-            'status' => 'pending',
-            'workflow_stage' => $initialStage,
-            'workflow_path' => $path,
-        ]);
+        try {
+            $application->update([
+                'return_data' => array_merge(
+                    $request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments']),
+                    [
+                        'directorate_slug' => $slug,
+                        'report_period' => $validated['report_period'],
+                        'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
+                        'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                    ]
+                ),
+                'status' => 'pending',
+                'workflow_stage' => $initialStage,
+                'workflow_path' => $path,
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'The return could not be updated because of a system error. Your entries are preserved below — please try again, or use Save Draft and contact support if the problem persists.');
+        }
 
         return redirect()
             ->route('user.directorates.dashboard')

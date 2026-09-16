@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\HqAdminController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApiNotificationController;
 use App\Http\Controllers\AuthController;
@@ -199,6 +200,7 @@ Route::middleware([Authenticate::class, 'access:category=directorate_user|direct
     Route::get('/user/directorates/submissions/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.directorates.submissions.print');
     Route::get('/user/directorates/submissions/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.directorates.submissions.edit');
     Route::put('/user/directorates/submissions/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.directorates.submissions.update');
+    Route::get('/user/directorates/submissions/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.directorates.submissions.document');
 
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
     Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
@@ -274,9 +276,15 @@ Route::middleware([Authenticate::class, 'access:category=desk_admin|zonal_comman
 
 // Admin dashboard
 Route::middleware([Authenticate::class, 'access:category=admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [HqAdminController::class, 'index'])->name('admin.dashboard');
+
+    Route::get('/admin/hq/returns', [HqAdminController::class, 'returns'])->name('admin.hq.returns');
+    Route::get('/admin/hq/returns/{application}', [HqAdminController::class, 'show'])->name('admin.hq.returns.show');
+    Route::get('/admin/hq/returns/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('admin.hq.returns.document');
+    Route::get('/admin/hq/archive', [HqAdminController::class, 'archive'])->name('admin.hq.archive');
+    Route::get('/admin/hq/analytics', [HqAdminController::class, 'analytics'])->name('admin.hq.analytics');
+    Route::get('/admin/hq/reports', [HqAdminController::class, 'reports'])->name('admin.hq.reports');
+    Route::post('/admin/hq/reports/generate', [HqAdminController::class, 'generateReport'])->middleware('throttle:database')->name('admin.hq.reports.generate');
 
     Route::get('/admin/submissions', [SubmissionReviewController::class, 'index'])->name('admin.submissions');
     Route::patch('/admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('admin.submissions.approve');

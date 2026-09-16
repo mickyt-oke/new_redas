@@ -374,7 +374,7 @@ $rankRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="add-dofit-row"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="add-dofit-row" data-row-target="dofit-tbody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
 
@@ -418,7 +418,7 @@ $rankRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="add-surveillance-row"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="add-surveillance-row" data-row-target="surveillance-tbody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
 
@@ -523,7 +523,7 @@ $rankRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="add-citizenship-row"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="add-citizenship-row" data-row-target="citizenship-tbody"><i class="fas fa-plus"></i> Add Row</button>
                 <p style="font-size:.75rem;color:var(--gray-500);margin-top:8px;">
                     <i class="fas fa-circle-info"></i> Total is auto-calculated from Brought Forward + Received.
                 </p>
@@ -671,7 +671,7 @@ $rankRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="add-screening-row"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="add-screening-row" data-row-target="screening-tbody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
 
@@ -739,7 +739,7 @@ $rankRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="add-dr-row"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="add-dr-row" data-row-target="dr-tbody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
 

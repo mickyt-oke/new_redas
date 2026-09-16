@@ -202,7 +202,7 @@ $meRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="prsAddResearchRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="prsAddResearchRow" data-row-target="prsResearchBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
 
@@ -232,7 +232,7 @@ $meRows = [
                         </tbody>
                     </table>
                 </div>
-                <button type="button" class="add-row-btn" id="prsAddStakeholderRow"><i class="fas fa-plus"></i> Add Row</button>
+                <button type="button" class="add-row-btn" id="prsAddStakeholderRow" data-row-target="prsStakeholdersBody"><i class="fas fa-plus"></i> Add Row</button>
             </div>
         </div>
         <div class="hrm-actions">

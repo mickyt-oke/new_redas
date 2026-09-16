@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="">
+    <title>Officer Dashboard | NIS-REDAS</title>
+    <link rel="icon" type="image/png" href="http://localhost/assets/images/nis.png">
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+<link rel="dns-prefetch" href="https://fonts.bunny.net">
+<link rel="preload" href="http://localhost/nis-logo.png" as="image" type="image/png">
+<link rel="preload" href="http://localhost/assets/images/nis.png" as="image" type="image/png">
+<meta name="theme-color" content="#006633">
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet">
+    <link rel="preload" as="style" href="http://localhost/build/assets/app-CXuey7k0.css" /><link rel="preload" as="style" href="http://localhost/build/assets/app-DA3gzQ54.css" /><link rel="modulepreload" as="script" href="http://localhost/build/assets/app-JD40H4yB.js" /><link rel="stylesheet" href="http://localhost/build/assets/app-CXuey7k0.css" /><link rel="stylesheet" href="http://localhost/build/assets/app-DA3gzQ54.css" /><script type="module" src="http://localhost/build/assets/app-JD40H4yB.js"></script>    <!-- Web Application Manifest -->
+<link rel="manifest" href="http://localhost/manifest.json">
+<!-- Chrome for Android theme color -->
+<meta name="theme-color" content="#003d1a">
+
+<!-- Add to homescreen for Chrome on Android -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="NIS-REDAS">
+<link rel="icon" sizes="512x512" href="/images/icons/icon-512x512.png">
+
+<!-- Add to homescreen for Safari on iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="NIS-REDAS">
+<link rel="apple-touch-icon" href="/images/icons/icon-512x512.png">
+
+
+<link href="/images/icons/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-1242x2208.png" media="(device-width: 621px) and (device-height: 1104px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-1668x2224.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-1668x2388.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+<link href="/images/icons/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+
+<!-- Tile for Win8 -->
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/images/icons/icon-512x512.png">
+
+<script type="text/javascript">
+    // Initialize the service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/serviceworker.js', {
+            scope: '.'
+        }).then(function (registration) {
+            // Registration was successful
+            console.log('Laravel PWA: ServiceWorker registration successful with scope: ', registration.scope);
+        }, function (err) {
+            // registration failed :(
+            console.log('Laravel PWA: ServiceWorker registration failed: ', err);
+        });
+    }
+</script></head>
+<body class="redas-dashboard">
+
+<style>
+    #redas-preloader {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        transition: opacity 0.45s ease, visibility 0.45s ease;
+    }
+    #redas-preloader.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .redas-preloader-logo {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        animation: redas-preloader-pulse 1.6s ease-in-out infinite;
+    }
+    .redas-preloader-text {
+        color: #006633;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        animation: redas-preloader-fade 1.6s ease-in-out infinite;
+    }
+    @keyframes redas-preloader-pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.08); opacity: 0.85; }
+    }
+    @keyframes redas-preloader-fade {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+    }
+</style>
+
+<div id="redas-preloader" aria-live="polite" aria-busy="true">
+    <img src="http://localhost/nis-logo.png" alt="NIS Logo" class="redas-preloader-logo" fetchpriority="high">
+    <div class="redas-preloader-text">Loading NIS-REDAS…</div>
+</div>
+
+<script>
+    (function () {
+        const preloader = document.getElementById('redas-preloader');
+        if (!preloader) return;
+
+        const start = Date.now();
+        const MIN_MS = 700;
+        const MAX_MS = 4000;
+        let done = false;
+
+        function hide() {
+            if (done) return;
+            done = true;
+
+            const remaining = Math.max(0, MIN_MS - (Date.now() - start));
+            setTimeout(() => {
+                preloader.classList.add('is-hidden');
+                preloader.setAttribute('aria-busy', 'false');
+                setTimeout(() => preloader.remove(), 500);
+            }, remaining);
+        }
+
+        if (document.readyState === 'complete') {
+            hide();
+        } else {
+            window.addEventListener('load', hide);
+            setTimeout(hide, MAX_MS);
+        }
+    })();
+</script>
+
+<!-- Mobile sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ════════════════════════════════ SIDEBAR ════════════════════════════════ -->
+<aside class="redas-sidebar" id="redasSidebar">
+
+    <!-- Brand -->
+    
+    <a href="http://localhost/user/dashboard" class="sidebar-brand">
+        <img src="http://localhost/assets/images/nis.png" alt="NIS" class="sidebar-brand-logo">
+        <div class="sidebar-brand-text">
+            <span class="sidebar-brand-title">NIS&nbsp;REDAS</span>
+            <span class="sidebar-brand-sub">State Officer Portal</span>
+        </div>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Main Menu</div>
+
+                        
+        <a href="http://localhost/user/dashboard" class="sidebar-link ">
+            <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
+            <span class="link-text">Dashboard</span>
+        </a>
+
+        <a href="http://localhost/user/returns/create" class="sidebar-link ">
+            <span class="link-icon"><i class="fas fa-plus-circle"></i></span>
+            <span class="link-text">Submit New Return</span>
+        </a>
+
+        <a href="http://localhost/user/submissions" class="sidebar-link ">
+            <span class="link-icon"><i class="fas fa-inbox"></i></span>
+            <span class="link-text">My Submissions</span>
+            <span class="link-badge">3</span>
+        </a>
+
+        <a href="http://localhost/user/notifications" class="sidebar-link ">
+            <span class="link-icon"><i class="fas fa-bell"></i></span>
+            <span class="link-text">Notifications</span>
+            <span class="link-badge danger">2</span>
+        </a>
+
+        <a href="http://localhost/user/archive" class="sidebar-link ">
+            <span class="link-icon"><i class="fas fa-archive"></i></span>
+            <span class="link-text">Archive</span>
+        </a>
+
+        <a href="http://localhost/user/reports" class="sidebar-link ">
+            <span class="link-icon"><i class="fas fa-file-export"></i></span>
+            <span class="link-text">Generate Report</span>
+        </a>
+                </aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<div class="redas-main" id="redasMain">
+
+    <!-- Topbar -->
+    <header class="redas-topbar">
+        <button class="topbar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">
+            <span>NIS-REDAS</span>
+            <span class="separator"><i class="fas fa-chevron-right" style="font-size:.6rem;"></i></span>
+                        <a href="http://localhost/user/dashboard" style="color:var(--gray-500);text-decoration:none;">Dashboard</a>
+                    </div>
+        <div class="topbar-right">
+            <div style="position:relative;">
+                <button class="topbar-icon-btn" id="notifBtn"><i class="fas fa-bell"></i><span class="notif-dot"></span></button>
+                <div id="notifPanel" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:300px;background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);border:1px solid var(--gray-200);z-index:200;overflow:hidden;">
+                    <div style="padding:12px 16px;font-size:.82rem;font-weight:700;border-bottom:1px solid var(--gray-100);">Notifications</div>
+                    <div class="notif-item unread">
+                        <div class="notif-icon" style="background:#fef9c3;color:#a16207;"><i class="fas fa-clock"></i></div>
+                        <div class="notif-content"><div class="notif-title">Deadline Reminder</div><div class="notif-desc">May return due in 5 days.</div></div>
+                        <div class="notif-time">1d ago</div>
+                    </div>
+                    <div style="padding:10px;text-align:center;border-top:1px solid var(--gray-100);">
+                        <a href="http://localhost/user/notifications" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all</a>
+                    </div>
+                </div>
+            </div>
+            <div style="position:relative;">
+                <button class="topbar-user" id="userMenuBtn" style="border:none;background:transparent;cursor:pointer;">
+                    <div class="topbar-avatar">U</div>
+                    <div class="topbar-user-info">
+                        <div class="topbar-user-name">Officer</div>
+                        <div class="topbar-user-role">State User</div>
+                    </div>
+                    <i class="fas fa-chevron-down" style="font-size:.7rem;color:var(--gray-400);margin-left:4px;"></i>
+                </button>
+                <div id="userMenuDrop" onclick="event.stopPropagation()" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:190px;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);border:1px solid var(--gray-100);z-index:200;overflow:hidden;">
+                                        <a href="http://localhost/user/profile" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;">
+                        <i class="fas fa-user-cog" style="color:var(--gray-400);width:16px;"></i> Profile
+                    </a>
+                                        <div style="border-top:1px solid var(--gray-100);"></div>
+                    <form action="http://localhost/logout" method="POST">
+                        <input type="hidden" name="_token" value="" autocomplete="off">                        <button type="submit" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--color-danger);background:none;border:none;cursor:pointer;width:100%;">
+                            <i class="fas fa-sign-out-alt" style="width:16px;"></i> Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+<main class="redas-content">
+    <div class="page-header" style="margin-bottom:18px;">
+        <div>
+            <h1 class="page-title" style="margin-bottom:4px;">
+                <i class="fas fa-microchip" style="margin-right:8px;"></i>
+                ICT and Cybersecurity Dashboard
+            </h1>
+            <p class="page-subtitle">
+                Welcome back, <strong>Officer</strong> —
+                Tuesday, 15 September 2026
+            </p>
+        </div>
+                <a href="http://localhost/user/directorates/ict" class="btn-nis btn-primary-nis">
+            <i class="fas fa-plus"></i> Submit ICT and Cybersecurity Return
+        </a>
+            </div>
+
+    
+    
+    
+    <!-- Stats -->
+    <div class="stats-grid animate-fade-up delay-1" style="margin-bottom:20px;">
+        <div class="stat-card green">
+            <div class="stat-header">
+                <span class="stat-label">Total Submitted</span>
+                <span class="stat-icon"><i class="fas fa-paper-plane"></i></span>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-change up">All time</div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-header">
+                <span class="stat-label">Pending Review</span>
+                <span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-change neutral">Awaiting supervisor</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-header">
+                <span class="stat-label">Approved</span>
+                <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-change up">Approved returns</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-header">
+                <span class="stat-label">Returned / Queried</span>
+                <span class="stat-icon"><i class="fas fa-exclamation-circle"></i></span>
+            </div>
+            <div class="stat-value">0</div>
+            <div class="stat-change down">Action required</div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;">
+        <!-- Left column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Directorate info -->
+            
+
+            <!-- Recent submissions -->
+            <div class="redas-card animate-fade-up delay-2">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:var(--nis-50);color:var(--nis-600);">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        Recent Submissions
+                    </div>
+                                        <a href="http://localhost/user/directorates/ict" class="btn-nis btn-ghost btn-sm">Submit New</a>
+                                    </div>
+                <div class="card-body no-pad">
+                    <table class="redas-table searchable-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                                            <tr>
+                                    <td colspan="4" style="text-align:center;padding:24px;color:var(--gray-500);font-size:.84rem;">
+                                        No submissions yet. Use the button above to submit your first return.
+                                    </td>
+                                </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Notifications -->
+            <div class="redas-card animate-fade-up delay-3">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:#fef9c3;color:#a16207;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        Directorate Information
+                    </div>
+                </div>
+                <div class="card-body" style="font-size:.84rem;color:var(--gray-700);">
+                                            <p style="margin:0 0 8px;">
+                            <strong>Directorate:</strong> ICT and Cybersecurity
+                        </p>
+                        <p style="margin:0 0 8px;">
+                            <strong>Report Period:</strong> September 2026
+                        </p>
+                        <p style="margin:0;">
+                            <strong>Reporting Officer:</strong> 
+                        </p>
+                                    </div>
+            </div>
+
+            <!-- Quick actions -->
+            
+        </div>
+    </div>
+</main>
+
+
+<script>
+(function () {
+    var slug = "ict";
+    var prefix = 'redas_' + slug + '_draft_';
+    var tbody = document.querySelector('.searchable-table tbody');
+    if (!tbody) return;
+
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    var drafts = [];
+    try {
+        Object.keys(localStorage).forEach(function (k) {
+            if (k.indexOf(prefix) !== 0) return;
+            var period = k.slice(prefix.length);
+            var savedAt = null;
+            try { savedAt = JSON.parse(localStorage.getItem(k)).__saved_at || null; } catch (e) {}
+            drafts.push({ key: k, period: period, savedAt: savedAt });
+        });
+    } catch (e) {}
+    if (!drafts.length) return;
+
+    drafts.sort(function (a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
+
+    var formUrl = "http:\/\/localhost\/user\/directorates\/ict";
+    var emptyRow = tbody.querySelector('td[colspan]');
+    if (emptyRow) emptyRow.closest('tr').style.display = 'none';
+
+    drafts.forEach(function (draft) {
+        var isDefault = draft.period === 'default';
+        var periodLabel = isDefault ? "September 2026" : esc(draft.period);
+        var savedLabel = 'Saved locally';
+        if (draft.savedAt) {
+            var d = new Date(draft.savedAt);
+            if (!isNaN(d)) savedLabel = 'Saved ' + d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        }
+        var url = formUrl + (isDefault ? '' : '?draft_period=' + encodeURIComponent(draft.period));
+
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><strong>' + periodLabel + '</strong></td>' +
+            '<td><span class="status-badge badge-draft">Saved Draft</span></td>' +
+            '<td style="font-size:.78rem;color:var(--gray-500);">' + esc(savedLabel) + '</td>' +
+            '<td><div style="display:flex;gap:6px;">' +
+                '<a href="' + url + '" class="btn-nis btn-sm btn-primary-nis" style="padding:6px 12px;" title="Resume draft"><i class="fas fa-play"></i> Resume</a>' +
+                '<button type="button" class="btn-nis btn-sm btn-ghost draft-discard-btn" style="padding:6px 12px;color:#b91c1c;" title="Discard draft"><i class="fas fa-trash"></i></button>' +
+            '</div></td>';
+
+        tr.querySelector('.draft-discard-btn').addEventListener('click', function () {
+            if (!window.confirm('Discard this saved draft? This cannot be undone.')) return;
+            try { localStorage.removeItem(draft.key); } catch (e) {}
+            tr.remove();
+        });
+
+        tbody.insertBefore(tr, tbody.firstChild);
+    });
+})();
+</script>
+
+<!-- Footer -->
+<footer
+    style="padding:16px 24px;border-top:1px solid var(--gray-100);text-align:center;font-size:.72rem;color:var(--gray-400);">
+    NIS-REDAS v2.0 &mdash; Nigeria Immigration Service &bull; ICT Directorate &copy; 2026
+    &nbsp;|&nbsp; <span style="color:var(--color-success);">● System Operational</span>
+</footer>
+</div>
+
+<script>
+    /* Notification panel toggle */
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener('click', e => { e.stopPropagation(); notifPanel.style.display = notifPanel.style.display === 'block' ? 'none' : 'block'; });
+        document.addEventListener('click', () => { notifPanel.style.display = 'none'; });
+    }
+
+    /* User menu toggle */
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userMenuDrop = document.getElementById('userMenuDrop');
+    if (userMenuBtn && userMenuDrop) {
+        userMenuBtn.addEventListener('click', e => { e.stopPropagation(); userMenuDrop.style.display = userMenuDrop.style.display === 'block' ? 'none' : 'block'; });
+        document.addEventListener('click', () => { userMenuDrop.style.display = 'none'; });
+    }
+
+    /* Sidebar toggle */
+    const sidebar = document.getElementById('redasSidebar');
+    const main = document.getElementById('redasMain');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggle = document.getElementById('sidebarToggle');
+
+    if (toggle) {
+        toggle.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                main.classList.toggle('sidebar-collapsed');
+            }
+        });
+    }
+    if (overlay) {
+        overlay.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); });
+    }
+
+    /* View modal population */
+    document.querySelectorAll('[data-action="view"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('modalTitle').textContent = btn.dataset.title || '—';
+            document.getElementById('modalDate').textContent = btn.dataset.date || '—';
+            document.getElementById('modalType').textContent = btn.dataset.type || '—';
+            document.getElementById('modalRemarks').textContent = btn.dataset.remarks || 'No remarks provided.';
+            const s = btn.dataset.status || '';
+            const statusEl = document.getElementById('modalStatus');
+            const cls = s.toLowerCase().includes('approved') ? 'badge-approved'
+                : s.toLowerCase().includes('pending') ? 'badge-pending'
+                    : s.toLowerCase().includes('reject') || s.toLowerCase().includes('return') ? 'badge-rejected'
+                        : 'badge-draft';
+            statusEl.innerHTML = `<span class="status-badge ${cls}">${s}</span>`;
+        });
+    });
+</script>
+
+<script>
+    (function () {
+        /* ── Tab switching ── */
+        const tabs = document.querySelectorAll('.entry-tab');
+        const panels = document.querySelectorAll('.tab-panel');
+        const tabsBar = document.getElementById('entryTabs');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                panels.forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
+                if (tabsBar) tabsBar.scrollLeft = tab.offsetLeft - 60;
+            });
+        });
+
+        /* ── Sidebar/topbar standard toggles ── */
+        const sidebar = document.getElementById('redasSidebar');
+        const main = document.getElementById('redasMain');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggle = document.getElementById('sidebarToggle');
+        if (toggle) {
+            toggle.addEventListener('click', () => {
+                if (window.innerWidth <= 768) { sidebar.classList.toggle('mobile-open'); overlay.classList.toggle('active'); }
+                else { sidebar.classList.toggle('collapsed'); main.classList.toggle('sidebar-collapsed'); }
+            });
+        }
+        overlay?.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); });
+
+        /* ── Notification / user dropdowns ── */
+        const notifBtn = document.getElementById('notifBtn');
+        const notifPanel = document.getElementById('notifPanel');
+        const userBtn = document.getElementById('userMenuBtn');
+        const userDrop = document.getElementById('userMenuDrop');
+        notifBtn?.addEventListener('click', e => { e.stopPropagation(); notifPanel.style.display = notifPanel.style.display === 'block' ? 'none' : 'block'; userDrop.style.display = 'none'; });
+        userBtn?.addEventListener('click', e => { e.stopPropagation(); userDrop.style.display = userDrop.style.display === 'block' ? 'none' : 'block'; notifPanel.style.display = 'none'; });
+        document.addEventListener('click', () => { notifPanel.style.display = 'none'; userDrop.style.display = 'none'; });
+
+        /* ── Workflow path update based on command selection ── */
+        const cmdSelect = document.getElementById('commandName');
+        const nextStepEl = document.getElementById('nextStep');
+        const pathInput = document.getElementById('workflowPath');
+        const hqCommands = ['HRM Directorate', 'Finance & Accounts', 'Border Management', 'Migration Directorate', 'POTD Directorate',
+            'Visa & Residency', 'PRS Directorate', 'Investigation & Compliance', 'ICT Directorate', 'Works & Logistics', 'NIS HQ Abuja'];
+
+        function updateWorkflow() {
+            const val = cmdSelect.value;
+            const isHQ = hqCommands.some(c => val.includes(c.split(' ')[0]));
+            pathInput.value = isHQ ? 'hq' : 'zonal';
+            nextStepEl.innerHTML = isHQ
+                ? '<i class="fas fa-user-tie" style="font-size:.68rem;"></i> HQ Coordinator'
+                : '<i class="fas fa-user-tie" style="font-size:.68rem;"></i> Zonal Coordinator';
+        }
+        cmdSelect?.addEventListener('change', updateWorkflow);
+
+        /* ── Staff total ── */
+        document.querySelectorAll('.staff-input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const total = Array.from(document.querySelectorAll('.staff-input')).reduce((s, e) => s + (parseInt(e.value) || 0), 0);
+                const t = document.getElementById('staffTotal');
+                if (t) t.value = total;
+            });
+        });
+
+        /* ── Arms subtotals ── */
+        document.querySelectorAll('.arms-svc, .arms-unsvc').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const g = inp.dataset.group;
+                const sv = parseInt(document.querySelector(`.arms-svc[data-group="${g}"]`)?.value || 0);
+                const un = parseInt(document.querySelector(`.arms-unsvc[data-group="${g}"]`)?.value || 0);
+                const sub = document.getElementById(`arms-sub-${g}`);
+                if (sub) sub.value = sv + un;
+                let grand = 0;
+                document.querySelectorAll('.arms-sub').forEach(s => grand += parseInt(s.value || 0));
+                const gt = document.getElementById('armsGrandTotal');
+                if (gt) gt.value = grand;
+            });
+        });
+
+        /* ── Passport admin total ── */
+        document.querySelectorAll('.ppt-admin-input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const t = Array.from(document.querySelectorAll('.ppt-admin-input')).reduce((s, e) => s + (parseInt(e.value) || 0), 0);
+                const el = document.getElementById('pptAdminTotal');
+                if (el) el.value = t;
+            });
+        });
+
+        /* ── FTZ total ── */
+        document.querySelectorAll('.ftz-input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const t = Array.from(document.querySelectorAll('.ftz-input')).reduce((s, e) => s + (parseInt(e.value) || 0), 0);
+                const el = document.getElementById('ftzTotal');
+                if (el) el.value = t;
+            });
+        });
+
+        /* ── Revenue total ── */
+        document.querySelectorAll('.rev-input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const t = Array.from(document.querySelectorAll('.rev-input')).reduce((s, e) => s + (parseFloat(e.value) || 0), 0);
+                const el = document.getElementById('revTotal');
+                if (el) el.value = t.toFixed(2);
+            });
+        });
+
+        /* ── Passport revenue totals ── */
+        document.querySelectorAll('.ppt-rev-amount').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const t = Array.from(document.querySelectorAll('.ppt-rev-amount')).reduce((s, e) => s + (parseFloat(e.value) || 0), 0);
+                const el = document.getElementById('pptRevAmtTotal');
+                if (el) el.value = t.toFixed(2);
+            });
+        });
+
+        /* ── Ereg M+F total ── */
+        document.querySelectorAll('.ereg-m, .ereg-f').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const g = inp.dataset.grp;
+                const m = parseInt(document.querySelector(`.ereg-m[data-grp="${g}"]`)?.value || 0);
+                const f = parseInt(document.querySelector(`.ereg-f[data-grp="${g}"]`)?.value || 0);
+                const el = document.getElementById(`ereg-tot-${g}`);
+                if (el) el.value = m + f;
+            });
+        });
+
+        /* ── Deport M+F ── */
+        document.querySelectorAll('.deport-m, .deport-f').forEach(inp => {
+            inp.addEventListener('input', () => {
+                const row = inp.dataset.row;
+                const m = parseInt(document.querySelector(`.deport-m[data-row="${row}"]`)?.value || 0);
+                const f = parseInt(document.querySelector(`.deport-f[data-row="${row}"]`)?.value || 0);
+                const el = document.getElementById(row);
+                if (el) el.value = m + f;
+            });
+        });
+
+        /* ── Passport stock balance: BF + Collected - Issued - Voided ── */
+        function calcStockBalance() {
+            for (let c = 0; c <= 5; c++) {
+                const bf = parseInt(document.querySelector(`.stock-r0-c${c}`)?.value || 0);
+                const col = parseInt(document.querySelector(`.stock-r1-c${c}`)?.value || 0);
+                const iss = parseInt(document.querySelector(`.stock-r2-c${c}`)?.value || 0);
+                const vd = parseInt(document.querySelector(`.stock-r3-c${c}`)?.value || 0);
+                const el = document.querySelector(`.stock-bal-${c}`);
+                if (el) el.value = Math.max(0, bf + col - iss - vd);
+            }
+        }
+        document.querySelectorAll('[class*="stock-r"]').forEach(inp => inp.addEventListener('input', calcStockBalance));
+
+        /* ── Add dynamic rows ── */
+        document.querySelectorAll('[data-target]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tbody = document.getElementById(btn.dataset.target);
+                if (!tbody) return;
+                const rows = tbody.querySelectorAll('.data-row');
+                const idx = rows.length;
+                const cols = JSON.parse(btn.dataset.cols || '[]');
+                const prefix = btn.dataset.prefix || 'row';
+                const tr = document.createElement('tr');
+                tr.className = 'data-row';
+                let html = `<td>${idx + 1}</td>`;
+                cols.forEach(col => {
+                    if (col === 'gender' || col === 'condition' || col === 'status') {
+                        const opts = col === 'gender' ? ['M', 'F']
+                            : col === 'condition' ? ['Serviceable', 'Unserviceable', 'Under Repair']
+                                : ['Not Started', 'In Progress', 'Completed', 'Abandoned'];
+                        html += `<td><select name="${prefix}[${idx}][${col}]" class="ni ni-select">${opts.map(o => `<option>${o}</option>`).join('')}</select></td>`;
+                    } else {
+                        const type = ['cost', 'participants', 'male', 'female', 'total', 'rounds', 'used', 'balance', 'number', 'bf', 'rx', 'issued', 'completion', 'dependants', 'm', 'f', 'employed', 'student', 'self_emp', 'spouse', 'dependant', 'regular', 'irregular'].includes(col) ? 'number' : 'text';
+                        html += `<td><input type="${type}" name="${prefix}[${idx}][${col}]" class="ni" min="0"></td>`;
+                    }
+                });
+                html += `<td><button type="button" class="btn-nis btn-ghost btn-sm" style="color:var(--color-danger);padding:2px 6px;" onclick="this.closest('tr').remove();"><i class="fas fa-times"></i></button></td>`;
+                tr.innerHTML = html;
+                tbody.insertBefore(tr, tbody.lastElementChild?.classList.contains('total-row') ? tbody.lastElementChild : null);
+            });
+        });
+
+        /* ── Tab fill tracker (marks dot green when tab has any filled input) ── */
+        function checkTabFill() {
+            let filled = 0;
+            tabs.forEach(tab => {
+                const panel = document.getElementById('tab-' + tab.dataset.tab);
+                if (!panel) return;
+                const hasVal = Array.from(panel.querySelectorAll('input,textarea,select')).some(el => el.value && !el.readOnly && el.value !== '0');
+                tab.classList.toggle('filled', hasVal);
+                if (hasVal) filled++;
+            });
+            const el = document.getElementById('progressText');
+            if (el) el.textContent = `${filled} / 10 sections filled`;
+        }
+        document.getElementById('returnForm')?.addEventListener('input', checkTabFill);
+
+        /* ── Auto-save draft to localStorage ── */
+        let saveTimer;
+        const DRAFT_KEY = 'redas_draft_' + (document.querySelector('[name="reporting_officer"]')?.value || 'officer');
+        function triggerAutoSave() {
+            const ind = document.getElementById('autosaveIndicator');
+            const text = document.getElementById('autosaveText');
+            if (ind) ind.className = 'autosave-indicator saving';
+            if (text) text.textContent = 'Saving…';
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                const form = document.getElementById('returnForm');
+                if (!form) return;
+                const data = {};
+                new FormData(form).forEach((v, k) => { data[k] = v; });
+                try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch (e) { }
+                if (ind) ind.className = 'autosave-indicator saved';
+                if (text) text.textContent = 'Draft saved at ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            }, 1500);
+        }
+        document.getElementById('returnForm')?.addEventListener('input', triggerAutoSave);
+
+        /* ── Save Draft button ── */
+        document.getElementById('saveDraftBtn')?.addEventListener('click', () => {
+            triggerAutoSave();
+            if (window.REDAS) window.REDAS.showToast('Draft saved successfully.', 'success');
+        });
+
+        /* ── Clear form ── */
+        document.getElementById('clearFormBtn')?.addEventListener('click', () => {
+            if (!confirm('Clear all form data? This cannot be undone.')) return;
+            document.getElementById('returnForm')?.reset();
+            localStorage.removeItem(DRAFT_KEY);
+            if (window.REDAS) window.REDAS.showToast('Form cleared.', 'info');
+        });
+
+        /* ── Preview ── */
+        document.getElementById('previewBtn')?.addEventListener('click', () => {
+            const cmd = document.querySelector('[name="command_name"]')?.value || '—';
+            const period = document.querySelector('[name="period"]')?.value || '—';
+            const type = document.querySelector('[name="return_type"]')?.value || '—';
+            document.getElementById('previewMeta').textContent = `${cmd} | ${period} | ${type}`;
+            const body = document.getElementById('previewBody');
+            body.innerHTML = generatePreviewHTML();
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+        });
+
+        function generatePreviewHTML() {
+            const cmd = document.querySelector('[name="command_name"]')?.value || 'N/A';
+            const period = document.querySelector('[name="period"]')?.value || 'N/A';
+            const type = document.querySelector('[name="return_type"]')?.value || 'N/A';
+            const path = document.getElementById('workflowPath')?.value === 'hq' ? 'HQ Coordinator' : 'Zonal Coordinator';
+            let html = `
+            <div style="text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--nis-700);">
+                <img src="http://localhost/assets/images/nis.png" style="height:50px;margin-bottom:8px;"><br>
+                <strong style="font-size:1rem;color:var(--nis-800);">NIGERIA IMMIGRATION SERVICE</strong><br>
+                <span style="font-size:.84rem;color:var(--gray-600);">NIS REDAS — Operational Return</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;padding:12px;background:var(--gray-50);border-radius:var(--radius-md);">
+                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Command</div><div style="font-weight:700;color:var(--gray-800);">${cmd}</div></div>
+                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Period</div><div style="font-weight:700;color:var(--gray-800);">${period}</div></div>
+                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Return Type</div><div style="font-weight:700;color:var(--gray-800);">${type}</div></div>
+            </div>
+            <div style="background:#dcfce7;border:1px solid #86efac;border-radius:var(--radius-md);padding:10px 14px;font-size:.8rem;margin-bottom:20px;">
+                <i class="fas fa-route" style="color:#15803d;"></i>
+                <strong>Workflow:</strong> This return will be routed to <strong>${path}</strong> upon submission.
+            </div>`;
+
+            /* Collect filled sections */
+            const staffTotal = document.getElementById('staffTotal')?.value;
+            if (staffTotal && staffTotal !== '0') {
+                html += `<div class="preview-section"><h6>Staff Strength</h6><p>Total Staff: <strong>${staffTotal}</strong></p></div>`;
+            }
+            const security = document.querySelector('[name="general[security]"]')?.value;
+            if (security) html += `<div class="preview-section"><h6>Security Report</h6><p style="font-size:.82rem;">${security}</p></div>`;
+            const challenges = document.querySelector('[name="general[challenges]"]')?.value;
+            if (challenges) html += `<div class="preview-section"><h6>Challenges</h6><p style="font-size:.82rem;">${challenges}</p></div>`;
+            const rec = document.querySelector('[name="general[recommendations]"]')?.value;
+            if (rec) html += `<div class="preview-section"><h6>Recommendations</h6><p style="font-size:.82rem;">${rec}</p></div>`;
+
+            html += `<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-200);font-size:.78rem;color:var(--gray-500);">Prepared by: <strong>NIS REDAS</strong> &mdash; 15 September 2026</div>`;
+            return html;
+        }
+
+        /* ── Print preview ── */
+        document.getElementById('printPreviewBtn')?.addEventListener('click', () => {
+            const content = document.getElementById('previewBody')?.innerHTML;
+            const w = window.open('', '_blank');
+            w.document.write(`<html><head><title>NIS Return Preview</title><link href="https://fonts.bunny.net/css?family=inter:400,600,700" rel="stylesheet"></head><body style="font-family:Inter,sans-serif;padding:40px;max-width:900px;margin:0 auto;">${content}</body></html>`);
+            w.document.close();
+            w.print();
+        });
+
+        /* ── Submit → confirm modal ── */
+        document.getElementById('returnForm')?.addEventListener('submit', e => {
+            e.preventDefault();
+            const cmd = document.querySelector('[name="command_name"]')?.value || '—';
+            const period = document.querySelector('[name="period"]')?.value || '—';
+            const path = document.getElementById('workflowPath')?.value === 'hq' ? 'HQ Coordinator' : 'Zonal Coordinator';
+            document.getElementById('confirmCommand').textContent = cmd;
+            document.getElementById('confirmPeriod').textContent = period;
+            document.getElementById('confirmRoute').textContent = path;
+            new bootstrap.Modal(document.getElementById('confirmModal')).show();
+        });
+
+        document.getElementById('confirmSubmitBtn')?.addEventListener('click', () => {
+            document.getElementById('confirmModal').querySelector('[data-bs-dismiss]').click();
+            const btn = document.getElementById('submitBtn');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
+            /* Actual POST — in production this submits the form */
+            if (window.REDAS) window.REDAS.showToast('Return submitted successfully. Routed to supervisor for review.', 'success');
+            setTimeout(() => { window.location.href = 'http://localhost/user/submissions'; }, 2000);
+        });
+
+        document.getElementById('submitFromPreview')?.addEventListener('click', () => {
+            bootstrap.Modal.getInstance(document.getElementById('previewModal'))?.hide();
+            document.getElementById('returnForm')?.dispatchEvent(new Event('submit'));
+        });
+
+        /* ── Attachment drag-and-drop ── */
+        const attachZone = document.getElementById('attachZone');
+        const attachInput = document.getElementById('attachInput');
+        const attachList = document.getElementById('attachList');
+        let attachedFiles = [];
+
+        attachZone?.addEventListener('click', () => attachInput?.click());
+        attachZone?.addEventListener('dragover', e => { e.preventDefault(); attachZone.classList.add('dragover'); });
+        attachZone?.addEventListener('dragleave', () => attachZone.classList.remove('dragover'));
+        attachZone?.addEventListener('drop', e => { e.preventDefault(); attachZone.classList.remove('dragover'); addFiles(e.dataTransfer.files); });
+        attachInput?.addEventListener('change', () => addFiles(attachInput.files));
+
+        function addFiles(files) {
+            Array.from(files).forEach(f => {
+                if (f.size > 10 * 1024 * 1024) { alert(`${f.name} exceeds 10MB limit.`); return; }
+                attachedFiles.push(f);
+                const item = document.createElement('div');
+                item.className = 'attach-item';
+                const icon = f.type.includes('pdf') ? 'fas fa-file-pdf' : f.type.includes('image') ? 'fas fa-file-image' : 'fas fa-file-word';
+                item.innerHTML = `<i class="${icon}" style="color:var(--nis-600);"></i><span>${f.name}</span><span style="color:var(--gray-400);font-size:.7rem;">(${(f.size / 1024).toFixed(0)}KB)</span><button type="button" class="remove-attach" onclick="this.parentElement.remove();"><i class="fas fa-times"></i></button>`;
+                attachList?.appendChild(item);
+            });
+        }
+
+        /* ── Load saved draft on page load ── */
+        try {
+            const saved = localStorage.getItem(DRAFT_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.entries(data).forEach(([k, v]) => {
+                    const el = document.querySelector(`[name="${CSS.escape(k)}"]`);
+                    if (el && !el.readOnly) el.value = v;
+                });
+                const ind = document.getElementById('autosaveIndicator');
+                const text = document.getElementById('autosaveText');
+                if (ind) ind.className = 'autosave-indicator saved';
+                if (text) text.textContent = 'Draft restored';
+                updateWorkflow();
+                checkTabFill();
+            }
+        } catch (e) { }
+
+    })();
+</script>
+
+<script>
+    (function () {
+        /* Sidebar / topbar */
+        const sidebar = document.getElementById('redasSidebar');
+        const main = document.getElementById('redasMain');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggle = document.getElementById('sidebarToggle');
+        toggle?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) { sidebar.classList.toggle('mobile-open'); overlay.classList.toggle('active'); }
+            else { sidebar.classList.toggle('collapsed'); main.classList.toggle('sidebar-collapsed'); }
+        });
+        overlay?.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); });
+        const userBtn = document.getElementById('userMenuBtn');
+        const userDrop = document.getElementById('userMenuDrop');
+        userBtn?.addEventListener('click', e => { e.stopPropagation(); userDrop.style.display = userDrop.style.display === 'block' ? 'none' : 'block'; });
+        document.addEventListener('click', () => { userDrop && (userDrop.style.display = 'none'); });
+
+        /* Mark single as read */
+        window.markRead = function (card) {
+            card.classList.remove('unread', 'type-danger', 'type-warning', 'type-success', 'type-info');
+            card.dataset.unread = '0';
+            const dot = card.querySelector('.unread-dot');
+            if (dot) dot.remove();
+            updateCounts();
+        };
+
+        /* Mark all read */
+        document.getElementById('markAllReadBtn')?.addEventListener('click', () => {
+            document.querySelectorAll('.notif-card.unread').forEach(c => markRead(c));
+            if (window.REDAS) REDAS.showToast('All notifications marked as read.', 'success');
+        });
+
+        /* Counts */
+        function updateCounts() {
+            const unread = document.querySelectorAll('.notif-card[data-unread="1"]').length;
+            const cnt = document.getElementById('cntUnread');
+            if (cnt) cnt.textContent = unread;
+        }
+
+        /* Filters */
+        document.querySelectorAll('.notif-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const f = btn.dataset.filter;
+                let visible = 0;
+                document.querySelectorAll('.notif-card').forEach(card => {
+                    let show = false;
+                    if (f === 'all') show = true;
+                    else if (f === 'unread') show = card.dataset.unread === '1';
+                    else show = card.dataset.type === f;
+                    card.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                });
+                document.getElementById('emptyState').style.display = visible === 0 ? '' : 'none';
+            });
+        });
+    })();
+</script>
+<script>
+    (function () {
+        /* Sidebar / topbar toggles */
+        const sidebar = document.getElementById('redasSidebar');
+        const main = document.getElementById('redasMain');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggle = document.getElementById('sidebarToggle');
+        toggle?.addEventListener('click', () => {
+            if (window.innerWidth <= 768) { sidebar.classList.toggle('mobile-open'); overlay.classList.toggle('active'); }
+            else { sidebar.classList.toggle('collapsed'); main.classList.toggle('sidebar-collapsed'); }
+        });
+        overlay?.addEventListener('click', () => { sidebar.classList.remove('mobile-open'); overlay.classList.remove('active'); });
+
+        const userBtn = document.getElementById('userMenuBtn');
+        const userDrop = document.getElementById('userMenuDrop');
+        userBtn?.addEventListener('click', e => { e.stopPropagation(); userDrop.style.display = userDrop.style.display === 'block' ? 'none' : 'block'; });
+        document.addEventListener('click', () => { userDrop && (userDrop.style.display = 'none'); });
+
+        /* Expand rows */
+        document.querySelectorAll('.expand-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const row = document.getElementById('expand-' + btn.dataset.row);
+                const chv = document.getElementById('chevron-' + btn.dataset.row);
+                if (!row) return;
+                const open = row.classList.toggle('open');
+                chv.style.transform = open ? 'rotate(90deg)' : '';
+                chv.style.transition = 'transform .2s';
+            });
+        });
+
+        /* Filter chips */
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                const f = chip.dataset.filter;
+                document.querySelectorAll('.sub-main-row').forEach(row => {
+                    row.style.display = (f === 'all' || row.dataset.status === f) ? '' : 'none';
+                    const exp = document.getElementById('expand-' + row.querySelector('.expand-btn')?.dataset.row);
+                    if (exp && row.style.display === 'none') exp.classList.remove('open');
+                });
+            });
+        });
+
+        /* Search */
+        document.getElementById('subSearch')?.addEventListener('input', function () {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('.sub-main-row').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+
+        /* Detail modal */
+        document.querySelectorAll('[data-bs-target="#detailModal"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const s = btn.dataset.status;
+                document.getElementById('detailTitle').textContent = btn.dataset.period + ' — ' + btn.dataset.type;
+                document.getElementById('detailSub').textContent = 'Command: ' + btn.dataset.path;
+                document.getElementById('dType').textContent = btn.dataset.type;
+                document.getElementById('dDate').textContent = btn.dataset.date;
+                document.getElementById('dReviewer').textContent = btn.dataset.reviewer;
+                document.getElementById('dRemarks').textContent = btn.dataset.remarks;
+
+                const statusEl = document.getElementById('dStatus');
+                statusEl.innerHTML = `<span class="status-badge ${btn.dataset.badge}">${s}</span>`;
+
+                const notifEl = document.getElementById('dNotification');
+                const notifCfg = {
+                    'Queried': ['#fff7ed', '#fed7aa', '#c2410c', 'fa-exclamation-triangle', 'Action Required', 'Your return has been queried. Please review the remarks and resubmit.'],
+                    'Approved': ['#f0fdf4', '#bbf7d0', '#15803d', 'fa-check-circle', 'Return Approved', 'Your return has been reviewed and approved by your supervisor.'],
+                    'Rejected': ['#fff1f2', '#fecaca', '#dc2626', 'fa-times-circle', 'Return Rejected', 'Your return was rejected. Review remarks and contact your supervisor.'],
+                    'Pending Review': ['#eff6ff', '#bfdbfe', '#1d4ed8', 'fa-info-circle', 'Awaiting Review', 'Your return is in the supervisor\'s queue for review.'],
+                };
+                const cfg = notifCfg[s];
+                if (cfg) {
+                    notifEl.style.cssText = `display:flex;background:${cfg[0]};border:1px solid ${cfg[1]};color:${cfg[2]};border-radius:var(--radius-md);padding:12px 16px;font-size:.84rem;margin-bottom:16px;gap:10px;align-items:flex-start;`;
+                    document.getElementById('dNotifIcon').className = `fas ${cfg[3]}`;
+                    document.getElementById('dNotifTitle').textContent = cfg[4];
+                    document.getElementById('dNotifMsg').textContent = cfg[5];
+                } else {
+                    notifEl.style.display = 'none';
+                }
+
+                const editBtn = document.getElementById('editBtn');
+                editBtn.style.display = (s === 'Queried') ? '' : 'none';
+            });
+        });
+
+        document.getElementById('downloadBtn')?.addEventListener('click', () => {
+            if (window.REDAS) REDAS.showToast('Preparing PDF download…', 'info');
+        });
+    })();
+</script>
+
+
+<script>
+
+    // ACTU JAVASCRIPT LOGIC
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        /*
+         * ACTU page only — requires its own staff inputs/totals so this
+         * never touches look-alike ids (e.g. #grandTotal) on other pages.
+         */
+        if (
+            !document.querySelector(".staff-male") ||
+            !document.getElementById("maleTotal") ||
+            !document.getElementById("femaleTotal")
+        ) return;
+
+        function calculateStaffStrength() {
+
+            let maleTotal = 0;
+            let femaleTotal = 0;
+
+            document.querySelectorAll(".staff-male").forEach(function (maleInput) {
+
+                const row = maleInput.dataset.row;
+
+                const femaleInput = document.querySelector(
+                    `.staff-female[data-row="${row}"]`
+                );
+
+                const male = Number(maleInput.value) || 0;
+                const female = Number(femaleInput.value) || 0;
+
+                document.getElementById(`staff-total-${row}`).value = male + female;
+
+                maleTotal += male;
+                femaleTotal += female;
+            });
+
+            document.getElementById("maleTotal").value = maleTotal;
+            document.getElementById("femaleTotal").value = femaleTotal;
+            document.getElementById("grandTotal").value = maleTotal + femaleTotal;
+        }
+
+        document.addEventListener("input", function (e) {
+
+            if (
+                e.target.classList.contains("staff-male") ||
+                e.target.classList.contains("staff-female")
+            ) {
+                calculateStaffStrength();
+            }
+
+        });
+
+        calculateStaffStrength();
+
+    });
+
+
+    //    ACTU CASE MATRIX
+
+
+    function calculateCasesMatrix() {
+
+        /* ACTU cases matrix page only — no-op when its grid is absent. */
+        if (!document.querySelector('.case-input') || !document.getElementById('row-total-0')) return;
+
+        // Row totals
+
+        for (let row = 0; row < 4; row++) {
+
+            let rowTotal = 0;
+
+            for (let col = 0; col < 12; col++) {
+
+                const input = document.querySelector(
+                    `.case-input[data-row="${row}"][data-col="${col}"]`
+                );
+
+                rowTotal += Number(input?.value || 0);
+
+            }
+
+            document.getElementById(`row-total-${row}`).value = rowTotal;
+
+        }
+
+        // Column totals
+
+        let grandTotal = 0;
+
+        for (let col = 0; col < 12; col++) {
+
+            let columnTotal = 0;
+
+            for (let row = 0; row < 4; row++) {
+
+                const input = document.querySelector(
+                    `.case-input[data-row="${row}"][data-col="${col}"]`
+                );
+
+                columnTotal += Number(input?.value || 0);
+
+            }
+
+            document.getElementById(`col-total-${col}`).value = columnTotal;
+
+            grandTotal += columnTotal;
+
+        }
+
+        document.getElementById('grand-total').value = grandTotal;
+
+    }
+
+    document.addEventListener('input', function (e) {
+
+        if (e.target.classList.contains('case-input')) {
+
+            calculateCasesMatrix();
+
+        }
+
+    });
+
+    calculateCasesMatrix();
+
+</script>
+
+<script>
+    // PROVOST/SECURITY UNIT JAVASCRIPT LOGIC
+
+    // Section 2 and 3 on Staff Strength
+
+    const unitsBody = document.getElementById("provostUnitsBody");
+    const strengthBody = document.getElementById("staffStrengthBody");
+    const totalStrengthInput = document.getElementById("staffStrengthGrandTotal");
+
+    /*
+     * PROVOST/SECURITY UNIT page only — no-op when its distinctive
+     * elements are absent (e.g. on other directorate pages).
+     */
+    if (unitsBody && strengthBody && totalStrengthInput && document.getElementById("addProvostUnit")) {
+
+    // STAFF STRENGTH
+
+    function calculateStaffStrengthTotal() {
+
+        let total = 0;
+
+        document.querySelectorAll(".staff-strength-input").forEach(input => {
+
+            total += Number(input.value) || 0;
+
+        });
+
+        totalStrengthInput.value = total;
+
+    }
+
+    function bindStrengthEvents() {
+
+        document.querySelectorAll(".staff-strength-input").forEach(input => {
+
+            input.oninput = calculateStaffStrengthTotal;
+
+        });
+
+    }
+
+    function renderStaffStrengthTable() {
+
+        const existingStrengths = [];
+
+        document.querySelectorAll(".staff-strength-input").forEach(input => {
+
+            existingStrengths.push(input.value);
+
+        });
+
+        strengthBody.innerHTML = "";
+
+        document.querySelectorAll(".provost-unit-name").forEach((input, index) => {
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+
+            <td>${index + 1}</td>
+
+            <td>
+
+                <input
+                    type="hidden"
+                    name="staff_strength[${index}][unit]"
+                    value="${input.value}"
+                >
+
+                ${input.value || "-"}
+
+            </td>
+
+            <td>
+
+                <input
+                    type="number"
+                    min="0"
+                    class="ni staff-strength-input"
+                    name="staff_strength[${index}][strength]"
+                    value="${existingStrengths[index] || ''}"
+                    placeholder="0"
+                >
+
+            </td>
+
+        `;
+
+            strengthBody.appendChild(row);
+
+        });
+
+        bindStrengthEvents();
+
+        calculateStaffStrengthTotal();
+
+    }
+
+    // ADD SUB UNIT
+
+    document
+        .getElementById("addProvostUnit")
+        .addEventListener("click", function () {
+
+            const index = unitsBody.querySelectorAll("tr").length;
+
+            const row = document.createElement("tr");
+
+            row.classList.add("data-row");
+
+            row.innerHTML = `
+
+        <td>${index + 1}</td>
+
+        <td>
+
+            <input
+                type="text"
+                class="ni provost-unit-name"
+                name="provost_units[${index}][name]"
+                placeholder="Enter Sub Unit Name"
+            >
+
+        </td>
+
+        <td>
+
+            <button
+                type="button"
+                class="remove-row-btn removeProvostUnit"
+            >
+
+                <i class="fas fa-trash"></i>
+
+            </button>
+
+        </td>
+
+    `;
+
+            unitsBody.appendChild(row);
+
+            renderStaffStrengthTable();
+
+        });
+
+
+    // UPDATE STAFF TABLE WHEN USER TYPES
+
+    document.addEventListener("input", function (e) {
+
+        if (!e.target.classList.contains("provost-unit-name")) return;
+
+        renderStaffStrengthTable();
+
+    });
+
+
+    // DELETE SUB UNIT
+
+    document.addEventListener("click", function (e) {
+
+        const button = e.target.closest(".removeProvostUnit");
+
+        if (!button) return;
+
+        if (unitsBody.querySelectorAll("tr").length === 1) {
+
+            alert("At least one Sub Unit is required.");
+
+            return;
+
+        }
+
+        button.closest("tr").remove();
+
+        document.querySelectorAll("#provostUnitsBody tr")
+            .forEach((row, index) => {
+
+                row.querySelector("td").textContent = index + 1;
+
+                row.querySelector(".provost-unit-name")
+                    .name = `provost_units[${index}][name]`;
+
+            });
+
+        renderStaffStrengthTable();
+
+    });
+
+    renderStaffStrengthTable();
+
+    } // end PROVOST/SECURITY UNIT page guard
+
+    /*
+    | FIREARMS TABLES
+    |
+    | Handles:
+    | - Add Firearm Row
+    | - Auto Numbering
+    | - Total Firearm Types
+    | - Total Ammunition
+    | - Delete Row
+    |
+    */
+
+    function initialiseFirearmsTable(config) {
+
+        const tbody = document.getElementById(config.body);
+
+        const countInput = document.getElementById(config.count);
+
+        const ammoTotalInput = document.getElementById(config.ammo);
+
+        if (!tbody) return;
+
+        function updateTotals() {
+
+            let ammoTotal = 0;
+
+            const rows = tbody.querySelectorAll("tr");
+
+            rows.forEach((row, index) => {
+
+                row.querySelector("td:first-child").textContent = index + 1;
+
+                row.querySelector(".firearm-type").name =
+                    `${config.prefix}[${index}][type]`;
+
+                row.querySelector(".firearm-ammo").name =
+                    `${config.prefix}[${index}][ammunition]`;
+
+                ammoTotal += Number(
+                    row.querySelector(".firearm-ammo").value
+                ) || 0;
+
+            });
+
+            countInput.value = rows.length;
+
+            ammoTotalInput.value = ammoTotal;
+
+        }
+
+        tbody.addEventListener("input", function (e) {
+
+            if (e.target.classList.contains("firearm-ammo")) {
+
+                updateTotals();
+
+            }
+
+        });
+
+        tbody.addEventListener("click", function (e) {
+
+            const button = e.target.closest(".remove-firearm-row");
+
+            if (!button) return;
+
+            button.closest("tr").remove();
+
+            updateTotals();
+
+        });
+
+        document.querySelector(`[data-body="${config.body}"]`)
+            .addEventListener("click", function () {
+
+                const index = tbody.querySelectorAll("tr").length;
+
+                const row = document.createElement("tr");
+
+                row.classList.add("data-row");
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+
+                    <td>
+                        <input
+                            type="text"
+                            class="ni firearm-type"
+                            name="${config.prefix}[${index}][type]"
+                        >
+                    </td>
+
+                    <td>
+                        <input
+                            type="number"
+                            min="0"
+                            class="ni firearm-ammo"
+                            name="${config.prefix}[${index}][ammunition]"
+                        >
+                    </td>
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="btn-icon btn-danger remove-firearm-row"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                    `;
+
+                tbody.appendChild(row);
+
+                updateTotals();
+
+            });
+
+        updateTotals();
+
+    }
+
+
+    initialiseFirearmsTable({
+
+        body: "provostFirearmsBody",
+
+        prefix: "provost_firearms",
+
+        count: "provostFirearmCount",
+
+        ammo: "provostAmmoTotal"
+
+    });
+
+    initialiseFirearmsTable({
+
+        body: "rrsFirearmsBody",
+
+        prefix: "rrs_firearms",
+
+        count: "rrsFirearmCount",
+
+        ammo: "rrsAmmoTotal"
+
+    });
+
+    initialiseFirearmsTable({
+
+        body: "jtfFirearmsBody",
+
+        prefix: "jtf_firearms",
+
+        count: "jtfFirearmCount",
+
+        ammo: "jtfAmmoTotal"
+
+    });
+
+
+    // Generic Dynamic Single Column Tables
+
+    function initialiseSimpleDynamicTable(config) {
+
+        const tbody = document.getElementById(config.body);
+
+        if (!tbody) return;
+
+        const addButton = document.querySelector(
+            `[data-body="${config.body}"]`
+        );
+
+        function refreshRows() {
+
+            tbody.querySelectorAll("tr").forEach((row, index) => {
+
+                row.querySelector("td:first-child").textContent = index + 1;
+
+                row.querySelector("input").name =
+                    `${config.prefix}[${index}][description]`;
+
+            });
+
+        }
+
+        addButton.addEventListener("click", function () {
+
+            const index = tbody.querySelectorAll("tr").length;
+
+            const row = document.createElement("tr");
+
+            row.classList.add("data-row");
+
+            row.innerHTML = `
+            <td>${index + 1}</td>
+
+            <td>
+
+                <input
+                    type="text"
+                    class="ni"
+                    name="${config.prefix}[${index}][description]"
+                    placeholder="${config.placeholder}"
+                >
+
+                    </td>
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="btn-icon btn-danger remove-simple-row"
+                        >
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                `;
+
+            tbody.appendChild(row);
+
+        });
+
+        tbody.addEventListener("click", function (e) {
+
+            const button = e.target.closest(".remove-simple-row");
+
+            if (!button) return;
+
+            button.closest("tr").remove();
+
+            refreshRows();
+
+        });
+
+        refreshRows();
+
+    }
+
+
+    initialiseSimpleDynamicTable({
+
+        body: "responsibilityBody",
+
+        prefix: "responsibilities",
+
+        placeholder: "Enter Area of Responsibility"
+
+    });
+
+    initialiseSimpleDynamicTable({
+
+        body: "activitiesBody",
+
+        prefix: "activities",
+
+        placeholder: "Enter Activity"
+
+    });
+
+    initialiseSimpleDynamicTable({
+
+        body: "challengesBody",
+
+        prefix: "challenges",
+
+        placeholder: "Enter Challenge"
+
+    });
+
+
+
+</script>
+</body>
+
+</html>
