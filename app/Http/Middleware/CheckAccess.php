@@ -151,7 +151,7 @@ class CheckAccess
                 'directorate' => 'user',
                 'super_admin' => 'admin',
                 'executive' => 'cgis',
-                'hq_admin' => 'analyst',
+                'hq_admin' => 'admin',
             ];
 
             $expandedLegacyRoles = $parsed['role'];

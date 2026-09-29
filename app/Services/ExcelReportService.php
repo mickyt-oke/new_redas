@@ -100,6 +100,7 @@ class ExcelReportService
     }
 
     /**
+     * @param  Application  $application
      * @return array<int, string>
      */
     private function rowFor(Application $application): array
@@ -111,12 +112,12 @@ class ExcelReportService
             'RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT),
             (string) ($data['command_name'] ?? $application->scope_code ?? '—'),
             (string) ($user?->assigned_cgis_unit_code ?? '—'),
-            ucfirst((string) $application->category),
+            ucfirst((string) ($application->category ?? '')),
             (string) ($data['report_period'] ?? '—'),
             (string) ($data['reporting_officer'] ?? $user?->name ?? '—'),
             (string) ($user?->service_number ?? '—'),
-            ucfirst((string) $application->status),
-            ucwords(str_replace('_', ' ', (string) $application->workflow_stage)),
+            ucfirst((string) ($application->status ?? '')),
+            ucwords(str_replace('_', ' ', (string) ($application->workflow_stage ?? ''))),
             (string) optional($application->created_at)->toDateTimeString(),
             (string) optional($application->updated_at)->toDateTimeString(),
             (string) ($application->comments ?? ''),

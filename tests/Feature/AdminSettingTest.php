@@ -29,7 +29,7 @@ class AdminSettingTest extends TestCase
     {
         return User::factory()->create([
             'role' => 'admin',
-            'user_category' => 'admin',
+            'user_category' => 'hq_admin',
             'primary_location_type' => 'headquarters',
             'primary_location_code' => 'HQ',
             'geo_state' => 'FC',

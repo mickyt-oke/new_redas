@@ -366,9 +366,8 @@
             document.getElementById('confirmModal').querySelector('[data-bs-dismiss]').click();
             const btn = document.getElementById('submitBtn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
-            /* Actual POST — in production this submits the form */
-            if (window.REDAS) window.REDAS.showToast('Return submitted successfully. Routed to supervisor for review.', 'success');
-            setTimeout(() => { window.location.href = '{{ url("/user/submissions") }}'; }, 2000);
+            const form = document.getElementById('returnForm');
+            if (form) form.submit();
         });
 
         document.getElementById('submitFromPreview')?.addEventListener('click', () => {
@@ -400,9 +399,10 @@
             });
         }
 
-        /* ── Load saved draft on page load ── */
+        /* ── Load saved draft on page load (skipped when editing an existing
+           submission — the server-side prefill owns the field values) ── */
         try {
-            const saved = localStorage.getItem(DRAFT_KEY);
+            const saved = window.REDAS_EDITING ? null : localStorage.getItem(DRAFT_KEY);
             if (saved) {
                 const data = JSON.parse(saved);
                 Object.entries(data).forEach(([k, v]) => {

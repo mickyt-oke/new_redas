@@ -192,12 +192,56 @@ class NewSeeder extends Seeder
                 'email' => strtolower('hq.'.$unitCode.'.seed@nis.gov.ng'),
                 'password' => $password,
                 'role' => 'admin',
-                'user_category' => 'admin',
+                'user_category' => 'hq_admin',
                 'primary_location_type' => 'headquarters',
                 'primary_location_code' => 'HQ',
                 'geo_state' => 'FC',
                 'access_level' => 5,
                 'assigned_cgis_unit_code' => $unitCode,
+                'email_verified_at' => $now,
+            ]);
+        }
+
+        $cgisUnits = [
+            ['slug' => 'actu', 'name' => 'ACTU'],
+            ['slug' => 'epms', 'name' => 'EPMS'],
+            ['slug' => 'hostmanship', 'name' => 'Hostmanship'],
+            ['slug' => 'pro-media', 'name' => 'PRO Media'],
+            ['slug' => 'protocol', 'name' => 'Protocol'],
+            ['slug' => 'provost', 'name' => 'Provost'],
+            ['slug' => 'servicom', 'name' => 'SERVICOM'],
+        ];
+
+        foreach ($cgisUnits as $index => $unit) {
+            $serial = str_pad((string) ($index + 1), 3, '0', STR_PAD_LEFT);
+
+            $this->createUser([
+                'name' => $unit['name'].' Unit Officer',
+                'service_number' => 'NIS/CGU/'.$serial,
+                'email' => 'cgis.'.$unit['slug'].'.seed@nis.gov.ng',
+                'password' => $password,
+                'role' => 'officer',
+                'user_category' => 'cgis_unit_user',
+                'primary_location_type' => 'headquarters',
+                'primary_location_code' => 'HQ',
+                'geo_state' => 'FC',
+                'access_level' => 0,
+                'assigned_cgis_unit_code' => $unit['slug'],
+                'email_verified_at' => $now,
+            ]);
+
+            $this->createUser([
+                'name' => $unit['name'].' Desk Admin',
+                'service_number' => 'NIS/CGD/'.$serial,
+                'email' => 'cgisdesk.'.$unit['slug'].'.seed@nis.gov.ng',
+                'password' => $password,
+                'role' => 'admin',
+                'user_category' => 'cgis_desk_admin',
+                'primary_location_type' => 'headquarters',
+                'primary_location_code' => 'HQ',
+                'geo_state' => 'FC',
+                'access_level' => 2,
+                'assigned_cgis_unit_code' => $unit['slug'],
                 'email_verified_at' => $now,
             ]);
         }
@@ -209,7 +253,7 @@ class NewSeeder extends Seeder
                 'email' => strtolower('admin'.$index.'.seed@nis.gov.ng'),
                 'password' => $password,
                 'role' => 'admin',
-                'user_category' => 'admin',
+                'user_category' => 'hq_admin',
                 'primary_location_type' => 'headquarters',
                 'primary_location_code' => 'HQ',
                 'geo_state' => 'FC',
@@ -217,6 +261,20 @@ class NewSeeder extends Seeder
                 'email_verified_at' => $now,
             ]);
         }
+
+        $this->createUser([
+            'name' => 'General Admin User',
+            'service_number' => 'NIS/GA/901',
+            'email' => 'generaladmin.seed@nis.gov.ng',
+            'password' => $password,
+            'role' => 'admin',
+            'user_category' => 'admin',
+            'primary_location_type' => 'headquarters',
+            'primary_location_code' => 'HQ',
+            'geo_state' => 'FC',
+            'access_level' => 5,
+            'email_verified_at' => $now,
+        ]);
 
         $this->createUser([
             'name' => 'Super Admin User',
@@ -233,6 +291,7 @@ class NewSeeder extends Seeder
         ]);
     }
 
+    // Create or update a user with the given data. If the user already exists based on the service number, update their information.
     private function createUser(array $data): void
     {
         $user = User::firstOrNew(['service_number' => $data['service_number']]);

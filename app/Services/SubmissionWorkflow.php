@@ -3,17 +3,21 @@
 namespace App\Services;
 
 use App\Models\Application;
+use App\Models\ApplicationComment;
 use App\Models\User;
+use App\Models\UserNotification;
 
 class SubmissionWorkflow
 {
     public const CATEGORY_STATE = 'state';
     public const CATEGORY_DIRECTORATE = 'directorate';
+    public const CATEGORY_CGIS = 'cgis';
 
     public const STAGE_SUBMITTED = 'submitted';
     public const STAGE_DESK_REVIEW = 'desk_review';
     public const STAGE_ZONAL_REVIEW = 'zonal_review';
     public const STAGE_DIRECTORATE_REVIEW = 'directorate_review';
+    public const STAGE_CGIS_DESK_REVIEW = 'cgis_desk_review';
     public const STAGE_HQ_REVIEW = 'hq_review';
     public const STAGE_ADMIN_REVIEW = 'admin_review';
     public const STAGE_APPROVED = 'approved';
@@ -26,14 +30,10 @@ class SubmissionWorkflow
         $category = self::categoryForUser($user);
         $scopeCode = self::scopeCodeForUser($user);
 
-        $initialStage = $category === self::CATEGORY_DIRECTORATE
-            ? self::STAGE_DIRECTORATE_REVIEW
-            : self::STAGE_DESK_REVIEW;
-
-        return Application::create([
+        $application = Application::create([
             'user_id' => $user->id,
             'status' => 'pending',
-            'workflow_stage' => $initialStage,
+            'workflow_stage' => self::initialStageForUser($user),
             'workflow_path' => [
                 [
                     'stage' => self::STAGE_SUBMITTED,
@@ -45,6 +45,23 @@ class SubmissionWorkflow
             'scope_code' => $scopeCode,
             'return_data' => $returnData,
         ]);
+
+        self::recordComment($application, $user, self::STAGE_SUBMITTED, ApplicationComment::ACTION_SUBMITTED);
+        self::notifyPendingReviewers($application);
+
+        return $application;
+    }
+
+    /**
+     * Resolve the first review stage a submission from this user enters.
+     */
+    public static function initialStageForUser(User $user): string
+    {
+        return match (self::categoryForUser($user)) {
+            self::CATEGORY_DIRECTORATE => self::STAGE_DIRECTORATE_REVIEW,
+            self::CATEGORY_CGIS => self::STAGE_CGIS_DESK_REVIEW,
+            default => self::STAGE_DESK_REVIEW,
+        };
     }
 
     /**
@@ -52,19 +69,26 @@ class SubmissionWorkflow
      */
     public static function categoryForUser(User $user): string
     {
-        return $user->user_category === 'directorate_user'
-            ? self::CATEGORY_DIRECTORATE
-            : self::CATEGORY_STATE;
+        return match ($user->user_category) {
+            'directorate_user' => self::CATEGORY_DIRECTORATE,
+            'cgis_unit_user' => self::CATEGORY_CGIS,
+            default => self::CATEGORY_STATE,
+        };
     }
 
     /**
      * Resolve the scope code used to tag a submission to the right reviewer.
-     * For state users this is the state code; for directorate users it is the directorate slug.
+     * For state users this is the state code; for directorate users it is the
+     * directorate slug; for CGIS unit users it is the unit slug.
      */
     public static function scopeCodeForUser(User $user): ?string
     {
         if ($user->user_category === 'directorate_user') {
             return $user->directorateSlug();
+        }
+
+        if ($user->user_category === 'cgis_unit_user') {
+            return $user->cgisUnitSlug();
         }
 
         return $user->primary_location_code ?: $user->assigned_state_code ?: null;
@@ -78,9 +102,9 @@ class SubmissionWorkflow
         return match (true) {
             $user->user_category === 'desk_admin' => self::STAGE_DESK_REVIEW,
             $user->user_category === 'directorate_admin' => self::STAGE_DIRECTORATE_REVIEW,
+            $user->user_category === 'cgis_desk_admin' => self::STAGE_CGIS_DESK_REVIEW,
             $user->user_category === 'zonal_commander' => self::STAGE_ZONAL_REVIEW,
-            $user->user_category === 'admin' => self::STAGE_HQ_REVIEW,
-            $user->user_category === 'super_admin' => self::STAGE_ADMIN_REVIEW,
+            $user->user_category === 'hq_admin' => self::STAGE_HQ_REVIEW,
             default => null,
         };
     }
@@ -93,6 +117,7 @@ class SubmissionWorkflow
         return match (true) {
             $user->user_category === 'desk_admin' => $user->primary_location_code ?: $user->assigned_state_code ?: null,
             $user->user_category === 'directorate_admin' => $user->directorateSlug(),
+            $user->user_category === 'cgis_desk_admin' => $user->cgisUnitSlug(),
             $user->user_category === 'zonal_commander' => $user->primary_location_code ?: $user->assigned_zonal_command_code ?: null,
             default => null,
         };
@@ -136,8 +161,9 @@ class SubmissionWorkflow
     /**
      * Approve a submission and advance it to the next workflow stage.
      */
-    public static function approve(Application $application, User $actor): void
+    public static function approve(Application $application, User $actor, ?string $comment = null): void
     {
+        $currentStage = $application->workflow_stage;
         $nextStage = self::nextStage($application);
 
         $path = $application->workflow_path ?? [];
@@ -165,6 +191,23 @@ class SubmissionWorkflow
         }
 
         $application->update($update);
+
+        self::recordComment($application, $actor, $currentStage, ApplicationComment::ACTION_APPROVED, $comment);
+
+        if ($nextStage === self::STAGE_APPROVED) {
+            self::notifySubmitter(
+                $application,
+                'Return approved',
+                'Your return RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT) . ' has completed the review workflow and is approved.'
+            );
+        } else {
+            self::notifySubmitter(
+                $application,
+                'Return advanced',
+                'Your return RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT) . ' was approved at ' . str_replace('_', ' ', $currentStage) . ' and moved to ' . str_replace('_', ' ', $nextStage) . '.'
+            );
+            self::notifyPendingReviewers($application);
+        }
     }
 
     /**
@@ -172,6 +215,8 @@ class SubmissionWorkflow
      */
     public static function reject(Application $application, User $actor, ?string $comment = null): void
     {
+        $currentStage = $application->workflow_stage;
+
         $path = $application->workflow_path ?? [];
         $path[] = [
             'stage' => self::STAGE_SUBMITTED,
@@ -187,6 +232,153 @@ class SubmissionWorkflow
             'workflow_path' => $path,
             'last_action_by' => $actor->id,
         ]);
+
+        self::recordComment($application, $actor, $currentStage, ApplicationComment::ACTION_REJECTED, $comment);
+
+        self::notifySubmitter(
+            $application,
+            'Return returned for correction',
+            'Your return RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT) . ' was sent back at ' . str_replace('_', ' ', $currentStage) . '.' . ($comment ? ' Reason: ' . $comment : '')
+        );
+    }
+
+    /**
+     * Whether the given user may delete this submission: the owner, while the
+     * return has not been finally approved (pending or returned for correction).
+     */
+    public static function deletableBy(Application $application, User $user): bool
+    {
+        return $application->user_id === $user->id
+            && $application->status !== 'approved';
+    }
+
+    /**
+     * Persist a workflow comment to the submission's review history.
+     */
+    public static function recordComment(Application $application, User $actor, string $stage, string $action, ?string $comment = null): void
+    {
+        if ($comment === null && in_array($action, [ApplicationComment::ACTION_APPROVED, ApplicationComment::ACTION_NOTE], true)) {
+            return;
+        }
+
+        ApplicationComment::create([
+            'application_id' => $application->id,
+            'user_id' => $actor->id,
+            'stage' => $stage,
+            'action' => $action,
+            'comment' => $comment,
+        ]);
+    }
+
+    /**
+     * Notify every enabled reviewer responsible for the submission's current stage.
+     */
+    public static function notifyPendingReviewers(Application $application): void
+    {
+        $stage = $application->workflow_stage;
+
+        $query = User::query()->where('is_enabled', true);
+
+        switch ($stage) {
+            case self::STAGE_DESK_REVIEW:
+                $query->where('user_category', 'desk_admin')
+                    ->where(fn ($q) => $q->where('primary_location_code', $application->scope_code)
+                        ->orWhere('assigned_state_code', $application->scope_code));
+                break;
+            case self::STAGE_ZONAL_REVIEW:
+                $zone = $application->zonal_code ?: null;
+                if ($zone === null) {
+                    return;
+                }
+                $query->where('user_category', 'zonal_commander')
+                    ->where(fn ($q) => $q->where('primary_location_code', $zone)
+                        ->orWhere('assigned_zonal_command_code', $zone));
+                break;
+            case self::STAGE_DIRECTORATE_REVIEW:
+                $query->where('user_category', 'directorate_admin');
+                break;
+            case self::STAGE_CGIS_DESK_REVIEW:
+                $query->where('user_category', 'cgis_desk_admin');
+                break;
+            case self::STAGE_HQ_REVIEW:
+                $query->where('user_category', 'hq_admin');
+                break;
+            default:
+                return;
+        }
+
+        $ref = 'RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT);
+
+        foreach ($query->get() as $approver) {
+            if (self::scopeCodeForApprover($approver) !== null
+                && self::scopeCodeForApprover($approver) !== ($approver->user_category === 'zonal_commander' ? ($application->zonal_code ?: $application->scope_code) : $application->scope_code)) {
+                continue;
+            }
+
+            UserNotification::create([
+                'user_id' => $approver->id,
+                'type' => 'workflow',
+                'title' => 'Return awaiting your review',
+                'description' => "Return {$ref} is awaiting " . str_replace('_', ' ', $stage) . '.',
+                'tag' => 'review',
+                'action_url' => self::reviewUrlForApprover($approver, $application),
+                'payload_json' => ['application_id' => $application->id, 'stage' => $stage],
+            ]);
+        }
+    }
+
+    /**
+     * Notify the submission owner about a workflow event on their return.
+     */
+    public static function notifySubmitter(Application $application, string $title, string $description): void
+    {
+        $owner = $application->user;
+        if ($owner === null) {
+            return;
+        }
+
+        UserNotification::create([
+            'user_id' => $owner->id,
+            'type' => 'workflow',
+            'title' => $title,
+            'description' => $description,
+            'tag' => 'return',
+            'action_url' => self::submitterUrl($owner, $application),
+            'payload_json' => ['application_id' => $application->id, 'status' => $application->status],
+        ]);
+    }
+
+    /**
+     * Best-effort landing page for an approver opening a notification.
+     */
+    private static function reviewUrlForApprover(User $approver, Application $application): ?string
+    {
+        try {
+            return match ($approver->user_category) {
+                'desk_admin', 'directorate_admin', 'cgis_desk_admin' => route('desk.admin.submissions.show', $application),
+                'hq_admin' => route('admin.submissions'),
+                'zonal_commander' => route('user.zonal.home'),
+                default => null,
+            };
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Best-effort landing page for a submitter opening a notification.
+     */
+    private static function submitterUrl(User $owner, Application $application): ?string
+    {
+        try {
+            return match ($owner->user_category) {
+                'directorate_user' => route('user.directorates.submissions.show', $application),
+                'cgis_unit_user' => route('user.cgis-units.submissions.show', $application),
+                default => route('user.returns.show', $application),
+            };
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**
@@ -206,7 +398,8 @@ class SubmissionWorkflow
             self::STAGE_DESK_REVIEW => self::STAGE_ZONAL_REVIEW,
             self::STAGE_ZONAL_REVIEW => self::STAGE_HQ_REVIEW,
             self::STAGE_DIRECTORATE_REVIEW => self::STAGE_HQ_REVIEW,
-            self::STAGE_HQ_REVIEW => self::STAGE_ADMIN_REVIEW,
+            self::STAGE_CGIS_DESK_REVIEW => self::STAGE_HQ_REVIEW,
+            self::STAGE_HQ_REVIEW => self::STAGE_APPROVED,
             self::STAGE_ADMIN_REVIEW => self::STAGE_APPROVED,
             default => self::STAGE_APPROVED,
         };

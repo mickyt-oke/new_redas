@@ -67,9 +67,13 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
         return view('user.states.create-return');
     })->name('user.returns.create');
 
-    Route::get('/user/submissions', function () {
-        return view('user.states.submissions');
-    })->name('user.submissions');
+    Route::get('/user/submissions', [DashboardController::class, 'stateSubmissions'])->name('user.submissions');
+
+    Route::get('/user/returns/{application}', [DashboardController::class, 'showSubmission'])->name('user.returns.show');
+    Route::get('/user/returns/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.returns.document');
+    Route::get('/user/returns/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.returns.edit');
+    Route::put('/user/returns/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.returns.update');
+    Route::delete('/user/returns/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.returns.destroy');
 
     Route::get('/user/notifications', function () {
         return view('user.states.notifications');
@@ -141,18 +145,28 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
     })->middleware('throttle:60,1')->name('user.reports.generate');
 
     Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
-        $validated = $request->validate([
+        $request->validate([
             'command_name' => ['required', 'string', 'max:120'],
             'period' => ['required', 'date_format:Y-m'],
             'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
         ]);
 
-        \App\Services\SubmissionWorkflow::create(
-            Auth::User(),
-            $request->except(['_token', 'data_consent'])
-        );
+        $returnData = $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status']);
+        $returnData['report_period'] = $request->input('period');
+
+        $paths = [];
+        foreach ((array) $request->file('attachments', []) as $file) {
+            if ($file && $file->isValid()) {
+                $paths[] = $file->store('supporting-documents/state');
+            }
+        }
+        $returnData['attachments'] = $paths;
+
+        \App\Services\SubmissionWorkflow::create(Auth::User(), $returnData);
 
         return redirect('/user/submissions')
             ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
@@ -174,8 +188,8 @@ Route::middleware([Authenticate::class, 'access:category=zonal_commander,locatio
     Route::patch('/zonal/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
 });
 
-// Desk / directorate admin review routes
-Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin,location=state|directorate,role=admin|state|directorate|minLevel=1', 'abac.geo'])->group(function () {
+// Desk / directorate / CGIS desk admin review routes
+Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin|cgis_desk_admin|hq_admin,location=state|directorate|headquarters,role=admin|state|directorate|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/desk-admin/dashboard', [SubmissionReviewController::class, 'index'])->name('user.desk.home');
     Route::get('/desk-admin/reports', [SubmissionReviewController::class, 'reports'])->name('desk.admin.reports');
     Route::patch('/desk-admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
@@ -185,8 +199,25 @@ Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_
     Route::get('/desk-admin/submissions/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('desk.admin.submissions.document');
 });
 
-// CGIS Units
+// CGIS unit user routes — access only to CGIS unit pages
+// Note: Each CGIS unit user has a unique slug (e.g., actu, provost, servicom) that is used to access their specific unit form.
+Route::middleware([Authenticate::class, 'access:category=cgis_unit_user,location=headquarters,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
+    Route::get('/user/cgis-units', function () {
+        return redirect()->route('user.cgis-units.dashboard');
+    })->name('user.cgis-units.home');
 
+    Route::get('/user/cgis-units/dashboard', [DashboardController::class, 'cgisUnitDashboard'])->name('user.cgis-units.dashboard');
+
+    Route::get('/user/cgis-units/submissions/{application}', [DashboardController::class, 'showSubmission'])->name('user.cgis-units.submissions.show');
+    Route::get('/user/cgis-units/submissions/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.cgis-units.submissions.print');
+    Route::get('/user/cgis-units/submissions/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.cgis-units.submissions.edit');
+    Route::put('/user/cgis-units/submissions/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.cgis-units.submissions.update');
+    Route::delete('/user/cgis-units/submissions/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.cgis-units.submissions.destroy');
+    Route::get('/user/cgis-units/submissions/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.cgis-units.submissions.document');
+
+    Route::get('/user/cgis-units/{slug}', [DashboardController::class, 'showCgisUnit'])->name('user.cgis-units.show');
+    Route::post('/user/cgis-units/{slug}', [DashboardController::class, 'storeCgisUnit'])->middleware('throttle:database')->name('user.cgis-units.store');
+});
 // Directorate user routes — access only to directorate pages
 // Note: Each Directorate user has a unique slug (e.g., hrm, prs, finance) that is used to access their specific directorate form.
 Route::middleware([Authenticate::class, 'access:category=directorate_user|directorate_admin,location=directorate,role=user|admin|directorate|minLevel=0', 'abac.geo'])->group(function () {
@@ -200,6 +231,7 @@ Route::middleware([Authenticate::class, 'access:category=directorate_user|direct
     Route::get('/user/directorates/submissions/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.directorates.submissions.print');
     Route::get('/user/directorates/submissions/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.directorates.submissions.edit');
     Route::put('/user/directorates/submissions/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.directorates.submissions.update');
+    Route::delete('/user/directorates/submissions/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.directorates.submissions.destroy');
     Route::get('/user/directorates/submissions/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.directorates.submissions.document');
 
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
@@ -229,29 +261,12 @@ Route::middleware([Authenticate::class, 'access:category=state_user|directorate_
         return redirect()->route('user.directorates.show', $legacyMap[$id] ?? 'hrm');
     })->name('user.directorate');
 });
+// Super-admin (executive) — view-only dashboard and consolidated returns
 Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
-    Route::get('/superadmin/dashboard', function () {
-        // Redirect to the superadmin users list until the dashboard view is available
-        return redirect()->route('superadmin.users');
-    })->name('superadmin.dashboard');
-});
-Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
-    Route::get('/superadmin/submissions', [SubmissionReviewController::class, 'index'])->name('superadmin.submissions');
-    Route::patch('/superadmin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('superadmin.submissions.approve');
-    Route::patch('/superadmin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware('throttle:database')->name('superadmin.submissions.reject');
-
-    Route::get('/superadmin/users', function () {
-        return redirect()->route('superadmin.users.create');
-    })->name('superadmin.users');
-
-    Route::get('/superadmin/users/create', function () {
-        return redirect()->route('superadmin.dashboard');
-    })->name('superadmin.users.create');
-
-    Route::post('/superadmin/users', function (\Illuminate\Http\Request $request) {
-        return redirect()->route('superadmin.users')
-            ->with('status', 'User created successfully.');
-    })->middleware('throttle:database')->name('superadmin.users.store');
+    Route::get('/superadmin/dashboard', [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    Route::get('/superadmin/returns', [\App\Http\Controllers\Admin\SuperAdminController::class, 'returns'])->name('superadmin.returns');
+    Route::get('/superadmin/returns/{application}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'show'])->name('superadmin.returns.show');
+    Route::get('/superadmin/returns/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('superadmin.returns.document');
 });
 
 // Supervisor dashboards (state and zonal share the same view)
@@ -274,8 +289,8 @@ Route::middleware([Authenticate::class, 'access:category=desk_admin|zonal_comman
     })->name('supervisor.dashboard');
 });
 
-// Admin dashboard
-Route::middleware([Authenticate::class, 'access:category=admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
+// Admin area — read-only routes shared by HQ admins (approvers) and general admins (view-only)
+Route::middleware([Authenticate::class, 'access:category=hq_admin|admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
     Route::get('/admin/dashboard', [HqAdminController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/admin/hq/returns', [HqAdminController::class, 'returns'])->name('admin.hq.returns');
@@ -286,6 +301,11 @@ Route::middleware([Authenticate::class, 'access:category=admin,location=headquar
     Route::get('/admin/hq/reports', [HqAdminController::class, 'reports'])->name('admin.hq.reports');
     Route::post('/admin/hq/reports/generate', [HqAdminController::class, 'generateReport'])->middleware('throttle:database')->name('admin.hq.reports.generate');
 
+    Route::get('/admin/consolidation', [\App\Http\Controllers\Admin\ConsolidationController::class, 'index'])->name('admin.consolidation');
+});
+
+// HQ admin only — final review actions and platform administration
+Route::middleware([Authenticate::class, 'access:category=hq_admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
     Route::get('/admin/submissions', [SubmissionReviewController::class, 'index'])->name('admin.submissions');
     Route::patch('/admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('admin.submissions.approve');
     Route::patch('/admin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware('throttle:database')->name('admin.submissions.reject');

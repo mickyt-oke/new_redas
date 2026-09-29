@@ -77,6 +77,9 @@ class User extends Authenticatable
         'directorate_user',
         'directorate_admin',
         'zonal_commander',
+        'cgis_unit_user',
+        'cgis_desk_admin',
+        'hq_admin',
         'admin',
         'super_admin',
     ];
@@ -231,6 +234,35 @@ class User extends Authenticatable
             'wks' => 'works-logistics',
             'works-logistics' => 'works-logistics',
             'works' => 'works-logistics',
+        ];
+
+        return $map[$normalised] ?? null;
+    }
+
+    /**
+     * Return the canonical CGIS unit slug assigned to this account.
+     * Falls back through assigned_cgis_unit_code and primary_location_code.
+     */
+    public function cgisUnitSlug(): ?string
+    {
+        $code = $this->assigned_cgis_unit_code ?: $this->primary_location_code;
+
+        if (! filled($code)) {
+            return null;
+        }
+
+        $normalised = strtolower((string) $code);
+
+        $map = [
+            'actu' => 'actu',
+            'epms' => 'epms',
+            'hostmanship' => 'hostmanship',
+            'pro-media' => 'pro-media',
+            'promedia' => 'pro-media',
+            'pro_media' => 'pro-media',
+            'protocol' => 'protocol',
+            'provost' => 'provost',
+            'servicom' => 'servicom',
         ];
 
         return $map[$normalised] ?? null;

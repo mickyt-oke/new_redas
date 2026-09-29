@@ -15,6 +15,16 @@ use Illuminate\Validation\ValidationException;
 
 class UserManagementController extends Controller
 {
+    private const CGIS_UNITS = [
+        'actu' => 'Anti-Corruption and Transparency Unit (ACTU)',
+        'epms' => 'Electronic Performance Management System (EPMS)',
+        'hostmanship' => 'Hostmanship Unit',
+        'pro-media' => 'Public Relations / Media Unit',
+        'protocol' => 'Protocol Unit',
+        'provost' => 'Provost Unit',
+        'servicom' => 'SERVICOM Unit',
+    ];
+
     public function index()
     {
         $users = User::query()
@@ -33,6 +43,9 @@ class UserManagementController extends Controller
                 'directorate_user' => 'Directorate User',
                 'directorate_admin' => 'Directorate Admin',
                 'zonal_commander' => 'Zonal Commander',
+                'cgis_unit_user' => 'CGIS Unit User',
+                'cgis_desk_admin' => 'CGIS Unit Desk Admin',
+                'hq_admin' => 'HQ Admin (Approver)',
                 'admin' => 'National Administrator',
                 'super_admin' => 'Super Admin',
             ],
@@ -49,6 +62,7 @@ class UserManagementController extends Controller
                 'zonal' => 'Zonal Commander',
                 'admin' => 'Administrator',
             ],
+            'cgisUnits' => self::CGIS_UNITS,
         ]);
     }
 
@@ -58,9 +72,10 @@ class UserManagementController extends Controller
             'name' => 'required|string|max:255',
             'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{3}\/\d{4}$/', 'unique:users'],
             'role' => 'required|in:admin,zonal,state,officer,directorate',
-            'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_commander,admin,super_admin',
+            'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_commander,cgis_unit_user,cgis_desk_admin,hq_admin,admin,super_admin',
             'primary_location_type' => 'required|in:state,directorate,zonal,headquarters',
             'primary_location_code' => 'nullable|string|max:50',
+            'assigned_cgis_unit_code' => 'nullable|in:'.implode(',', array_keys(self::CGIS_UNITS)),
             'geo_state' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
@@ -86,6 +101,7 @@ class UserManagementController extends Controller
             'user_category' => $normalized['user_category'],
             'primary_location_type' => $normalized['primary_location_type'],
             'primary_location_code' => $validated['primary_location_code'] ?: null,
+            'assigned_cgis_unit_code' => $validated['assigned_cgis_unit_code'] ?? null,
             'geo_state' => $validated['geo_state'] ?: null,
             'access_level' => $normalized['access_level'],
             'email' => $validated['email'],
@@ -109,6 +125,9 @@ class UserManagementController extends Controller
                 'directorate_user' => 'Directorate User',
                 'directorate_admin' => 'Directorate Admin',
                 'zonal_commander' => 'Zonal Commander',
+                'cgis_unit_user' => 'CGIS Unit User',
+                'cgis_desk_admin' => 'CGIS Unit Desk Admin',
+                'hq_admin' => 'HQ Admin (Approver)',
                 'admin' => 'National Administrator',
                 'super_admin' => 'Super Admin',
             ],
@@ -125,6 +144,7 @@ class UserManagementController extends Controller
                 'zonal' => 'Zonal Commander',
                 'admin' => 'Administrator',
             ],
+            'cgisUnits' => self::CGIS_UNITS,
         ]);
     }
 
@@ -134,9 +154,10 @@ class UserManagementController extends Controller
             'name' => 'required|string|max:255',
             'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{3}\/\d{4}$/', 'unique:users,service_number,'.$user->id],
             'role' => 'required|in:admin,zonal,state,officer,directorate',
-            'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_commander,admin,super_admin',
+            'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_commander,cgis_unit_user,cgis_desk_admin,hq_admin,admin,super_admin',
             'primary_location_type' => 'required|in:state,directorate,zonal,headquarters',
             'primary_location_code' => 'nullable|string|max:50',
+            'assigned_cgis_unit_code' => 'nullable|in:'.implode(',', array_keys(self::CGIS_UNITS)),
             'geo_state' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
@@ -162,6 +183,7 @@ class UserManagementController extends Controller
             'user_category' => $normalized['user_category'],
             'primary_location_type' => $normalized['primary_location_type'],
             'primary_location_code' => $validated['primary_location_code'] ?: null,
+            'assigned_cgis_unit_code' => $validated['assigned_cgis_unit_code'] ?? null,
             'geo_state' => $validated['geo_state'] ?: null,
             'access_level' => $normalized['access_level'],
             'email' => $validated['email'],
@@ -213,6 +235,24 @@ class UserManagementController extends Controller
                 'location' => 'zonal',
                 'level' => 4,
                 'canonical_role' => 'zonal',
+            ],
+            'cgis_unit_user' => [
+                'role' => ['officer'],
+                'location' => 'headquarters',
+                'level' => 0,
+                'canonical_role' => 'officer',
+            ],
+            'cgis_desk_admin' => [
+                'role' => ['admin'],
+                'location' => 'headquarters',
+                'level' => 2,
+                'canonical_role' => 'admin',
+            ],
+            'hq_admin' => [
+                'role' => ['admin'],
+                'location' => 'headquarters',
+                'level' => 5,
+                'canonical_role' => 'admin',
             ],
             'admin' => [
                 'role' => ['admin'],

@@ -307,10 +307,22 @@
         in_array($status, ['rejected', 'queried', 'returned'], true) => 'status-returned',
         default => 'status-pending',
     };
+
+    $viewerCategory = auth()->user()?->user_category;
+    $dashboardRoute = match ($viewerCategory) {
+        'state_user' => 'user.submissions',
+        'cgis_unit_user' => 'user.cgis-units.dashboard',
+        default => 'user.directorates.dashboard',
+    };
+    $documentRoute = match ($viewerCategory) {
+        'state_user' => 'user.returns.document',
+        'cgis_unit_user' => 'user.cgis-units.submissions.document',
+        default => 'user.directorates.submissions.document',
+    };
 @endphp
 
 <div class="report-actions">
-    <a href="{{ route('user.directorates.dashboard') }}">
+    <a href="{{ route($dashboardRoute) }}">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
     </a>
     <a href="{{ route('user.submissions.pdf', $application) }}">
@@ -363,7 +375,7 @@
                             in_array($ext, ['doc', 'docx'], true) => ['#eff6ff', '#1d4ed8', 'fa-file-word'],
                             default => ['#f8fafc', '#475569', 'fa-file'],
                         };
-                        $docUrl = route('user.directorates.submissions.document', [$application, $collection, $i]);
+                        $docUrl = route($documentRoute, [$application, $collection, $i]);
                     @endphp
                     <div class="doc-card"
                          data-doc-url="{{ $docUrl }}"
@@ -378,6 +390,36 @@
                 @endforeach
             </div>
         @endforeach
+    </section>
+    @php($commentHistory = $application->relationLoaded('reviewComments') ? $application->reviewComments : collect())
+    @if($commentHistory->isNotEmpty())
+    <section class="report-section">
+        <h2 class="section-title"><span class="section-num"><i class="fas fa-clock-rotate-left" style="font-size:.6rem;"></i></span> Review History</h2>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:8px;">
+            @foreach($commentHistory as $entry)
+                @php
+                    [$badgeBg, $badgeColor, $badgeIcon] = match ($entry->action) {
+                        'approved' => ['#ecfdf5', '#15803d', 'fa-check'],
+                        'rejected' => ['#fef2f2', '#b91c1c', 'fa-undo'],
+                        'resubmitted' => ['#eff6ff', '#1d4ed8', 'fa-paper-plane'],
+                        'submitted' => ['#eff6ff', '#1d4ed8', 'fa-inbox'],
+                        default => ['#f8fafc', '#475569', 'fa-comment'],
+                    };
+                @endphp
+                <div style="display:flex;gap:10px;align-items:flex-start;">
+                    <span style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:{{ $badgeBg }};color:{{ $badgeColor }};font-size:.7rem;"><i class="fas {{ $badgeIcon }}"></i></span>
+                    <div style="flex:1;">
+                        <div style="font-size:.8rem;color:#1f2937;">
+                            <strong>{{ optional($entry->user)->name ?? 'System' }}</strong>
+                            <span style="color:#6b7280;">· {{ ucfirst($entry->action) }} at {{ str_replace('_', ' ', $entry->stage) }} · {{ optional($entry->created_at)->format('d M Y, H:i') }}</span>
+                        </div>
+                        @if($entry->comment)
+                            <div style="font-size:.84rem;color:#374151;margin-top:2px;">{{ $entry->comment }}</div>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
     </section>
     @endif
 </div>

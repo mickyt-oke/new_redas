@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin']) ? 'Desk Admin Dashboard' : (auth()->user()?->role === 'directorate' ? 'Directorate Dashboard' : 'Officer Dashboard') }} | NIS-REDAS</title>
+    <title>{{ in_array(auth()->user()?->user_category, ['desk_admin', 'directorate_admin']) ? 'Desk Admin Dashboard' : (auth()->user()?->role === 'directorate' ? 'Directorate Dashboard' : 'Officer Dashboard' ?? '') }} | NIS-REDAS</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
     @include('partials.head-meta')
     <link rel="preconnect" href="https://fonts.bunny.net">

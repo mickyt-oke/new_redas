@@ -49,6 +49,15 @@
             <span class="link-icon"><i class="fas fa-file-excel"></i></span>
             <span class="link-text">Report Generation</span>
         </a>
+        <a href="{{ route('admin.consolidation') }}" class="sidebar-link {{ request()->routeIs('admin.consolidation') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-layer-group"></i></span>
+            <span class="link-text">Consolidation</span>
+        </a>
+        @if(auth()->user()?->user_category === 'hq_admin')
+        <a href="{{ route('admin.submissions') }}" class="sidebar-link {{ request()->routeIs('admin.submissions') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-clipboard-check"></i></span>
+            <span class="link-text">Review Queue</span>
+        </a>
 
         <div class="sidebar-section-label">Administration</div>
         <a href="{{ route('admin.users') }}" class="sidebar-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}">
@@ -63,6 +72,7 @@
             <span class="link-icon"><i class="fas fa-gear"></i></span>
             <span class="link-text">Settings</span>
         </a>
+        @endif
     </nav>
 </aside>
 

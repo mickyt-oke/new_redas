@@ -1,4 +1,4 @@
-@include('partials.header')
+@include('partials.header4')
 
 <div class="redas-content" style="padding-bottom:0;">
 
@@ -45,9 +45,12 @@
 
 </div>
 
-<form method="POST" action="{{ url('/user/returns') }}" enctype="multipart/form-data" id="provostSecurityReturnForm">
+<form method="POST" action="{{ isset($editing) ? route('user.cgis-units.submissions.update', $editing) : route('user.cgis-units.store', 'provost') }}" enctype="multipart/form-data" id="provostSecurityReturnForm">
 
     @csrf
+    @isset($editing)
+        @method('PUT')
+    @endisset
 
     <input type="hidden" name="cgis" value="PROVOST/SECURITY">
     <input type="hidden" name="status" value="pending">
@@ -68,7 +71,7 @@
 
                         <label>Period of Return</label>
 
-                        <input type="month" class="ni" name="period" required value="{{ now()->format('Y-m') }}">
+                        <input type="month" class="ni" name="report_period" required value="{{ old('report_period', $editing->return_data['report_period'] ?? now()->format('Y-m')) }}">
 
                     </div>
 
@@ -815,7 +818,7 @@
 
                         <label>Reporting Officer</label>
 
-                        <input class="ni" type="text" name="reporting_officer" value="{{ auth()->user()->name }}"
+                        <input class="ni" type="text" name="reporting_officer" value="{{ old('reporting_officer', $editing->return_data['reporting_officer'] ?? auth()->user()->name) }}"
                             readonly>
 
                     </div>
@@ -873,6 +876,28 @@
 
             </div>
 
+        </div>
+
+        {{-- DECLARATION & CONSENT --}}
+        <div class="redas-card" style="margin-bottom:14px;">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#f0fdf4;color:#15803d;">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    Declaration &amp; Consent
+                </div>
+            </div>
+            <div class="card-body">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.84rem;color:var(--gray-700);">
+                    <input type="checkbox" name="data_consent" value="1" required style="accent-color:var(--nis-600);margin-top:2px;">
+                    <span>
+                        I confirm that the information provided is accurate, limited to what is necessary for official NIS reporting,
+                        and that I have authority to submit it. I understand that this data will be processed and retained in accordance with
+                        the <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Privacy Policy</a>.
+                    </span>
+                </label>
+            </div>
         </div>
 
         {{-- SECTION 11 - ACTION BUTTONS --}}

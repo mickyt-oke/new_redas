@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\ApplicationComment;
 use App\Models\NisDirectory;
+use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\ReportPdfService;
 use App\Services\SubmissionWorkflow;
@@ -61,6 +63,41 @@ class DashboardController extends Controller
         'works-logistics' => [
             'name' => 'Works and Logistics',
             'icon' => 'fas fa-truck',
+        ],
+    ];
+
+    /**
+     * Metadata for CGIS unit return views. Fields are defined explicitly in
+     * resources/views/user/cgis-units/{slug}.blade.php.
+     */
+    private const CGIS_UNITS = [
+        'actu' => [
+            'name' => 'Anti-Corruption and Transparency Unit (ACTU)',
+            'icon' => 'fas fa-shield-halved',
+        ],
+        'epms' => [
+            'name' => 'Electronic Performance Management System (EPMS)',
+            'icon' => 'fas fa-chart-line',
+        ],
+        'hostmanship' => [
+            'name' => 'Hostmanship Unit',
+            'icon' => 'fas fa-people-arrows',
+        ],
+        'pro-media' => [
+            'name' => 'Public Relations and Media Unit',
+            'icon' => 'fas fa-bullhorn',
+        ],
+        'protocol' => [
+            'name' => 'Protocol Unit',
+            'icon' => 'fas fa-handshake-angle',
+        ],
+        'provost' => [
+            'name' => 'Provost Unit',
+            'icon' => 'fas fa-user-shield',
+        ],
+        'servicom' => [
+            'name' => 'SERVICOM Unit',
+            'icon' => 'fas fa-handshake',
         ],
     ];
 
@@ -298,11 +335,165 @@ class DashboardController extends Controller
     }
 
     /**
+     * Display the CGIS unit user landing page.
+     * Shows only data relevant to the logged-in CGIS unit user.
+     */
+    public function cgisUnitDashboard(): View
+    {
+        $user = Auth::user();
+        $slug = $user?->cgisUnitSlug();
+        $unit = ($slug !== null && isset(self::CGIS_UNITS[$slug]))
+            ? self::CGIS_UNITS[$slug]
+            : null;
+
+        $baseQuery = Schema::hasTable('applications')
+            ? Application::query()->where('user_id', $user?->id)
+            : null;
+
+        $submissions = $baseQuery !== null
+            ? (clone $baseQuery)->orderByDesc('created_at')->limit(5)->get()
+            : collect();
+
+        $totalSubmissions = $baseQuery !== null ? (clone $baseQuery)->count() : 0;
+        $pendingSubmissions = $baseQuery !== null
+            ? (clone $baseQuery)->whereIn('status', ['pending', 'Pending Review', 'submitted'])->count()
+            : 0;
+        $approvedSubmissions = $baseQuery !== null
+            ? (clone $baseQuery)->where('status', 'approved')->count()
+            : 0;
+        $queriedSubmissions = $baseQuery !== null
+            ? (clone $baseQuery)->whereIn('status', ['queried', 'rejected', 'returned'])->count()
+            : 0;
+
+        $unreadNotifications = Schema::hasTable('user_notifications')
+            ? UserNotification::query()
+                ->where('user_id', $user?->id)
+                ->where('is_read', false)
+                ->count()
+            : 0;
+
+        return view('user.cgis-units.dashboard', [
+            'slug' => $slug,
+            'unit' => $unit,
+            'allUnits' => self::CGIS_UNITS,
+            'submissions' => $submissions,
+            'totalSubmissions' => $totalSubmissions,
+            'pendingSubmissions' => $pendingSubmissions,
+            'approvedSubmissions' => $approvedSubmissions,
+            'queriedSubmissions' => $queriedSubmissions,
+            'unreadNotifications' => $unreadNotifications,
+        ]);
+    }
+
+    /**
+     * Display the CGIS unit return form for the given unit slug.
+     * CGIS unit users may only view and submit their own unit form.
+     */
+    public function showCgisUnit(string $slug): View|RedirectResponse
+    {
+        $unit = self::CGIS_UNITS[$slug] ?? null;
+        abort_if($unit === null, 404);
+
+        $user = Auth::user();
+
+        if ($user && $user->user_category === 'cgis_unit_user') {
+            $userSlug = $user->cgisUnitSlug();
+            $validUserSlug = $userSlug !== null && isset(self::CGIS_UNITS[$userSlug]);
+
+            if ($validUserSlug && $userSlug !== $slug) {
+                return redirect()->to('/user/cgis-units/' . $userSlug);
+            }
+
+            if (! $validUserSlug) {
+                return redirect()
+                    ->to('/user/cgis-units')
+                    ->with('status', 'Your account is not assigned to a valid CGIS unit.');
+            }
+        }
+
+        return view('user.cgis-units.' . $slug, [
+            'slug' => $slug,
+            'unitName' => $unit['name'],
+            'unitIcon' => $unit['icon'],
+            'unit' => $unit,
+            'allUnits' => self::CGIS_UNITS,
+        ]);
+    }
+
+    /**
+     * Handle the submission of a CGIS unit return form.
+     */
+    public function storeCgisUnit(Request $request, string $slug): RedirectResponse
+    {
+        $unit = self::CGIS_UNITS[$slug] ?? null;
+        abort_if($unit === null, 404);
+
+        $validated = $request->validate($this->returnValidationRules(), $this->returnValidationMessages());
+
+        $user = Auth::user();
+
+        // Ensure the slug being submitted belongs to the logged-in CGIS unit user.
+        if ($user && $user->user_category === 'cgis_unit_user') {
+            $userSlug = $user->cgisUnitSlug();
+
+            if ($userSlug === null || $userSlug !== $slug) {
+                abort(403, 'You are not authorised to submit this CGIS unit return.');
+            }
+        }
+
+        try {
+            SubmissionWorkflow::create($user, array_merge(
+                $request->except(['_token', 'data_consent', 'supporting_documents', 'attachments']),
+                [
+                    'cgis_unit_slug' => $slug,
+                    'report_period' => $validated['report_period'],
+                    'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
+                    'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                ]
+            ));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'The return could not be submitted because of a system error. Your entries are preserved below — please try again, or use Save Draft and contact support if the problem persists.');
+        }
+
+        return redirect()
+            ->route('user.cgis-units.show', $slug)
+            ->with('status', $unit['name'] . ' return submitted successfully.');
+    }
+
+    /**
+     * List the logged-in state user's own submissions.
+     */
+    public function stateSubmissions(): View
+    {
+        $baseQuery = Application::query()->where('user_id', Auth::id());
+
+        $stats = [
+            'total' => (clone $baseQuery)->count(),
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'approved' => (clone $baseQuery)->where('status', 'approved')->count(),
+            'returned' => (clone $baseQuery)->where('status', 'returned')->count(),
+        ];
+
+        $submissions = (clone $baseQuery)->latest()->paginate(15);
+
+        return view('user.states.submissions', [
+            'submissions' => $submissions,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
      * Display a previously submitted return for preview (screen).
      */
     public function showSubmission(Request $request, Application $application): View
     {
         abort_unless($application->user_id === $request->user()->id, 403);
+
+        $application->load('reviewComments.user');
 
         return view('user.directorates.submission', $this->submissionViewData($application, false));
     }
@@ -353,28 +544,40 @@ class DashboardController extends Controller
     {
         abort_unless($application->user_id === $request->user()->id, 403);
 
+        $user = Auth::user();
+        $isStateUser = $user?->user_category === 'state_user';
+        $homeUrl = $isStateUser ? route('user.submissions') : $this->formHomeUrl($user);
+
         if (strtolower((string) $application->status) === 'approved') {
             return redirect()
-                ->to('/user/directorates')
+                ->to($homeUrl)
                 ->with('status', 'Approved submissions cannot be edited.');
         }
 
-        $user = Auth::user();
-        $slug = $user?->directorateSlug();
-
-        if ($slug === null || ! isset(self::DIRECTORATES[$slug])) {
-            return redirect()
-                ->to('/user/directorates')
-                ->with('status', 'Your account is not assigned to a valid directorate.');
+        if ($isStateUser) {
+            return view('user.states.create-return', [
+                'editing' => $application,
+            ]);
         }
 
-        $directorate = self::DIRECTORATES[$slug];
+        $slug = $this->formSlugForUser($user);
+        $metadata = $slug !== null ? $this->formMetadata($slug) : null;
 
-        return view('user.directorates.' . $slug, array_merge([
+        if ($slug === null || $metadata === null) {
+            return redirect()
+                ->to($homeUrl)
+                ->with('status', 'Your account is not assigned to a valid directorate or CGIS unit.');
+        }
+
+        return view($this->formViewName($slug), array_merge([
             'slug' => $slug,
-            'directorateName' => $directorate['name'],
-            'directorateIcon' => $directorate['icon'],
+            'directorateName' => $metadata['name'],
+            'directorateIcon' => $metadata['icon'],
+            'unitName' => $metadata['name'],
+            'unitIcon' => $metadata['icon'],
+            'unit' => $metadata,
             'allDirectorates' => self::DIRECTORATES,
+            'allUnits' => self::CGIS_UNITS,
             'editing' => $application,
         ], $this->passportViewData($slug)));
     }
@@ -420,17 +623,49 @@ class DashboardController extends Controller
         abort_unless($application->user_id === $request->user()->id, 403);
         abort_if(strtolower((string) $application->status) === 'approved', 403, 'Approved submissions cannot be edited.');
 
-        $validated = $request->validate($this->returnValidationRules(), $this->returnValidationMessages());
-
         $user = Auth::user();
-        $slug = $user?->directorateSlug();
-        abort_if($slug === null || ! isset(self::DIRECTORATES[$slug]), 403);
+        $isStateUser = $user?->user_category === 'state_user';
+
+        if ($isStateUser) {
+            $request->validate([
+                'command_name' => ['required', 'string', 'max:120'],
+                'period' => ['required', 'date_format:Y-m'],
+                'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
+                'reporting_officer' => ['required', 'string', 'max:120'],
+                'data_consent' => ['required', 'accepted'],
+                'attachments' => ['nullable', 'array'],
+                'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+            ]);
+
+            $returnData = array_merge(
+                $request->except(['_token', '_method', 'data_consent', 'attachments', 'workflow_path', 'status']),
+                [
+                    'report_period' => $request->input('period'),
+                    'attachments' => $this->storeUploadedFiles($request, 'attachments', 'state'),
+                ]
+            );
+        } else {
+            $validated = $request->validate($this->returnValidationRules(), $this->returnValidationMessages());
+
+            $slug = $this->formSlugForUser($user);
+            abort_if($slug === null || $this->formMetadata($slug) === null, 403);
+
+            $slugKey = isset(self::CGIS_UNITS[$slug]) ? 'cgis_unit_slug' : 'directorate_slug';
+
+            $returnData = array_merge(
+                $request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments']),
+                [
+                    $slugKey => $slug,
+                    'report_period' => $validated['report_period'],
+                    'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
+                    'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                ]
+            );
+        }
 
         // Mirror the initial-stage logic of SubmissionWorkflow::create() so the
         // updated return re-enters the workflow where a fresh submission would.
-        $initialStage = SubmissionWorkflow::categoryForUser($user) === SubmissionWorkflow::CATEGORY_DIRECTORATE
-            ? SubmissionWorkflow::STAGE_DIRECTORATE_REVIEW
-            : SubmissionWorkflow::STAGE_DESK_REVIEW;
+        $initialStage = SubmissionWorkflow::initialStageForUser($user);
 
         $path = $application->workflow_path ?? [];
         $path[] = [
@@ -442,15 +677,7 @@ class DashboardController extends Controller
 
         try {
             $application->update([
-                'return_data' => array_merge(
-                    $request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments']),
-                    [
-                        'directorate_slug' => $slug,
-                        'report_period' => $validated['report_period'],
-                        'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
-                        'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
-                    ]
-                ),
+                'return_data' => $returnData,
                 'status' => 'pending',
                 'workflow_stage' => $initialStage,
                 'workflow_path' => $path,
@@ -463,9 +690,62 @@ class DashboardController extends Controller
                 ->with('error', 'The return could not be updated because of a system error. Your entries are preserved below — please try again, or use Save Draft and contact support if the problem persists.');
         }
 
-        return redirect()
-            ->route('user.directorates.dashboard')
-            ->with('status', 'Return updated and resubmitted successfully.');
+        SubmissionWorkflow::recordComment(
+            $application,
+            $user,
+            SubmissionWorkflow::STAGE_SUBMITTED,
+            ApplicationComment::ACTION_RESUBMITTED
+        );
+
+        SubmissionWorkflow::notifyPendingReviewers($application);
+
+        $redirect = $isStateUser
+            ? redirect()->route('user.submissions')
+            : redirect()->to($this->formHomeUrl($user) . '/dashboard');
+
+        return $redirect->with('status', 'Return updated and resubmitted successfully.');
+    }
+
+    /**
+     * Delete a submission owned by the user, together with its uploaded files.
+     * Only allowed while the return has not been finally approved.
+     */
+    public function destroySubmission(Application $application): RedirectResponse
+    {
+        $user = Auth::user();
+
+        abort_unless($user !== null && SubmissionWorkflow::deletableBy($application, $user), 403);
+
+        $data = is_array($application->return_data) ? $application->return_data : [];
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk();
+
+        foreach (['supporting_documents', 'attachments'] as $key) {
+            foreach ((array) ($data[$key] ?? []) as $path) {
+                if (! is_string($path) || $path === '') {
+                    continue;
+                }
+
+                try {
+                    if ($disk->exists($path)) {
+                        $disk->delete($path);
+                    }
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
+        }
+
+        $application->delete();
+
+        $redirect = match ($user->user_category) {
+            'cgis_unit_user' => redirect()->route('user.cgis-units.dashboard'),
+            'directorate_user' => redirect()->route('user.directorates.dashboard'),
+            default => redirect()->route('user.submissions'),
+        };
+
+        return $redirect->with('status', 'Return deleted successfully.');
     }
 
     /**
@@ -492,12 +772,50 @@ class DashboardController extends Controller
             }
         }
 
-        $slug = $application->return_data['directorate_slug'] ?? null;
-        $directorateName = ($slug !== null && isset(self::DIRECTORATES[$slug]))
-            ? self::DIRECTORATES[$slug]['name']
+        $slug = $application->return_data['directorate_slug']
+            ?? $application->return_data['cgis_unit_slug']
+            ?? null;
+        $directorateName = ($slug !== null && $this->formMetadata($slug) !== null)
+            ? $this->formMetadata($slug)['name']
             : null;
 
         return ReportPdfService::downloadSubmission($application, $directorateName);
+    }
+
+    /**
+     * Resolve the return-form slug (directorate or CGIS unit) for a user.
+     */
+    private function formSlugForUser(?User $user): ?string
+    {
+        return $user?->directorateSlug() ?? $user?->cgisUnitSlug();
+    }
+
+    /**
+     * Look up display metadata for a form slug across directorates and CGIS units.
+     */
+    private function formMetadata(string $slug): ?array
+    {
+        return self::DIRECTORATES[$slug] ?? self::CGIS_UNITS[$slug] ?? null;
+    }
+
+    /**
+     * Resolve the blade view for a form slug.
+     */
+    private function formViewName(string $slug): string
+    {
+        return isset(self::DIRECTORATES[$slug])
+            ? 'user.directorates.' . $slug
+            : 'user.cgis-units.' . $slug;
+    }
+
+    /**
+     * Resolve the index URL of the user's return-form area.
+     */
+    private function formHomeUrl(?User $user): string
+    {
+        return $user?->user_category === 'cgis_unit_user'
+            ? '/user/cgis-units'
+            : '/user/directorates';
     }
 
     /**
@@ -506,15 +824,16 @@ class DashboardController extends Controller
     private function submissionViewData(Application $application, bool $isPrint): array
     {
         $user = Auth::user();
-        $slug = $application->return_data['directorate_slug'] ?? $user?->directorateSlug();
-        $directorate = ($slug !== null && isset(self::DIRECTORATES[$slug]))
-            ? self::DIRECTORATES[$slug]
-            : null;
+        $slug = $application->return_data['directorate_slug']
+            ?? $application->return_data['cgis_unit_slug']
+            ?? $this->formSlugForUser($user);
+        $metadata = ($slug !== null) ? $this->formMetadata($slug) : null;
 
         return [
             'application' => $application,
             'slug' => $slug,
-            'directorate' => $directorate,
+            'directorate' => $metadata,
+            'unit' => $metadata,
             'isPrint' => $isPrint,
         ];
     }

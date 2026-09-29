@@ -51,18 +51,10 @@ class SubmissionWorkflowTest extends TestCase
 
         $hqAdmin = User::factory()->create([
             'role' => 'admin',
-            'user_category' => 'admin',
+            'user_category' => 'hq_admin',
             'primary_location_type' => 'headquarters',
             'primary_location_code' => 'HQ',
             'access_level' => 5,
-        ]);
-
-        $superAdmin = User::factory()->create([
-            'role' => 'admin',
-            'user_category' => 'super_admin',
-            'primary_location_type' => 'headquarters',
-            'primary_location_code' => 'HQ',
-            'access_level' => 6,
         ]);
 
         $application = SubmissionWorkflow::create($stateUser, ['command_name' => 'Lagos State']);
@@ -82,13 +74,8 @@ class SubmissionWorkflowTest extends TestCase
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
 
-        // HQ admin approves -> admin review
+        // HQ admin approval is final -> approved
         $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
-        $application->refresh();
-        $this->assertSame('admin_review', $application->workflow_stage);
-
-        // Super admin approves -> approved
-        $this->actingAs($superAdmin)->patch(route('superadmin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);
@@ -118,18 +105,10 @@ class SubmissionWorkflowTest extends TestCase
 
         $hqAdmin = User::factory()->create([
             'role' => 'admin',
-            'user_category' => 'admin',
+            'user_category' => 'hq_admin',
             'primary_location_type' => 'headquarters',
             'primary_location_code' => 'HQ',
             'access_level' => 5,
-        ]);
-
-        $superAdmin = User::factory()->create([
-            'role' => 'admin',
-            'user_category' => 'super_admin',
-            'primary_location_type' => 'headquarters',
-            'primary_location_code' => 'HQ',
-            'access_level' => 6,
         ]);
 
         $application = SubmissionWorkflow::create($directorateUser, ['report_period' => '2025-05']);
@@ -145,11 +124,8 @@ class SubmissionWorkflowTest extends TestCase
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
 
+        // HQ admin approval is final -> approved
         $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
-        $application->refresh();
-        $this->assertSame('admin_review', $application->workflow_stage);
-
-        $this->actingAs($superAdmin)->patch(route('superadmin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);

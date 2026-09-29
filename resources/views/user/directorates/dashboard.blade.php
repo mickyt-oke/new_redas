@@ -157,6 +157,13 @@
                                                 <a href="{{ route('user.directorates.submissions.edit', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Update">
                                                     <i class="fas fa-pen"></i>
                                                 </a>
+                                                <form method="POST" action="{{ route('user.directorates.submissions.destroy', $submission) }}" style="display:inline;" onsubmit="return confirm('Delete this submission permanently? This cannot be undone.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;color:#b91c1c;" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                             @endif
                                         </div>
                                     </td>

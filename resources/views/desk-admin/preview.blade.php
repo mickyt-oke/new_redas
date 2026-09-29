@@ -257,6 +257,39 @@
         </div>
     </div>
 
+    {{-- Review comment history --}}
+    @php($commentHistory = $application->reviewComments ?? collect())
+    @if($commentHistory->isNotEmpty())
+        <div class="redas-card" style="padding:16px;">
+            <h3 style="margin:0 0 12px;font-size:.95rem;font-weight:700;color:var(--gray-800);">Review History</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+                @foreach($commentHistory as $entry)
+                    @php
+                        [$badgeBg, $badgeColor, $badgeIcon] = match ($entry->action) {
+                            'approved' => ['#ecfdf5', '#15803d', 'fa-check'],
+                            'rejected' => ['#fef2f2', '#b91c1c', 'fa-undo'],
+                            'resubmitted' => ['#eff6ff', '#1d4ed8', 'fa-paper-plane'],
+                            'submitted' => ['#eff6ff', '#1d4ed8', 'fa-inbox'],
+                            default => ['#f8fafc', '#475569', 'fa-comment'],
+                        };
+                    @endphp
+                    <div style="display:flex;gap:10px;align-items:flex-start;">
+                        <span style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:{{ $badgeBg }};color:{{ $badgeColor }};font-size:.7rem;"><i class="fas {{ $badgeIcon }}"></i></span>
+                        <div style="flex:1;">
+                            <div style="font-size:.8rem;color:var(--gray-800);">
+                                <strong>{{ optional($entry->user)->name ?? 'System' }}</strong>
+                                <span style="color:var(--gray-500);">· {{ ucfirst($entry->action) }} at {{ str_replace('_', ' ', $entry->stage) }} · {{ optional($entry->created_at)->format('d M Y, H:i') }}</span>
+                            </div>
+                            @if($entry->comment)
+                                <div style="font-size:.84rem;color:var(--gray-700);margin-top:2px;">{{ $entry->comment }}</div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     {{-- Review actions: only while the submission awaits this approver's stage --}}
     <div class="redas-card" style="padding:16px;">
         @if($canReview ?? false)
@@ -264,7 +297,7 @@
                 <form method="POST" action="{{ route($approveRoute, $application) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin:0;">
                     @csrf
                     @method('PATCH')
-                    <input type="text" name="comment" maxlength="1000" placeholder="Approval note (optional)" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:.82rem;min-width:200px;">
+                    <input type="text" name="note" maxlength="1000" placeholder="Approval note (optional)" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:.82rem;min-width:200px;">
                     <button type="submit" class="btn-nis btn-primary-nis"><i class="fas fa-check"></i> Approve</button>
                 </form>
                 <form method="POST" action="{{ route($rejectRoute, $application) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin:0;">
@@ -277,7 +310,7 @@
         @else
             <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
                 <span style="font-size:.84rem;color:var(--gray-500);">This submission is not awaiting your action.</span>
-                <a href="{{ route('user.desk.home') }}" class="btn-nis btn-ghost">Back to dashboard</a>
+                <a href="{{ auth()->user()?->user_category === 'hq_admin' ? route('admin.submissions') : route('user.desk.home') }}" class="btn-nis btn-ghost">Back to dashboard</a>
             </div>
         @endif
     </div>

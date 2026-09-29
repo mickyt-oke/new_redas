@@ -1,4 +1,8 @@
-@include('partials.header')
+@if(auth()->user()?->user_category === 'cgis_unit_user')
+    @include('partials.header4')
+@else
+    @include('partials.header')
+@endif
 
 <main class="redas-content">
     {{-- Styles shared by every directorate form: tab bar, action buttons and preview tables.

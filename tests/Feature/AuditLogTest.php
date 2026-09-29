@@ -153,7 +153,7 @@ class AuditLogTest extends TestCase
     {
         $user = User::factory()->create([
             'role' => 'admin',
-            'user_category' => 'admin',
+            'user_category' => 'hq_admin',
             'primary_location_type' => 'headquarters',
             'primary_location_code' => 'HQ',
             'geo_state' => 'FC',
@@ -183,7 +183,7 @@ class AuditLogTest extends TestCase
     {
         $admin = User::factory()->create([
             'role' => 'admin',
-            'user_category' => 'admin',
+            'user_category' => 'hq_admin',
             'primary_location_type' => 'headquarters',
             'primary_location_code' => 'HQ',
             'geo_state' => 'FC',

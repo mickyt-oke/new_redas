@@ -77,6 +77,17 @@
                 </div>
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
+                    <label class="form-label-nis">CGIS Unit</label>
+                    <select name="assigned_cgis_unit_code" class="auth-input">
+                        <option value="" {{ old('assigned_cgis_unit_code') === null ? 'selected' : '' }}>None</option>
+                        @foreach($cgisUnits as $value => $label)
+                            <option value="{{ $value }}" {{ old('assigned_cgis_unit_code') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Required for CGIS Unit User and CGIS Unit Desk Admin accounts.</small>
+                </div>
+
+                <div class="auth-form-group" style="margin-bottom:18px;">
                     <label class="form-label-nis">State Override</label>
                     <input type="text" name="geo_state" value="{{ old('geo_state') }}" class="auth-input" placeholder="Optional state code">
                     <small class="text-muted">Set a required login state override for this user.</small>

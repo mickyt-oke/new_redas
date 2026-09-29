@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Application extends Model
 {
@@ -44,9 +45,9 @@ class Application extends Model
         return $this->belongsTo(User::class, 'last_action_by');
     }
 
-    public function admin(): BelongsTo
+    public function reviewComments(): HasMany
     {
-        return $this->belongsTo(User::class, 'admin_id');
+        return $this->hasMany(ApplicationComment::class)->oldest();
     }
 
     /**

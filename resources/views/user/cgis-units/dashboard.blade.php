@@ -1,0 +1,255 @@
+@include('partials.header4')
+
+<main class="redas-content">
+    <div class="page-header" style="margin-bottom:18px;">
+        <div>
+            <h1 class="page-title" style="margin-bottom:4px;">
+                <i class="{{ $unit['icon'] ?? 'fas fa-building-columns' }}" style="margin-right:8px;"></i>
+                {{ $unit['name'] ?? 'CGIS Unit' }} Unit Dashboard
+            </h1>
+            <p class="page-subtitle">
+                Welcome back, <strong>{{ auth()->user()?->name ?? 'Officer' }}</strong> —
+                {{ now()->format('l, d F Y') }}
+            </p>
+        </div>
+        @if($unit && $slug)
+        <a href="{{ route('user.cgis-units.show', ['slug' => $slug]) }}" class="btn-nis btn-primary-nis">
+            <i class="fas fa-plus"></i> Submit {{ $unit['name'] }} Return
+        </a>
+        @endif
+    </div>
+
+    @if (session('status'))
+        <div style="background:#ecfdf5;border:1px solid #86efac;color:#166534;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+            <i class="fas fa-check-circle" style="margin-right:6px;"></i>{{ session('status') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+            <i class="fas fa-exclamation-circle" style="margin-right:6px;"></i>{{ session('error') }}
+        </div>
+    @endif
+
+    @if (! $unit)
+        <div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+            <i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>
+            Your account is not linked to a recognised CGIS unit. Please contact the system administrator.
+        </div>
+    @endif
+
+    <!-- Stats -->
+    <div class="stats-grid animate-fade-up delay-1" style="margin-bottom:20px;">
+        <div class="stat-card green">
+            <div class="stat-header">
+                <span class="stat-label">Total Submitted</span>
+                <span class="stat-icon"><i class="fas fa-paper-plane"></i></span>
+            </div>
+            <div class="stat-value">{{ $totalSubmissions }}</div>
+            <div class="stat-change up">All time</div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-header">
+                <span class="stat-label">Pending Review</span>
+                <span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
+            </div>
+            <div class="stat-value">{{ $pendingSubmissions }}</div>
+            <div class="stat-change neutral">Awaiting supervisor</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-header">
+                <span class="stat-label">Approved</span>
+                <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            </div>
+            <div class="stat-value">{{ $approvedSubmissions }}</div>
+            <div class="stat-change up">Approved returns</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="stat-header">
+                <span class="stat-label">Returned / Queried</span>
+                <span class="stat-icon"><i class="fas fa-exclamation-circle"></i></span>
+            </div>
+            <div class="stat-value">{{ $queriedSubmissions }}</div>
+            <div class="stat-change down">Action required</div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;">
+        <!-- Left column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Recent submissions -->
+            <div class="redas-card animate-fade-up delay-2">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:var(--nis-50);color:var(--nis-600);">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        Recent Submissions
+                    </div>
+                    @if($unit && $slug)
+                    <a href="{{ route('user.cgis-units.show', ['slug' => $slug]) }}" class="btn-nis btn-ghost btn-sm">Submit New</a>
+                    @endif
+                </div>
+                <div class="card-body no-pad">
+                    <table class="redas-table searchable-table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($submissions as $submission)
+                                @php
+                                    $status = strtolower((string) $submission->status);
+                                    $period = $submission->return_data['report_period'] ?? $submission->created_at?->format('F Y') ?? '—';
+                                @endphp
+                                <tr>
+                                    <td><strong>{{ $period }}</strong></td>
+                                    <td>
+                                        <span class="status-badge
+                                            @if($status === 'approved') badge-approved
+                                            @elseif(in_array($status, ['pending', 'submitted'])) badge-pending
+                                            @elseif(in_array($status, ['rejected', 'queried', 'returned'])) badge-rejected
+                                            @else badge-draft @endif">
+                                            {{ ucfirst($submission->status ?? 'Draft') }}
+                                        </span>
+                                    </td>
+                                    <td style="font-size:.78rem;color:var(--gray-500);">{{ $submission->created_at?->format('d M Y') ?? '—' }}</td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;">
+                                            <a href="{{ route('user.cgis-units.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Preview">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ route('user.cgis-units.submissions.print', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Print" target="_blank">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                            @if($status !== 'approved')
+                                                <a href="{{ route('user.cgis-units.submissions.edit', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Update">
+                                                    <i class="fas fa-pen"></i>
+                                                </a>
+                                                <form method="POST" action="{{ route('user.cgis-units.submissions.destroy', $submission) }}" style="display:inline;" onsubmit="return confirm('Delete this submission permanently? This cannot be undone.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;color:#b91c1c;" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" style="text-align:center;padding:24px;color:var(--gray-500);font-size:.84rem;">
+                                        No submissions yet. Use the button above to submit your first return.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div style="display:flex;flex-direction:column;gap:20px;">
+            <!-- Unit information -->
+            <div class="redas-card animate-fade-up delay-3">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:#fef9c3;color:#a16207;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        Unit Information
+                    </div>
+                </div>
+                <div class="card-body" style="font-size:.84rem;color:var(--gray-700);">
+                    @if($unit)
+                        <p style="margin:0 0 8px;">
+                            <strong>Unit:</strong> {{ $unit['name'] }}
+                        </p>
+                        <p style="margin:0 0 8px;">
+                            <strong>Report Period:</strong> {{ now()->format('F Y') }}
+                        </p>
+                        <p style="margin:0;">
+                            <strong>Reporting Officer:</strong> {{ auth()->user()?->name }}
+                        </p>
+                    @else
+                        <p style="margin:0;">No unit assignment found.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+{{-- Saved drafts live in the browser's localStorage (keyed redas_{slug}_draft_{period}).
+     Surface them as resumable rows at the top of the Recent Submissions table. --}}
+@if($unit && $slug)
+<script>
+(function () {
+    var slug = @json($slug);
+    var prefix = 'redas_' + slug + '_draft_';
+    var tbody = document.querySelector('.searchable-table tbody');
+    if (!tbody) return;
+
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    var drafts = [];
+    try {
+        Object.keys(localStorage).forEach(function (k) {
+            if (k.indexOf(prefix) !== 0) return;
+            var period = k.slice(prefix.length);
+            var savedAt = null;
+            try { savedAt = JSON.parse(localStorage.getItem(k)).__saved_at || null; } catch (e) {}
+            drafts.push({ key: k, period: period, savedAt: savedAt });
+        });
+    } catch (e) {}
+    if (!drafts.length) return;
+
+    drafts.sort(function (a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
+
+    var formUrl = @json(url('/user/cgis-units/' . $slug));
+    var emptyRow = tbody.querySelector('td[colspan]');
+    if (emptyRow) emptyRow.closest('tr').style.display = 'none';
+
+    drafts.forEach(function (draft) {
+        var isDefault = draft.period === 'default';
+        var periodLabel = isDefault ? @json(now()->format('F Y')) : esc(draft.period);
+        var savedLabel = 'Saved locally';
+        if (draft.savedAt) {
+            var d = new Date(draft.savedAt);
+            if (!isNaN(d)) savedLabel = 'Saved ' + d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        }
+        var url = formUrl + (isDefault ? '' : '?draft_period=' + encodeURIComponent(draft.period));
+
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><strong>' + periodLabel + '</strong></td>' +
+            '<td><span class="status-badge badge-draft">Saved Draft</span></td>' +
+            '<td style="font-size:.78rem;color:var(--gray-500);">' + esc(savedLabel) + '</td>' +
+            '<td><div style="display:flex;gap:6px;">' +
+                '<a href="' + url + '" class="btn-nis btn-sm btn-primary-nis" style="padding:6px 12px;" title="Resume draft"><i class="fas fa-play"></i> Resume</a>' +
+                '<button type="button" class="btn-nis btn-sm btn-ghost draft-discard-btn" style="padding:6px 12px;color:#b91c1c;" title="Discard draft"><i class="fas fa-trash"></i></button>' +
+            '</div></td>';
+
+        tr.querySelector('.draft-discard-btn').addEventListener('click', function () {
+            if (!window.confirm('Discard this saved draft? This cannot be undone.')) return;
+            try { localStorage.removeItem(draft.key); } catch (e) {}
+            tr.remove();
+        });
+
+        tbody.insertBefore(tr, tbody.firstChild);
+    });
+})();
+</script>
+@endif
+
+@include('partials.footer')

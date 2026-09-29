@@ -1,4 +1,4 @@
-@extends('admin.headquarters.layout')
+@extends($layout ?? 'admin.headquarters.layout')
 
 @section('title', 'Return Detail')
 
@@ -12,6 +12,9 @@
         'returned', 'rejected' => 'badge-rejected',
         default => 'badge-pending',
     };
+    $backRoute = $backRoute ?? 'admin.hq.returns';
+    $documentRoute = $documentRoute ?? 'admin.hq.returns.document';
+    $commentHistory = $application->relationLoaded('reviewComments') ? $application->reviewComments : collect();
 
     $documentGroups = [];
     foreach (['supporting_documents' => ['supporting', 'Supporting Documents'], 'attachments' => ['attachments', 'Attachments']] as $key => [$collection, $label]) {
@@ -33,7 +36,7 @@
             <a href="{{ route('user.submissions.pdf', $application) }}" class="btn-nis btn-outline-nis" target="_blank">
                 <i class="fas fa-file-pdf"></i> PDF
             </a>
-            <a href="{{ route('admin.hq.returns') }}" class="btn-nis btn-ghost">
+            <a href="{{ route($backRoute) }}" class="btn-nis btn-ghost">
                 <i class="fas fa-arrow-left"></i> Back to Returns
             </a>
         </div>
@@ -125,7 +128,7 @@
                                 <div style="font-size:.78rem;font-weight:700;color:var(--gray-600);margin-bottom:8px;">{{ $label }}</div>
                                 <div style="display:flex;flex-direction:column;gap:6px;">
                                     @foreach($paths as $i => $path)
-                                        <a href="{{ route('admin.hq.returns.document', [$application, $collection, $i]) }}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;text-decoration:none;color:var(--gray-700);font-size:.84rem;">
+                                        <a href="{{ route($documentRoute, [$application, $collection, $i]) }}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;text-decoration:none;color:var(--gray-700);font-size:.84rem;">
                                             <i class="fas fa-file-arrow-down" style="color:var(--nis-600);"></i>
                                             <span>{{ basename($path) }}</span>
                                         </a>
@@ -189,7 +192,32 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if(filled($application->comments))
+                    @if($commentHistory->isNotEmpty())
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            @foreach($commentHistory as $entry)
+                                @php
+                                    [$badgeBg, $badgeColor, $badgeIcon] = match ($entry->action) {
+                                        'approved' => ['#ecfdf5', '#15803d', 'fa-check'],
+                                        'rejected' => ['#fef2f2', '#b91c1c', 'fa-undo'],
+                                        'resubmitted', 'submitted' => ['#eff6ff', '#1d4ed8', 'fa-paper-plane'],
+                                        default => ['#f8fafc', '#475569', 'fa-comment'],
+                                    };
+                                @endphp
+                                <div style="display:flex;gap:10px;align-items:flex-start;">
+                                    <span style="flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:{{ $badgeBg }};color:{{ $badgeColor }};font-size:.7rem;"><i class="fas {{ $badgeIcon }}"></i></span>
+                                    <div style="flex:1;">
+                                        <div style="font-size:.8rem;color:var(--gray-800);">
+                                            <strong>{{ optional($entry->user)->name ?? 'System' }}</strong>
+                                            <span style="color:var(--gray-500);">· {{ ucfirst($entry->action) }} at {{ str_replace('_', ' ', $entry->stage) }} · {{ optional($entry->created_at)->format('d M Y, H:i') }}</span>
+                                        </div>
+                                        @if($entry->comment)
+                                            <div style="font-size:.84rem;color:var(--gray-700);margin-top:2px;">{{ $entry->comment }}</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @elseif(filled($application->comments))
                         <div style="padding:12px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px;color:#92400e;font-size:.84rem;">
                             {{ $application->comments }}
                         </div>

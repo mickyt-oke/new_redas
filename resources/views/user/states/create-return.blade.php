@@ -4,8 +4,8 @@
     <div class="redas-content" style="padding-bottom:0;">
         <div class="page-header" style="margin-bottom:16px;">
             <div>
-                <h1 class="page-title">Submit Operational Return</h1>
-                <p class="page-subtitle">Complete all applicable sections and submit to your supervisor for review.</p>
+                <h1 class="page-title">{{ isset($editing) ? 'Edit Operational Return' : 'Submit Operational Return' }}</h1>
+                <p class="page-subtitle">{{ isset($editing) ? 'Update the sections below and resubmit for review.' : 'Complete all applicable sections and submit to your supervisor for review.' }}</p>
             </div>
             <!-- Workflow indicator -->
             <div class="workflow-path" id="workflowBadge">
@@ -46,8 +46,16 @@
     </div>
 
     <!-- ═══ FORM ═══ -->
-    <form id="returnForm" method="POST" action="{{ route('user.returns.store') }}" enctype="multipart/form-data">
+    @php
+        $editData = isset($editing) && is_array($editing->return_data) ? $editing->return_data : [];
+        $selectedCommand = old('command_name', $editData['command_name'] ?? '');
+        $selectedType = old('return_type', $editData['return_type'] ?? 'monthly');
+    @endphp
+    <form id="returnForm" method="POST" action="{{ isset($editing) ? route('user.returns.update', $editing) : route('user.returns.store') }}" enctype="multipart/form-data">
         @csrf
+        @isset($editing)
+            @method('PUT')
+        @endisset
 
         <!-- Data Protection Notice -->
         <div class="redas-content" style="padding-bottom:0;padding-top:16px;">
@@ -80,61 +88,61 @@
                             <select name="command_name" id="commandName" class="ni ni-select" required>
                                 <option value="">Select Command</option>
                                 <optgroup label="HQ Directorates">
-                                    <option value="HRM Directorate">HRM Directorate</option>
-                                    <option value="Finance & Accounts">Finance &amp; Accounts</option>
-                                    <option value="Border Management">Border Management</option>
-                                    <option value="Migration Directorate">Migration Directorate</option>
-                                    <option value="POTD Directorate">POTD Directorate</option>
-                                    <option value="Visa & Residency">Visa &amp; Residency</option>
-                                    <option value="PRS Directorate">PRS Directorate</option>
-                                    <option value="Investigation & Compliance">Investigation &amp; Compliance</option>
-                                    <option value="ICT Directorate">ICT Directorate</option>
-                                    <option value="Works & Logistics">Works &amp; Logistics</option>
+                                    <option value="HRM Directorate" @selected($selectedCommand === 'HRM Directorate')>HRM Directorate</option>
+                                    <option value="Finance & Accounts" @selected($selectedCommand === 'Finance & Accounts')>Finance &amp; Accounts</option>
+                                    <option value="Border Management" @selected($selectedCommand === 'Border Management')>Border Management</option>
+                                    <option value="Migration Directorate" @selected($selectedCommand === 'Migration Directorate')>Migration Directorate</option>
+                                    <option value="POTD Directorate" @selected($selectedCommand === 'POTD Directorate')>POTD Directorate</option>
+                                    <option value="Visa & Residency" @selected($selectedCommand === 'Visa & Residency')>Visa &amp; Residency</option>
+                                    <option value="PRS Directorate" @selected($selectedCommand === 'PRS Directorate')>PRS Directorate</option>
+                                    <option value="Investigation & Compliance" @selected($selectedCommand === 'Investigation & Compliance')>Investigation &amp; Compliance</option>
+                                    <option value="ICT Directorate" @selected($selectedCommand === 'ICT Directorate')>ICT Directorate</option>
+                                    <option value="Works & Logistics" @selected($selectedCommand === 'Works & Logistics')>Works &amp; Logistics</option>
                                 </optgroup>
                                 <optgroup label="Zones">
-                                    <option value="Zone A Lagos">Zone A — Lagos</option>
-                                    <option value="Zone B Kaduna">Zone B — Kaduna</option>
-                                    <option value="Zone C Bauchi">Zone C — Bauchi</option>
-                                    <option value="Zone D Niger">Zone D — Niger</option>
-                                    <option value="Zone E Imo">Zone E — Imo</option>
-                                    <option value="Zone F Oyo">Zone F — Ibadan</option>
-                                    <option value="Zone G Edo">Zone G — Edo</option>
-                                    <option value="Zone H Benue">Zone H — Benue</option>
+                                    <option value="Zone A Lagos" @selected($selectedCommand === 'Zone A Lagos')>Zone A — Lagos</option>
+                                    <option value="Zone B Kaduna" @selected($selectedCommand === 'Zone B Kaduna')>Zone B — Kaduna</option>
+                                    <option value="Zone C Bauchi" @selected($selectedCommand === 'Zone C Bauchi')>Zone C — Bauchi</option>
+                                    <option value="Zone D Niger" @selected($selectedCommand === 'Zone D Niger')>Zone D — Niger</option>
+                                    <option value="Zone E Imo" @selected($selectedCommand === 'Zone E Imo')>Zone E — Imo</option>
+                                    <option value="Zone F Oyo" @selected($selectedCommand === 'Zone F Oyo')>Zone F — Ibadan</option>
+                                    <option value="Zone G Edo" @selected($selectedCommand === 'Zone G Edo')>Zone G — Edo</option>
+                                    <option value="Zone H Benue" @selected($selectedCommand === 'Zone H Benue')>Zone H — Benue</option>
                                 </optgroup>
                                 <optgroup label="States">
                                     @foreach(['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT'] as $s)
-                                    <option value="{{ $s }} State">{{ $s }} State</option>
+                                    <option value="{{ $s }} State" @selected($selectedCommand === $s . ' State')>{{ $s }} State</option>
                                     @endforeach
                                 </optgroup>
                                 <optgroup label="Special Commands">
-                                    <option value="MMIA Lagos">MMIA Lagos</option>
-                                    <option value="NAIA Abuja">NAIA Abuja</option>
-                                    <option value="MAKIA Kano">MAKIA Kano</option>
-                                    <option value="PHIA Port Harcourt">PHIA Port Harcourt</option>
-                                    <option value="Seme Border Command">Seme Border Command</option>
-                                    <option value="Idiroko Border Command">Idiroko Border Command</option>
-                                    <option value="Lagos Passport Command">Lagos Passport Command</option>
-                                    <option value="NIS HQ Abuja">NIS HQ Abuja</option>
+                                    <option value="MMIA Lagos" @selected($selectedCommand === 'MMIA Lagos')>MMIA Lagos</option>
+                                    <option value="NAIA Abuja" @selected($selectedCommand === 'NAIA Abuja')>NAIA Abuja</option>
+                                    <option value="MAKIA Kano" @selected($selectedCommand === 'MAKIA Kano')>MAKIA Kano</option>
+                                    <option value="PHIA Port Harcourt" @selected($selectedCommand === 'PHIA Port Harcourt')>PHIA Port Harcourt</option>
+                                    <option value="Seme Border Command" @selected($selectedCommand === 'Seme Border Command')>Seme Border Command</option>
+                                    <option value="Idiroko Border Command" @selected($selectedCommand === 'Idiroko Border Command')>Idiroko Border Command</option>
+                                    <option value="Lagos Passport Command" @selected($selectedCommand === 'Lagos Passport Command')>Lagos Passport Command</option>
+                                    <option value="NIS HQ Abuja" @selected($selectedCommand === 'NIS HQ Abuja')>NIS HQ Abuja</option>
                                 </optgroup>
                             </select>
                         </div>
                         <div class="fg">
                             <label>Return Period</label>
-                            <input type="month" name="period" class="ni" required value="{{ now()->format('Y-m') }}">
+                            <input type="month" name="period" class="ni" required value="{{ old('period', $editData['period'] ?? now()->format('Y-m')) }}">
                         </div>
                         <div class="fg">
                             <label>Return Type</label>
                             <select name="return_type" class="ni ni-select" required>
-                                <option value="monthly">Monthly Return</option>
-                                <option value="quarterly">Quarterly Return</option>
-                                <option value="biannual">Bi-Annual Return</option>
-                                <option value="annual">Annual Return</option>
-                                <option value="special">Special Report</option>
+                                <option value="monthly" @selected($selectedType === 'monthly')>Monthly Return</option>
+                                <option value="quarterly" @selected($selectedType === 'quarterly')>Quarterly Return</option>
+                                <option value="biannual" @selected($selectedType === 'biannual')>Bi-Annual Return</option>
+                                <option value="annual" @selected($selectedType === 'annual')>Annual Return</option>
+                                <option value="special" @selected($selectedType === 'special')>Special Report</option>
                             </select>
                         </div>
                         <div class="fg">
                             <label>Reporting Officer</label>
-                            <input type="text" name="reporting_officer" class="ni" value="{{ auth()->user()->name }}" readonly>
+                            <input type="text" name="reporting_officer" class="ni" value="{{ old('reporting_officer', $editData['reporting_officer'] ?? auth()->user()->name) }}" readonly>
                         </div>
                     </div>
                     <input type="hidden" name="workflow_path" id="workflowPath" value="zonal">
@@ -764,14 +772,14 @@
                     <i class="fas fa-eye"></i> Preview
                 </button>
                 <button type="submit" class="btn-nis btn-primary-nis btn-sm" id="submitBtn">
-                    <i class="fas fa-paper-plane"></i> Submit Return
+                    <i class="fas fa-paper-plane"></i> {{ isset($editing) ? 'Update & Resubmit' : 'Submit Return' }}
                 </button>
             </div>
         </div>
 
     </form>
 
-<!-- ═══ PREVIEW MODAL ═══
+<!-- ═══ PREVIEW MODAL ═══ -->
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content" style="border-radius:var(--radius-lg);border:none;">
@@ -792,10 +800,10 @@
             </div>
         </div>
     </div>
-</div> -->
+</div>
 
 <!-- ═══ CONFIRM SUBMIT MODAL ═══ -->
-{{-- <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius:var(--radius-lg);border:none;">
             <div class="modal-header" style="background:var(--nis-700);color:#fff;border:none;padding:14px 20px;">
@@ -816,6 +824,48 @@
             </div>
         </div>
     </div>
-</div> --}}
+</div>
+
+@isset($editing)
+<script>
+    /* Edit mode: restore the previously submitted values into the form.
+       Fields the user just re-typed (flashed old input after a failed
+       validation) take precedence and are not overwritten. */
+    window.REDAS_EDITING = true;
+    (function () {
+        var PREFILL = @json($editData);
+        var OLD_KEYS = @json(array_map('strval', array_keys(session()->getOldInput())));
+        var form = document.getElementById('returnForm');
+        if (!form || !PREFILL) return;
+
+        var entries = [];
+        (function flatten(prefix, value) {
+            if (value === null || value === undefined) return;
+            if (typeof value === 'object') {
+                Object.keys(value).forEach(function (key) {
+                    flatten(prefix ? prefix + '[' + key + ']' : key, value[key]);
+                });
+            } else {
+                entries.push([prefix, value]);
+            }
+        })('', PREFILL);
+
+        entries.forEach(function (pair) {
+            if (OLD_KEYS.indexOf(pair[0]) !== -1) return;
+            var el = null;
+            try { el = form.querySelector('[name="' + CSS.escape(pair[0]) + '"]'); } catch (e) { return; }
+            if (!el || el.type === 'file' || el.readOnly) return;
+            if (el.type === 'checkbox' || el.type === 'radio') {
+                el.checked = !!pair[1] && pair[1] !== '0';
+            } else {
+                el.value = pair[1];
+            }
+        });
+
+        /* Let the shared scripts recompute totals from the restored values. */
+        form.dispatchEvent(new Event('input', { bubbles: true }));
+    })();
+</script>
+@endisset
 
 @include('partials.footer')

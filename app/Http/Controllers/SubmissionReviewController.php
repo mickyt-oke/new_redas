@@ -26,7 +26,7 @@ class SubmissionReviewController extends Controller
         $stageName = $this->stageName($user);
         $dashboardTitle = $this->dashboardTitle($user);
         $nextStage = SubmissionWorkflow::nextStageFromStage(
-            SubmissionWorkflow::stageForApprover($user)
+            SubmissionWorkflow::stageForApprover($user) ?? SubmissionWorkflow::STAGE_APPROVED
         );
 
         $pendingQuery = SubmissionWorkflow::pendingQueryForApprover($user);
@@ -86,6 +86,8 @@ class SubmissionReviewController extends Controller
         }
 
         $this->authorizeView($application, $user);
+
+        $application->load(['reviewComments.user']);
 
         return view('desk-admin.preview', [
             'application' => $application,
@@ -213,7 +215,11 @@ class SubmissionReviewController extends Controller
 
         $this->authorizeAction($application, $user);
 
-        SubmissionWorkflow::approve($application, $user);
+        $request->validate([
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        SubmissionWorkflow::approve($application, $user, $request->input('note'));
 
         return back()->with('status', 'Submission approved and routed to the next stage.');
     }
@@ -263,7 +269,11 @@ class SubmissionReviewController extends Controller
      */
     private function authorizeView(Application $application, User $user): void
     {
-        if (SubmissionWorkflow::stageForApprover($user) === null) {
+        $isReviewer = SubmissionWorkflow::stageForApprover($user) !== null;
+        $isHqViewer = $user->hasCategory('admin', 'super_admin')
+            && $user->hasLocationType('headquarters');
+
+        if (! $isReviewer && ! $isHqViewer) {
             abort(403, 'Unauthorized.');
         }
 
@@ -369,8 +379,9 @@ class SubmissionReviewController extends Controller
         return match ($user?->user_category) {
             'directorate_user' => 'directorate',
             'directorate_admin' => 'directorate',
+            'cgis_unit_user', 'cgis_desk_admin' => 'cgis',
             'zonal_commander' => 'zonal',
-            'admin', 'super_admin' => 'hq',
+            'hq_admin', 'admin', 'super_admin' => 'hq',
             default => 'state',
         };
     }
@@ -380,9 +391,9 @@ class SubmissionReviewController extends Controller
         return match ($user?->user_category) {
             'desk_admin' => 'Desk Admin Review',
             'directorate_admin' => 'Directorate Admin Review',
+            'cgis_desk_admin' => 'CGIS Desk Review',
             'zonal_commander' => 'Zonal Command Review',
-            'admin' => 'HQ Admin Review',
-            'super_admin' => 'Final Admin Review',
+            'hq_admin' => 'HQ Admin Review',
             default => 'Review Queue',
         };
     }
@@ -405,9 +416,9 @@ class SubmissionReviewController extends Controller
         return match ($user?->user_category) {
             'desk_admin' => 'Desk Admin Dashboard',
             'directorate_admin' => 'Directorate Admin Dashboard',
+            'cgis_desk_admin' => 'CGIS Desk Admin Dashboard',
             'zonal_commander' => 'Zonal Command Dashboard',
-            'admin' => 'HQ Admin Review Dashboard',
-            'super_admin' => 'Final Admin Review Dashboard',
+            'hq_admin' => 'HQ Admin Review Dashboard',
             default => 'Review Dashboard',
         };
     }
@@ -415,10 +426,9 @@ class SubmissionReviewController extends Controller
     private function reviewRoute(?User $user, string $action): string
     {
         return match ($user?->user_category) {
-            'desk_admin', 'directorate_admin' => "desk.admin.submissions.{$action}",
+            'desk_admin', 'directorate_admin', 'cgis_desk_admin' => "desk.admin.submissions.{$action}",
             'zonal_commander' => "zonal.submissions.{$action}",
-            'admin' => "admin.submissions.{$action}",
-            'super_admin' => "superadmin.submissions.{$action}",
+            'hq_admin' => "admin.submissions.{$action}",
             default => 'user.dashboard',
         };
     }
