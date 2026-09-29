@@ -33,19 +33,19 @@ class DashboardController extends Controller
             'icon' => 'fas fa-chart-bar',
         ],
         'finance' => [
-            'name' => 'Finance and Accounts',
+            'name' => 'Finance and Accounts (F/A)',
             'icon' => 'fas fa-coins',
         ],
         'investigation' => [
-            'name' => 'Investigation and Compliance',
+            'name' => 'Investigation and Compliance (I/C)',
             'icon' => 'fas fa-search',
         ],
         'passport' => [
-            'name' => 'Passport and Other Travel Documents',
+            'name' => 'Passport and Other Travel Documents (P/OTD)',
             'icon' => 'fas fa-passport',
         ],
         'visa' => [
-            'name' => 'Visa and Residency',
+            'name' => 'Visa and Residency (V/R)',
             'icon' => 'fas fa-stamp',
         ],
         'migration' => [
@@ -53,7 +53,7 @@ class DashboardController extends Controller
             'icon' => 'fas fa-globe-africa',
         ],
         'border' => [
-            'name' => 'Border Management',
+            'name' => 'Border Management (BMD)',
             'icon' => 'fas fa-border-all',
         ],
         'ict' => [
@@ -76,7 +76,7 @@ class DashboardController extends Controller
             'icon' => 'fas fa-shield-halved',
         ],
         'epms' => [
-            'name' => 'Electronic Performance Management System (EPMS)',
+            'name' => 'Electronic Passport Management System (EPMS)',
             'icon' => 'fas fa-chart-line',
         ],
         'hostmanship' => [
@@ -167,6 +167,7 @@ class DashboardController extends Controller
 			return view('user.directorates.' . $slug, array_merge([
 				'commands' => $commands,
 				'slug' => $slug,
+				'formChannel' => 'directorate',
 				'directorateName' => self::DIRECTORATES[$slug]['name'],
 				'directorateIcon' => self::DIRECTORATES[$slug]['icon'],
 				'directorate' => self::DIRECTORATES[$slug],
@@ -176,6 +177,7 @@ class DashboardController extends Controller
 
 		return view('user.directorates.' . $slug, array_merge([
 			'slug' => $slug,
+			'formChannel' => 'directorate',
 			'directorateName' => self::DIRECTORATES[$slug]['name'],
 			'directorateIcon' => self::DIRECTORATES[$slug]['icon'],
 			'directorate' => self::DIRECTORATES[$slug],
@@ -413,6 +415,7 @@ class DashboardController extends Controller
 
         return view('user.cgis-units.' . $slug, [
             'slug' => $slug,
+            'formChannel' => 'cgis',
             'unitName' => $unit['name'],
             'unitIcon' => $unit['icon'],
             'unit' => $unit,
@@ -571,6 +574,7 @@ class DashboardController extends Controller
 
         return view($this->formViewName($slug), array_merge([
             'slug' => $slug,
+            'formChannel' => isset(self::CGIS_UNITS[$slug]) ? 'cgis' : 'directorate',
             'directorateName' => $metadata['name'],
             'directorateIcon' => $metadata['icon'],
             'unitName' => $metadata['name'],
@@ -737,7 +741,7 @@ class DashboardController extends Controller
             }
         }
 
-        $application->delete();
+        $application->delete($user);
 
         $redirect = match ($user->user_category) {
             'cgis_unit_user' => redirect()->route('user.cgis-units.dashboard'),

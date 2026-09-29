@@ -88,6 +88,7 @@ class User extends Authenticatable
         'state',
         'zonal',
         'directorate',
+        'unit',
         'headquarters',
     ];
 
@@ -98,6 +99,8 @@ class User extends Authenticatable
         'state',
         'zonal',
         'directorate',
+        'unit_officer',
+        'unit_admin',
         'super_admin',
     ];
 
@@ -132,7 +135,8 @@ class User extends Authenticatable
      */
     public function requiredGeoState(): ?string
     {
-        if ($this->primary_location_type === 'directorate') {
+        // Directorate and CGIS unit accounts are HQ-based and non-geographic.
+        if (in_array($this->primary_location_type, ['directorate', 'unit'], true)) {
             return null;
         }
 
@@ -153,7 +157,7 @@ class User extends Authenticatable
      */
     public function isHeadquartersUser(): bool
     {
-        return in_array($this->primary_location_type, ['headquarters'], true)
+        return in_array($this->primary_location_type, ['headquarters', 'unit'], true)
             || in_array($this->user_category, ['admin', 'super_admin'], true);
     }
 

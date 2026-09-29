@@ -189,7 +189,7 @@ Route::middleware([Authenticate::class, 'access:category=zonal_commander,locatio
 });
 
 // Desk / directorate / CGIS desk admin review routes
-Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin|cgis_desk_admin|hq_admin,location=state|directorate|headquarters,role=admin|state|directorate|minLevel=1', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin|cgis_desk_admin|hq_admin,location=state|directorate|unit|headquarters,role=admin|state|directorate|unit_admin|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/desk-admin/dashboard', [SubmissionReviewController::class, 'index'])->name('user.desk.home');
     Route::get('/desk-admin/reports', [SubmissionReviewController::class, 'reports'])->name('desk.admin.reports');
     Route::patch('/desk-admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
@@ -201,7 +201,7 @@ Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_
 
 // CGIS unit user routes — access only to CGIS unit pages
 // Note: Each CGIS unit user has a unique slug (e.g., actu, provost, servicom) that is used to access their specific unit form.
-Route::middleware([Authenticate::class, 'access:category=cgis_unit_user,location=headquarters,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'access:category=cgis_unit_user,location=unit|headquarters,role=user|officer|unit_officer|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/cgis-units', function () {
         return redirect()->route('user.cgis-units.dashboard');
     })->name('user.cgis-units.home');

@@ -82,50 +82,8 @@
                     Nigeria Immigration Service — Monthly Reporting Template
                 </div>
                 <div class="nis-section-body">
-                    <div class="form-grid-4" style="align-items:end;">
-                        <div class="fg">
-                            <label>Command / Formation</label>
-                            <select name="command_name" id="commandName" class="ni ni-select" required>
-                                <option value="">Select Command</option>
-                                <optgroup label="HQ Directorates">
-                                    <option value="HRM Directorate" @selected($selectedCommand === 'HRM Directorate')>HRM Directorate</option>
-                                    <option value="Finance & Accounts" @selected($selectedCommand === 'Finance & Accounts')>Finance &amp; Accounts</option>
-                                    <option value="Border Management" @selected($selectedCommand === 'Border Management')>Border Management</option>
-                                    <option value="Migration Directorate" @selected($selectedCommand === 'Migration Directorate')>Migration Directorate</option>
-                                    <option value="POTD Directorate" @selected($selectedCommand === 'POTD Directorate')>POTD Directorate</option>
-                                    <option value="Visa & Residency" @selected($selectedCommand === 'Visa & Residency')>Visa &amp; Residency</option>
-                                    <option value="PRS Directorate" @selected($selectedCommand === 'PRS Directorate')>PRS Directorate</option>
-                                    <option value="Investigation & Compliance" @selected($selectedCommand === 'Investigation & Compliance')>Investigation &amp; Compliance</option>
-                                    <option value="ICT Directorate" @selected($selectedCommand === 'ICT Directorate')>ICT Directorate</option>
-                                    <option value="Works & Logistics" @selected($selectedCommand === 'Works & Logistics')>Works &amp; Logistics</option>
-                                </optgroup>
-                                <optgroup label="Zones">
-                                    <option value="Zone A Lagos" @selected($selectedCommand === 'Zone A Lagos')>Zone A — Lagos</option>
-                                    <option value="Zone B Kaduna" @selected($selectedCommand === 'Zone B Kaduna')>Zone B — Kaduna</option>
-                                    <option value="Zone C Bauchi" @selected($selectedCommand === 'Zone C Bauchi')>Zone C — Bauchi</option>
-                                    <option value="Zone D Niger" @selected($selectedCommand === 'Zone D Niger')>Zone D — Niger</option>
-                                    <option value="Zone E Imo" @selected($selectedCommand === 'Zone E Imo')>Zone E — Imo</option>
-                                    <option value="Zone F Oyo" @selected($selectedCommand === 'Zone F Oyo')>Zone F — Ibadan</option>
-                                    <option value="Zone G Edo" @selected($selectedCommand === 'Zone G Edo')>Zone G — Edo</option>
-                                    <option value="Zone H Benue" @selected($selectedCommand === 'Zone H Benue')>Zone H — Benue</option>
-                                </optgroup>
-                                <optgroup label="States">
-                                    @foreach(['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT'] as $s)
-                                    <option value="{{ $s }} State" @selected($selectedCommand === $s . ' State')>{{ $s }} State</option>
-                                    @endforeach
-                                </optgroup>
-                                <optgroup label="Special Commands">
-                                    <option value="MMIA Lagos" @selected($selectedCommand === 'MMIA Lagos')>MMIA Lagos</option>
-                                    <option value="NAIA Abuja" @selected($selectedCommand === 'NAIA Abuja')>NAIA Abuja</option>
-                                    <option value="MAKIA Kano" @selected($selectedCommand === 'MAKIA Kano')>MAKIA Kano</option>
-                                    <option value="PHIA Port Harcourt" @selected($selectedCommand === 'PHIA Port Harcourt')>PHIA Port Harcourt</option>
-                                    <option value="Seme Border Command" @selected($selectedCommand === 'Seme Border Command')>Seme Border Command</option>
-                                    <option value="Idiroko Border Command" @selected($selectedCommand === 'Idiroko Border Command')>Idiroko Border Command</option>
-                                    <option value="Lagos Passport Command" @selected($selectedCommand === 'Lagos Passport Command')>Lagos Passport Command</option>
-                                    <option value="NIS HQ Abuja" @selected($selectedCommand === 'NIS HQ Abuja')>NIS HQ Abuja</option>
-                                </optgroup>
-                            </select>
-                        </div>
+                    <div class="form-grid-3" style="align-items:end;">
+
                         <div class="fg">
                             <label>Return Period</label>
                             <input type="month" name="period" class="ni" required value="{{ old('period', $editData['period'] ?? now()->format('Y-m')) }}">

@@ -391,7 +391,10 @@
             </div>
         @endforeach
     </section>
-    @php($commentHistory = $application->relationLoaded('reviewComments') ? $application->reviewComments : collect())
+    @endif
+    @php
+        $commentHistory = $application->relationLoaded('reviewComments') ? $application->reviewComments : collect();
+    @endphp
     @if($commentHistory->isNotEmpty())
     <section class="report-section">
         <h2 class="section-title"><span class="section-num"><i class="fas fa-clock-rotate-left" style="font-size:.6rem;"></i></span> Review History</h2>

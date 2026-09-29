@@ -23,6 +23,22 @@
             $documentGroups[] = [$collection, $label, $paths];
         }
     }
+
+    // Recursively renders nested return_data arrays (e.g. directorate forms) as readable text.
+    $flattenValue = function ($value) use (&$flattenValue) {
+        if (! is_array($value)) {
+            return $value ?? '—';
+        }
+
+        $parts = [];
+        foreach ($value as $key => $item) {
+            $rendered = $flattenValue($item);
+            $label = is_string($key) ? ucwords(str_replace('_', ' ', $key)).': ' : '';
+            $parts[] = $label.$rendered;
+        }
+
+        return implode(', ', $parts);
+    };
 @endphp
 
 <main class="redas-content">
@@ -99,7 +115,7 @@
                                 @forelse(collect($data)->except($skipKeys) as $field => $value)
                                     <tr>
                                         <td style="font-weight:600;width:40%;text-transform:capitalize;">{{ str_replace('_', ' ', $field) }}</td>
-                                        <td>{{ is_array($value) ? implode(', ', array_map('strval', $value)) : $value }}</td>
+                                        <td>{{ $flattenValue($value) }}</td>
                                     </tr>
                                 @empty
                                     <tr><td style="text-align:center;color:var(--gray-400);padding:24px;">No additional return data recorded.</td></tr>

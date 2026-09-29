@@ -19,13 +19,13 @@ class HqAdminController extends Controller
     private const DIRECTORATES = [
         'hrm' => 'Human Resources Management (HRM)',
         'prs' => 'Planning, Research and Statistics (PRS)',
-        'finance' => 'Finance and Accounts',
-        'investigation' => 'Investigation and Compliance',
-        'passport' => 'Passport and Other Travel Documents',
-        'visa' => 'Visa and Residency',
+        'finance' => 'Finance and Accounts (F/A)',
+        'investigation' => 'Investigation and Compliance (I/C)',
+        'passport' => 'Passport and Other Travel Documents (P/OTD)',
+        'visa' => 'Visa and Residency (V/R)',
         'migration' => 'Migration Directorate',
         'border' => 'Border Management',
-        'ict' => 'ICT Directorate',
+        'ict' => 'ICT/Cybersecurity Directorate',
         'works-logistics' => 'Works and Logistics',
     ];
 

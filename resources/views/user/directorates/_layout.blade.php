@@ -21,12 +21,16 @@
     <div class="page-header" style="margin-bottom:18px;">
         <div>
             <h1 class="page-title" style="margin-bottom:4px;">
-                <i class="{{ $directorateIcon ?? 'fas fa-building-columns' }}" style="margin-right:8px;"></i>
-                {{ $directorateName ?? 'Directorate' }} Return
+                <i class="{{ $directorateIcon ?? $unitIcon ?? 'fas fa-building-columns' }}" style="margin-right:8px;"></i>
+                {{ $directorateName ?? $unitName ?? 'Directorate' }} Return
             </h1>
         </div>
         @if(auth()->user()?->role === 'directorate')
         <a href="{{ route('user.directorates.dashboard') }}" class="btn-nis btn-ghost">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        @elseif(auth()->user()?->role === 'unit_officer' || auth()->user()?->user_category === 'cgis_unit_user')
+        <a href="{{ route('user.cgis-units.dashboard') }}" class="btn-nis btn-ghost">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
         </a>
         @elseif(auth()->user()?->user_category === 'directorate_admin')
@@ -102,7 +106,15 @@
     </div>
     @endif
 
-    <form method="POST" enctype="multipart/form-data" action="{{ isset($editing) ? route('user.directorates.submissions.update', $editing) : route('user.directorates.store', $slug) }}">
+    @php
+        // CGIS unit forms submit through their own route family; directorate
+        // forms use the directorate routes. $formChannel is set by the controller.
+        $cgisForm = ($formChannel ?? 'directorate') === 'cgis';
+        $formAction = isset($editing)
+            ? route($cgisForm ? 'user.cgis-units.submissions.update' : 'user.directorates.submissions.update', $editing)
+            : route($cgisForm ? 'user.cgis-units.store' : 'user.directorates.store', $slug);
+    @endphp
+    <form method="POST" enctype="multipart/form-data" action="{{ $formAction }}">
         @csrf
         @isset($editing)
             @method('PUT')
@@ -399,7 +411,7 @@
     <script>
         (function () {
             var REDAS_PREFILL = @json($editing->return_data ?? []);
-            var form = document.querySelector('form[action*="directorates"]');
+            var form = document.querySelector('main form') || document.querySelector('form[action*="directorates"], form[action*="cgis-units"]');
             if (!form || !REDAS_PREFILL) { return; }
 
             // Recursively flatten nested objects into bracket-notation field names,

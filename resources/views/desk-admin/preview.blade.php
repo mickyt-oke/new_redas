@@ -258,7 +258,9 @@
     </div>
 
     {{-- Review comment history --}}
-    @php($commentHistory = $application->reviewComments ?? collect())
+    @php
+        $commentHistory = $application->relationLoaded('reviewComments') ? $application->reviewComments : collect();
+    @endphp
     @if($commentHistory->isNotEmpty())
         <div class="redas-card" style="padding:16px;">
             <h3 style="margin:0 0 12px;font-size:.95rem;font-weight:700;color:var(--gray-800);">Review History</h3>

@@ -307,6 +307,10 @@ class AuthController extends Controller
             return true;
         }
 
+        if ($requestedRole === 'cgis_unit_user' && $user->role === 'unit_officer') {
+            return true;
+        }
+
         return false;
     }
 
@@ -436,16 +440,16 @@ class AuthController extends Controller
                 'canonical_role' => 'zonal',
             ],
             'cgis_unit_user' => [
-                'role' => ['officer'],
-                'location' => 'headquarters',
+                'role' => ['unit_officer'],
+                'location' => 'unit',
                 'level' => 0,
-                'canonical_role' => 'officer',
+                'canonical_role' => 'unit_officer',
             ],
             'cgis_desk_admin' => [
-                'role' => ['admin'],
-                'location' => 'headquarters',
+                'role' => ['unit_admin'],
+                'location' => 'unit',
                 'level' => 2,
-                'canonical_role' => 'admin',
+                'canonical_role' => 'unit_admin',
             ],
             'admin' => [
                 'role' => ['admin'],
@@ -501,6 +505,8 @@ class AuthController extends Controller
             'officer' => 'state_user',
             'directorate' => 'directorate_user',
             'directorate_admin' => 'directorate_admin',
+            'unit_officer' => 'cgis_unit_user',
+            'unit_admin' => 'cgis_desk_admin',
             'state' => 'desk_admin',
             'zonal' => 'zonal_commander',
             'admin' => 'admin',
@@ -513,9 +519,11 @@ class AuthController extends Controller
     {
         return match ($role) {
             'directorate' => 'directorate',
+            'unit_officer' => 'unit',
+            'unit_admin' => 'unit',
             'state' => 'state',
             'zonal' => 'zonal',
-            'admin', 'super_admin', 'superAdmin' => 'headquarters',
+            'hq_admin', 'admin', 'super_admin', 'superAdmin' => 'headquarters',
             default => 'state',
         };
     }
