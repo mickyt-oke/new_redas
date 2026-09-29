@@ -13,6 +13,10 @@ class SendSubmissionRejectedNotification implements ShouldQueue
         $application = $event->application;
         $user = $application->user;
 
+        if (! $user || ! $user->email) {
+            return;
+        }
+
         $user->notify(new WorkflowNotification('submission_rejected', [
             'name' => $user->name,
             'comments' => $event->comments ?? 'No comments provided.',

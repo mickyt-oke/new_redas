@@ -55,26 +55,56 @@ Route::middleware('guest')->group(function () {
     Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset');
 });
 
-// State user (officer) routes — full access to all user pages
-Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
-    Route::get('/user/dashboard', function () {
-        $dashboardView = view()->exists('user.dashboard') ? 'user.dashboard' : 'user.states.dashboard';
-
-        return view($dashboardView);
-    })->name('user.dashboard');
+// State user (officer) routes — restricted to state_user accounts
+Route::middleware([Authenticate::class, 'access:category=state_user,location=state,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
+    Route::get('/user/dashboard', [DashboardController::class, 'stateDashboard'])->name('user.dashboard');
 
     Route::get('/user/returns/create', function () {
         return view('user.states.create-return');
     })->name('user.returns.create');
 
+    Route::post('/user/returns/preview', [DashboardController::class, 'previewStateReturn'])->middleware('throttle:60,1')->name('user.returns.preview');
+
     Route::get('/user/submissions', [DashboardController::class, 'stateSubmissions'])->name('user.submissions');
 
     Route::get('/user/returns/{application}', [DashboardController::class, 'showSubmission'])->name('user.returns.show');
+    Route::get('/user/returns/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.returns.print');
     Route::get('/user/returns/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.returns.document');
     Route::get('/user/returns/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.returns.edit');
     Route::put('/user/returns/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.returns.update');
     Route::delete('/user/returns/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.returns.destroy');
 
+    Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'command_name' => ['required', 'string', 'max:120'],
+            'period' => ['required', 'date_format:Y-m'],
+            'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
+            'reporting_officer' => ['required', 'string', 'max:120'],
+            'data_consent' => ['required', 'accepted'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+        ]);
+
+        $returnData = $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status']);
+        $returnData['report_period'] = $request->input('period');
+
+        $paths = [];
+        foreach ((array) $request->file('attachments', []) as $file) {
+            if ($file && $file->isValid()) {
+                $paths[] = $file->store('supporting-documents/state');
+            }
+        }
+        $returnData['attachments'] = $paths;
+
+        \App\Services\SubmissionWorkflow::create(Auth::User(), $returnData);
+
+        return redirect('/user/submissions')
+            ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
+    })->middleware('throttle:60,1')->name('user.returns.store');
+});
+
+// Shared authenticated user pages (all roles)
+Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
     Route::get('/user/notifications', function () {
         return view('user.states.notifications');
     })->name('user.notifications');
@@ -143,34 +173,6 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
         return redirect()->route('user.reports')
             ->with('status', 'Your report has been generated and is ready for download.');
     })->middleware('throttle:60,1')->name('user.reports.generate');
-
-    Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'command_name' => ['required', 'string', 'max:120'],
-            'period' => ['required', 'date_format:Y-m'],
-            'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
-            'reporting_officer' => ['required', 'string', 'max:120'],
-            'data_consent' => ['required', 'accepted'],
-            'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
-        ]);
-
-        $returnData = $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status']);
-        $returnData['report_period'] = $request->input('period');
-
-        $paths = [];
-        foreach ((array) $request->file('attachments', []) as $file) {
-            if ($file && $file->isValid()) {
-                $paths[] = $file->store('supporting-documents/state');
-            }
-        }
-        $returnData['attachments'] = $paths;
-
-        \App\Services\SubmissionWorkflow::create(Auth::User(), $returnData);
-
-        return redirect('/user/submissions')
-            ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
-    })->middleware('throttle:60,1')->name('user.returns.store');
 });
 
 Route::middleware([Authenticate::class])->group(function () {

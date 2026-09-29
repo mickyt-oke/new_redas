@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Events\SubmissionCreated;
+use App\Events\SubmissionRejected;
+use App\Events\SubmissionStageAdvanced;
 use App\Models\Application;
 use App\Models\ApplicationComment;
 use App\Models\User;
@@ -48,6 +51,7 @@ class SubmissionWorkflow
 
         self::recordComment($application, $user, self::STAGE_SUBMITTED, ApplicationComment::ACTION_SUBMITTED);
         self::notifyPendingReviewers($application);
+        SubmissionCreated::dispatch($application);
 
         return $application;
     }
@@ -208,6 +212,8 @@ class SubmissionWorkflow
             );
             self::notifyPendingReviewers($application);
         }
+
+        SubmissionStageAdvanced::dispatch($application, $nextStage);
     }
 
     /**
@@ -240,6 +246,8 @@ class SubmissionWorkflow
             'Return returned for correction',
             'Your return RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT) . ' was sent back at ' . str_replace('_', ' ', $currentStage) . '.' . ($comment ? ' Reason: ' . $comment : '')
         );
+
+        SubmissionRejected::dispatch($application, $comment);
     }
 
     /**

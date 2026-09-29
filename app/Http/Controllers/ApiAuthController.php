@@ -80,16 +80,28 @@ class ApiAuthController extends Controller
         ]);
 
         $mailer = new \App\Services\Messaging\ResendMailService();
-        $mailer->sendFromTemplate(
-            'otp_login',
-            [
-                'name' => $user->name,
-                'otp' => $otp,
-                'expires_in_minutes' => (int) ceil($ttlSeconds / 60),
-            ],
-            $user->email,
-            $user->name
-        );
+
+        try {
+            $mailer->sendFromTemplate(
+                'otp_login',
+                [
+                    'name' => $user->name,
+                    'otp' => $otp,
+                    'expires_in_minutes' => (int) ceil($ttlSeconds / 60),
+                ],
+                $user->email,
+                $user->name
+            );
+        } catch (Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Login OTP email delivery failed', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'We could not send your verification code right now. Please try again shortly.',
+            ], 502);
+        }
 
         return response()->json([
             'message' => 'OTP_REQUIRED',

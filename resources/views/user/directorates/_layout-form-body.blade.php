@@ -20,8 +20,8 @@
             <input type="text" class="ni" name="reporting_officer" required value="{{ old('reporting_officer', $editing->return_data['reporting_officer'] ?? auth()->user()->name) }}" autocomplete="off" readonly>
         </div>
         <div>
-            <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Directorate</label>
-            <input type="text" class="ni" value="{{ $directorateName ?? 'Directorate' }}" readonly>
+            <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">{{ isset($unitName) ? 'Unit' : 'Directorate' }}</label>
+            <input type="text" class="ni" value="{{ $unitName ?? $directorateName ?? 'Directorate' }}" readonly>
         </div>
     </div>
 </div>

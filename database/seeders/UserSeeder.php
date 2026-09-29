@@ -7,7 +7,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class TestUserSeeder extends Seeder
+class UserSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -21,18 +21,18 @@ class TestUserSeeder extends Seeder
         $password = Hash::make('password123');
 
         $officers = [
-            ['first_name' => 'Michael', 'last_name' => 'Oke', 'email' => 'michael.oke@nis.gov.ng'],
-            ['first_name' => 'Shefiu', 'last_name' => 'Akintunde', 'email' => 'shefiu.akintunde@nis.gov.ng'],
-            ['first_name' => 'Gift', 'last_name' => 'Dagogo', 'email' => 'gift.dagogo@nis.gov.ng'],
-            ['first_name' => 'Adamma', 'last_name' => 'Eze', 'email' => 'adamma.eze@nis.gov.ng'],
-            ['first_name' => 'Temitope', 'last_name' => 'Taiwo', 'email' => 'temitope.taiwo@nis.gov.ng'],
-            ['first_name' => 'Nifemi', 'last_name' => 'Baruwa', 'email' => 'nifemi.baruwa@nis.gov.ng'],
-            ['first_name' => 'Mohammed', 'last_name' => 'Kawu', 'email' => 'mohammed.kawu@nis.gov.ng'],
-            ['first_name' => 'Victor', 'last_name' => 'Adewumi', 'email' => 'victor.adewumi@nis.gov.ng'],
-            ['first_name' => 'Precious', 'last_name' => 'Oshifekun', 'email' => 'precious.oshifekun@nis.gov.ng'],
-            ['first_name' => 'Moses', 'last_name' => 'Ige', 'email' => 'moses.ige@nis.gov.ng'],
-            ['first_name' => 'Oviezino', 'last_name' => 'Ogheneovo', 'email' => 'oviezino.ogheneovo@nis.gov.ng'],
-            ['first_name' => 'Olasunkanmi', 'last_name' => 'Akinsowon', 'email' => 'olasunkanmi.akinsowon@nis.gov.ng']
+            ['first_name' => '', 'last_name' => 'Oke', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Akintunde', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Dagogo', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Eze', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Taiwo', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Baruwa', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Kawu', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Adewumi', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Oshifekun', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Ige', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Ogheneovo', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Akinsowon', 'email' => '']
         ];
 
 

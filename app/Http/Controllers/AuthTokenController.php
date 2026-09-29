@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Messaging\ResendMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -63,15 +64,28 @@ class AuthTokenController extends Controller
         return $token;
     }
 
+    /**
+     * Send a magic-link email; failures are logged but never bubble up, since
+     * callers (e.g. password reset) must return an identical response whether
+     * or not the account exists to avoid leaking account existence.
+     */
     private function sendMagicLink(string $templateKey, array $variables, string $toEmail, ?string $toName = null): void
     {
-        $mailer = new ResendMailService();
-        $mailer->sendFromTemplate(
-            $templateKey,
-            $variables,
-            $toEmail,
-            $toName
-        );
+        try {
+            $mailer = new ResendMailService();
+            $mailer->sendFromTemplate(
+                $templateKey,
+                $variables,
+                $toEmail,
+                $toName
+            );
+        } catch (\Throwable $e) {
+            Log::error('Magic link email delivery failed', [
+                'template' => $templateKey,
+                'email' => $toEmail,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

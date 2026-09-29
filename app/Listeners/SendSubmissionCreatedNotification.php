@@ -13,6 +13,10 @@ class SendSubmissionCreatedNotification implements ShouldQueue
         $application = $event->application;
         $user = $application->user;
 
+        if (! $user || ! $user->email) {
+            return;
+        }
+
         $user->notify(new WorkflowNotification('submission_submitted', [
             'name' => $user->name,
             'stage' => $application->workflow_stage,

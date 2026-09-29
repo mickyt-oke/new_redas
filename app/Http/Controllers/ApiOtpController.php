@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Services\JwtService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -68,17 +69,30 @@ class ApiOtpController extends Controller
             ? 'otp_verify_email'
             : 'otp_login';
 
-        $mailer = new ResendMailService();
-        $mailer->sendFromTemplate(
-            $templateKey,
-            [
-                'name' => $user->name,
-                'otp' => $code,
-                'expires_in_minutes' => (int) ceil($ttlSeconds / 60),
-            ],
-            $user->email,
-            $user->name
-        );
+        try {
+            $mailer = new ResendMailService();
+            $mailer->sendFromTemplate(
+                $templateKey,
+                [
+                    'name' => $user->name,
+                    'otp' => $code,
+                    'expires_in_minutes' => (int) ceil($ttlSeconds / 60),
+                ],
+                $user->email,
+                $user->name
+            );
+        } catch (\Throwable $e) {
+            Log::error('OTP email delivery failed', [
+                'user_id' => $user->id,
+                'purpose' => $purpose,
+                'template' => $templateKey,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'We could not send your verification code right now. Please try again shortly.',
+            ], 502);
+        }
 
         return response()->json([
             'message' => 'OTP sent successfully.',

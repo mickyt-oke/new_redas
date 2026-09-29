@@ -3,6 +3,7 @@
 namespace App\Services\Messaging;
 
 use App\Models\EmailTemplate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ResendMailService
@@ -29,23 +30,29 @@ class ResendMailService
         // Resend accepts html/text; we’ll treat body as HTML.
         $bodyHtml = $renderer->render((string) $tpl->body, $variables);
 
-        $resendApiKey = config('mail.mailers.resend.api_key')
-            ?? config('services.resend.key', null)
-            ?? env('RESEND_API_KEY');
-
-        if (empty($resendApiKey)) {
-            $resendApiKey = env('RESEND_API_KEY');
-        }
+        // Read via config() only: env() is unreliable once config is cached in
+        // production, and config/services.php already sources this from env().
+        $resendApiKey = config('services.resend.key');
 
         if (! is_string($resendApiKey) || trim($resendApiKey) === '') {
             throw new \RuntimeException('RESEND_API_KEY is not configured. Set it in your environment and clear config cache.');
         }
 
-        Mail::mailer('resend')
-            ->send([], [], function ($message) use ($toEmail, $toName, $subject, $bodyHtml) {
-                $message->to($toEmail, $toName);
-                $message->subject($subject);
-                $message->html($bodyHtml);
-            });
+        try {
+            Mail::mailer('resend')
+                ->send([], [], function ($message) use ($toEmail, $toName, $subject, $bodyHtml) {
+                    $message->to($toEmail, $toName);
+                    $message->subject($subject);
+                    $message->html($bodyHtml);
+                });
+        } catch (\Throwable $e) {
+            Log::error('Resend email delivery failed', [
+                'template' => $templateKey,
+                'to' => $toEmail,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException("Failed to send email for template [{$templateKey}]: {$e->getMessage()}", previous: $e);
+        }
     }
 }
