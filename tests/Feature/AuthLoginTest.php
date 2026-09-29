@@ -21,6 +21,7 @@ class AuthLoginTest extends TestCase
             'name' => 'Login Test User',
             'service_number' => 'NIS/OF/7777',
             'email' => 'login@example.com',
+            'email_verified_at' => now(),
             'password' => Hash::make($this->password),
             'role' => 'officer',
             'user_category' => 'state_user',

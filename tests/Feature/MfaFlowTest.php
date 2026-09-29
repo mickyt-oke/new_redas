@@ -21,6 +21,7 @@ class MfaFlowTest extends TestCase
             'name' => 'MFA Test User',
             'service_number' => 'NIS/MF/0001',
             'email' => 'mfa-test@example.com',
+            'email_verified_at' => now(),
             'password' => Hash::make($this->password),
             'role' => 'officer',
             'user_category' => 'state_user',

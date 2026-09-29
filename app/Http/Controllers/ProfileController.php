@@ -30,6 +30,7 @@ class ProfileController extends Controller
         }
 
         $user->password = Hash::make($validated['password']);
+        $user->must_change_password = false;
         $user->save();
 
         return redirect()->route('user.profile')->with('status', 'Password updated successfully.');

@@ -203,6 +203,28 @@ class AuthController extends Controller
             ]);
         }
 
+        if (! $user->email_verified_at) {
+            RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
+
+            AuditLogger::logAuthAttempt(
+                user: $user,
+                status: 'failure',
+                details: [
+                    'reason' => 'email_not_verified',
+                    'login_field' => $field,
+                ],
+                ip: $request->ip() ?? '0.0.0.0',
+                location: null,
+            );
+
+            $request->session()->flash('unverified_login', $loginInput);
+
+            throw ValidationException::withMessages([
+                'username' => ['Please verify your email address before logging in. Check your inbox for the verification link, or request a new one below.'],
+                'login' => ['Please verify your email address before logging in. Check your inbox for the verification link, or request a new one below.'],
+            ]);
+        }
+
         // ABAC geolocation check
         $ip = $request->ip() ?? '0.0.0.0';
         $location = GeolocationService::resolve($ip);
@@ -277,6 +299,11 @@ class AuthController extends Controller
             ip: $request->ip() ?? '0.0.0.0',
             location: $location['state'] ?? 'Unknown',
         );
+
+        if ($user->must_change_password) {
+            return redirect()->route('user.profile')
+                ->with('status', 'For your security, you must change your password before continuing.');
+        }
 
         return redirect($redirectUrl);
     }

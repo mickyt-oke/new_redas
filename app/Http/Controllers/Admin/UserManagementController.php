@@ -28,7 +28,7 @@ class UserManagementController extends Controller
     public function index()
     {
         $users = User::query()
-            ->orderBy('name')
+            ->orderBy('name', 'asc')
             ->paginate(20);
 
         return view('admin.users.index', compact('users'));
@@ -109,6 +109,7 @@ class UserManagementController extends Controller
             'access_level' => $normalized['access_level'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'must_change_password' => true,
             'is_enabled' => $request->boolean('is_enabled', true),
         ]);
 
@@ -195,6 +196,8 @@ class UserManagementController extends Controller
             'email' => $validated['email'],
             'is_enabled' => $request->boolean('is_enabled', true),
             'password' => !empty($validated['password']) ? Hash::make($validated['password']) : $user->password,
+            // An admin-assigned password must be changed by the user on their next login.
+            'must_change_password' => !empty($validated['password']) ? true : $user->must_change_password,
         ]);
 
         return redirect()->route('admin.users.edit', $user)
@@ -310,7 +313,7 @@ class UserManagementController extends Controller
             'used_at' => null,
         ]);
 
-        $frontendUrl = (string) env('APP_URL', 'http://localhost');
+        $frontendUrl = (string) env('APP_URL', 'https://nis-redas.laravel.cloud');
         $magicLink = rtrim($frontendUrl, '/').'/verify-email/'.$rawToken;
 
         try {

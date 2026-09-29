@@ -50,6 +50,7 @@ Route::middleware('guest')->group(function () {
 
     // Magic link verification + password reset (web)
     Route::get('/verify-email/{token}', [AuthTokenController::class, 'verifyEmail'])->name('verify.email');
+    Route::post('/verify-email/resend', [AuthTokenController::class, 'resendVerificationEmail'])->middleware('throttle:5,1')->name('verify.email.resend');
     Route::post('/password/forgot', [AuthTokenController::class, 'requestPasswordReset'])->middleware('throttle:10,1')->name('password.forgot');
     Route::get('/password/reset/{token}', [AuthTokenController::class, 'showResetForm'])->name('password.reset.form');
     Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset');

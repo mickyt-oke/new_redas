@@ -107,6 +107,48 @@ class AuthTokenController extends Controller
     }
 
     /**
+     * POST /verify-email/resend
+     * Always returns the same generic response to avoid leaking whether an
+     * account exists or is already verified.
+     */
+    public function resendVerificationEmail(Request $request)
+    {
+        $validated = $request->validate([
+            'login' => ['required', 'string', 'max:255'],
+        ]);
+
+        $loginInput = trim($validated['login']);
+        $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
+        $normalizedLogin = $field === 'email' ? Str::lower($loginInput) : Str::upper($loginInput);
+
+        /** @var User|null $user */
+        $user = User::query()->where($field, $normalizedLogin)->first();
+
+        if ($user && ! $user->email_verified_at) {
+            $ttlSeconds = (int) env('AUTH_TOKEN_TTL_SECONDS', 3600);
+
+            $created = $this->createToken($user, 'email_verify', $ttlSeconds);
+            $rawToken = (string) $created['raw_token'];
+
+            $frontendUrl = (string) env('APP_URL', 'http://localhost');
+            $magicLink = rtrim($frontendUrl, '/').'/verify-email/'.$rawToken;
+
+            $this->sendMagicLink(
+                'verify_email_magic_link',
+                [
+                    'name' => $user->name,
+                    'magic_link' => $magicLink,
+                    'expires_in_minutes' => (int) ceil($ttlSeconds / 60),
+                ],
+                $user->email,
+                $user->name
+            );
+        }
+
+        return redirect()->route('login')->with('status', 'If the account exists and is unverified, a new verification link has been sent.');
+    }
+
+    /**
      * POST /password/forgot
      * (If you later add UI, wire it to this endpoint)
      */

@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'abac.geo' => \App\Http\Middleware\AbacGeolocationMiddleware::class,
             'mfa.pending' => \App\Http\Middleware\RequireMfaPending::class,
         ]);
+
+        $middleware->appendToGroup('web', \App\Http\Middleware\RequirePasswordChange::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

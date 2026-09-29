@@ -187,6 +187,15 @@
         </div>
         @endif
 
+        @if(session('unverified_login'))
+        <form method="POST" action="{{ route('verify.email.resend') }}" style="background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:var(--radius-md);padding:12px 16px;font-size:.85rem;margin-bottom:20px;">
+            @csrf
+            <input type="hidden" name="login" value="{{ session('unverified_login') }}">
+            <span>Didn't get the link?</span>
+            <button type="submit" style="background:none;border:none;padding:0;color:#92400e;font-weight:700;text-decoration:underline;cursor:pointer;">Resend verification email</button>
+        </form>
+        @endif
+
         <form id="loginForm" method="POST" action="{{ route('login.submit') }}" novalidate>
             @csrf
 

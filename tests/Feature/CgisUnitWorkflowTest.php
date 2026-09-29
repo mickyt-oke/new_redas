@@ -279,6 +279,11 @@ class CgisUnitWorkflowTest extends TestCase
         $this->assertSame('unit_officer', $unitOfficer->role);
         $this->assertSame('unit', $unitOfficer->primary_location_type);
         $this->assertSame('epms', $unitOfficer->cgisUnitSlug());
+        $this->assertTrue($unitOfficer->must_change_password);
+
+        // Simulate the mandatory first-login password change so the canonical
+        // profile routing below isn't intercepted by the password-change gate.
+        $unitOfficer->update(['must_change_password' => false]);
 
         // The canonical profile passes the CGIS unit route middleware
         $this->actingAs($unitOfficer)->get('/user/cgis-units/epms')->assertOk();

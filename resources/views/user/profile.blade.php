@@ -15,6 +15,13 @@
         <div class="alert alert-success" style="margin-bottom:16px;">{{ session('status') }}</div>
     @endif
 
+    @if($user->must_change_password)
+        <div class="alert" style="margin-bottom:16px;background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:12px 16px;border-radius:8px;">
+            <i class="fas fa-triangle-exclamation"></i>
+            For your security, you must change your password before you can continue using the system.
+        </div>
+    @endif
+
     <div class="redas-card">
         <div class="card-head">
             <div class="card-head-title">
