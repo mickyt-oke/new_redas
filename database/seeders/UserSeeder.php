@@ -54,7 +54,7 @@ class UserSeeder extends Seeder
                 $this->createOrUpdateUser([
                     'name' => $officer['last_name'].' '.$officer['first_name'].' '.$directorate['code'].' User',
                     'service_number' => 'NIS/'.$directorate['code'].'/'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
-                    'email' => $email,
+                    'email' => $officer['email'],
                     'password' => $password,
                     'role' => 'directorate',
                     'user_category' => 'directorate_user',
