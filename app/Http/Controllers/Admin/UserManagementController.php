@@ -25,13 +25,23 @@ class UserManagementController extends Controller
         'servicom' => 'SERVICOM Unit',
     ];
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::query()
-            ->orderBy('name', 'asc')
-            ->paginate(20);
+        $search = $request->string('search')->trim()->toString();
 
-        return view('admin.users.index', compact('users'));
+        $users = User::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('service_number', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name', 'asc')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.users.index', compact('users', 'search'));
     }
 
     public function create()
