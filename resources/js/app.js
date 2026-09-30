@@ -565,23 +565,37 @@ function initCharts() {
     /* Monthly report mini chart (user dashboard) */
     const miniCtx = document.getElementById('miniTrend');
     if (miniCtx) {
-        new Chart(miniCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    data: [1, 1, 1, 2, 2, 3],
-                    borderColor: NIS_GREEN,
-                    backgroundColor: 'rgba(0,102,51,0.1)',
-                    fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2,
-                }],
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
-            },
-        });
+        let miniLabels = [];
+        let miniValues = [];
+        try {
+            miniLabels = JSON.parse(miniCtx.dataset.labels || '[]');
+            miniValues = JSON.parse(miniCtx.dataset.values || '[]');
+        } catch (e) {
+            miniLabels = [];
+            miniValues = [];
+        }
+        if (!Array.isArray(miniLabels) || !miniLabels.length || !Array.isArray(miniValues) || !miniValues.length) {
+            const miniContainer = miniCtx.closest('.card-body') || miniCtx.parentElement;
+            if (miniContainer) miniContainer.style.display = 'none';
+        } else {
+            new Chart(miniCtx, {
+                type: 'line',
+                data: {
+                    labels: miniLabels,
+                    datasets: [{
+                        data: miniValues,
+                        borderColor: NIS_GREEN,
+                        backgroundColor: 'rgba(0,102,51,0.1)',
+                        fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2,
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    scales: { x: { display: false }, y: { display: false, beginAtZero: true } },
+                },
+            });
+        }
     }
 }
 

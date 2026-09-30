@@ -1,54 +1,4 @@
-@extends('user.directorates._layout')
 
-{{-- This view renders its own tab bar and its own Review & Submit tab,
-     so the shared layout skips both. --}}
-@section('directorate-tabs', '1')
-@section('directorate-preview', '1')
-
-@section('directorate-sections')
-@include('user.states.sections.migration')
-
-        {{-- Supporting documents upload: lives in the wrapper (not the reusable
-             partial) because the combined state form provides a shared attachments[]
-             input. The script below moves this card back into the General Report
-             tab, where it originally sat. --}}
-        <div class="redas-card" style="margin-bottom:16px;" id="migration-documents-card">
-            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
-                <div class="card-head-title">SUPPORTING DOCUMENTS</div>
-                <button type="button" class="btn-nis btn-ghost btn-sm" onclick="addDocumentInput()" style="padding:4px 10px;font-size:0.8rem;">
-                    <i class="fas fa-plus"></i> Add Document
-                </button>
-            </div>
-            <div class="card-body">
-                <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:12px;">You can upload supporting documents or photos (PDF, Excel, PNG, JPG, JPEG).</p>
-                <div id="documents-body">
-                    <div class="auth-form-group" style="margin-bottom:12px;">
-                        <input type="file" name="supporting_documents[]" class="ni" accept=".pdf,.xls,.xlsx,.png,.jpg,.jpeg">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Review & Submit tab: standalone page only. The partial's tab script
-             picks up the button (appended below) and this panel on DOMContentLoaded. --}}
-        <div class="m-tab-content" id="tab-migration-review" style="display:none;">
-            <div style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:16px;margin-bottom:16px;">
-                <i class="fas fa-exclamation-triangle" style="margin-right:8px;color:#d97706;"></i>
-                <strong>Review Your Submission:</strong> Please carefully review all the data you have entered below. Once you are sure everything is correct, click the Submit button at the bottom.
-            </div>
-
-            <div id="review-snapshot-container">
-                <!-- Javascript will inject the locked snapshot here -->
-            </div>
-
-            {{-- <!--<div style="padding:20px;display:flex;justify-content:flex-end;align-items:center;">
-                <button type="submit" class="btn-nis btn-primary" style="padding:12px 24px;font-size:1rem;">
-                    <i class="fas fa-paper-plane" style="margin-right:8px;"></i> Submit Return
-                </button>
-            </div> --}}
-        </div>
-
-<script>
 (function () {
     'use strict';
 
@@ -134,6 +84,3 @@
         });
     };
 })();
-</script>
-
-@endsection

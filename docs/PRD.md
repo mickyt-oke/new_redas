@@ -77,7 +77,8 @@ The system models access on three axes: **user_category** (functional role), **p
 
 | ID | Requirement |
 |---|---|
-| FR-SUB-1 | State users submit returns (monthly, quarterly, biannual, annual, special) with command, period, return type, officer details, and consent. |
+| FR-SUB-1 | State users submit returns (monthly, quarterly, biannual, annual, special) with command, period, return type, officer details, and consent. The state return form embeds **all ten directorate sections** as tabs (shared partials `user.states.sections.{slug}`), with field names namespaced per directorate in `return_data` (e.g. `passport[staff_strength]`, `works[staff_strength]`). Pre-submission preview is a separate read-only page (`POST /user/returns/preview`, opened in a new tab). |
+| FR-SUB-1a | The state dashboard (`/user/dashboard`) is user-specific: real per-user metrics, own submissions, own notifications, and a 6-month submission trend — no mock data. State routes are restricted to `state_user` accounts at `state` locations. |
 | FR-SUB-2 | Directorate users submit directorate-specific forms (10 directorates), optionally with supporting documents (≤ 20 MB, stored under `supporting-documents/{slug}`). |
 | FR-SUB-2a | CGIS unit users submit unit-specific forms (7 units) under `/user/cgis-units/{slug}` with the same validation, upload, and resubmission capabilities. |
 | FR-SUB-3 | Each submission becomes an `Application` record with a JSON snapshot of the form (`return_data`) and an audit trail (`workflow_path`). |
@@ -172,4 +173,5 @@ Delivered: full auth stack (web MFA, API OTP+JWT), submission workflow end-to-en
 | G6 | `NisData` model/table unused | Legacy HR-stats placeholder; decide to implement or drop. |
 | G7 | Sanctum installed but unused alongside custom JWT | Consolidate on one API token system. |
 | G8 | No `.env.example` in repo | Document required env vars (see TRD §10). |
+| G9 | Edit-prefill doesn't repopulate pre-namespacing submissions | Submissions created before the state/directorate form namespacing (e.g. bare `staff_strength` vs `passport[staff_strength]`) won't prefill the renamed fields when edited; new submissions round-trip correctly. |
 | G9 | Legacy/dead code: root `DashboardController`, `AdminDashController`, vestigial `register` view | Cleanup candidates. |

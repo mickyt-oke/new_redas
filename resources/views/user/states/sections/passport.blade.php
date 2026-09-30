@@ -654,3 +654,435 @@
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
         </div>
+
+<!-- TAB 5: GENERAL REPORT -->
+<div class="tab-panel" id="tab-passport-reports">
+
+            <div class="redas-card" style="margin-bottom:16px;">
+                <div class="card-head" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="card-head-title">REFORMS AND INNOVATION INITIATED IN THE PERIOD UNDER REVIEW</div>
+                    <button type="button" class="btn-nis btn-ghost btn-sm" id="passportAddReformRow">
+                        <i class="fas fa-plus"></i> Add Reform
+                    </button>
+                </div>
+                <div class="card-body no-pad" style="overflow-x:auto;">
+                    <table class="redas-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">S/N</th>
+                                <th>REFORMS/INNOVATIONS</th>
+                                <th style="width:250px;">DATE OF IMPLEMENTATION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reforms-body">
+                            <tr>
+                                <td class="reform-sn">1</td>
+                                <td><input type="text" name="passport[reforms_innovations][0][title]" class="ni"></td>
+                                <td><input type="date" name="passport[reforms_innovations][0][date]" class="ni"></td>
+                            </tr>
+                            <tr>
+                                <td class="reform-sn">2</td>
+                                <td><input type="text" name="passport[reforms_innovations][1][title]" class="ni"></td>
+                                <td><input type="date" name="passport[reforms_innovations][1][date]" class="ni"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="redas-card" style="margin-bottom:16px;">
+                <div class="card-head"><div class="card-head-title">GENERAL REPORT</div></div>
+                <div class="card-body">
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">i. Other Reports</label>
+                        <textarea name="passport[general_report][other_reports]" class="ni" rows="3">{{ old('passport.general_report.other_reports') }}</textarea>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">ii. Challenges</label>
+                        <textarea name="passport[general_report][challenges]" class="ni" rows="3">{{ old('passport.general_report.challenges') }}</textarea>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">iii. Recommendations / Way Forward</label>
+                        <textarea name="passport[general_report][recommendations]" class="ni" rows="3">{{ old('passport.general_report.recommendations') }}</textarea>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">iv. Conclusion</label>
+                        <textarea name="passport[general_report][conclusion]" class="ni" rows="3">{{ old('passport.general_report.conclusion') }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Supporting documents upload lives in the standalone wrapper
+                 (user.directorates.passport); the combined state form uses its
+                 shared attachments[] input instead. --}}
+
+            {{-- <div class="redas-card" style="margin-bottom:14px;">
+                <div class="card-head"><div class="card-head-title">REPORTER</div></div>
+                <div class="card-body">
+                    <div class="form-grid-2">
+                        <div>
+                            <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Rank</label>
+                            <input type="text" name="passport[rank]" class="ni" value="{{ old('passport.rank') }}">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Phone Number</label>
+                            <input type="text" name="passport[gsm_number]" class="ni" value="{{ old('passport.gsm_number') }}">
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
+        <div class="hrm-actions">
+            <button type="button" class="btn-nis btn-ghost hrm-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
+            <div class="hrm-actions-center">
+                <button type="button" class="btn-nis btn-outline-nis hrm-save-draft-btn"><i class="fas fa-save"></i> Save Draft</button>
+            </div>
+            <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next: Preview <i class="fas fa-arrow-right"></i></button>
+        </div>
+        </div>
+
+
+<script>
+(function () {
+    /* Scope every lookup to this directorate's panel when embedded in the
+       combined state form (#dir-passport); on the standalone page that wrapper
+       does not exist, so lookups fall back to the whole document (unchanged
+       behaviour). */
+    var ROOT = document.getElementById('dir-passport') || document;
+    function qsa(sel) { return ROOT.querySelectorAll(sel); }
+    function qs(sel) { return ROOT.querySelector(sel); }
+
+    const allCenters = @json($processingCenters ?? []);
+    const allMissions = @json($foreignMissions ?? []);
+
+    function getSelectedCenters() {
+        const selects = qsa('.exec-center-select');
+        const selected = [];
+        selects.forEach(s => {
+            if(s.value) selected.push(s.value);
+        });
+        return selected;
+    }
+
+    function updateCenterDropdowns() {
+        const selected = getSelectedCenters();
+        const selects = qsa('.exec-center-select');
+
+        selects.forEach(select => {
+            const currentValue = select.value;
+            // Rebuild options
+            select.innerHTML = '<option value="">Select a Center...</option>';
+            allCenters.forEach(center => {
+                const opt = document.createElement('option');
+                opt.value = center;
+                opt.textContent = center;
+                // Disable if selected elsewhere
+                if (selected.includes(center) && currentValue !== center) {
+                    opt.disabled = true;
+                }
+                if (currentValue === center) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+        });
+    }
+
+    function addStaffDevelopmentRow() {
+        const tbody = qs('#staff-development-body');
+        const nextIndex = tbody.children.length;
+        const sn = nextIndex + 1;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="row-index">${sn}</td>
+            <td><input type="text" name="passport[staff_development][${nextIndex}][title]" class="ni"></td>
+            <td><input type="text" name="passport[staff_development][${nextIndex}][location]" class="ni"></td>
+            <td><input type="text" name="passport[staff_development][${nextIndex}][cost]" class="ni"></td>
+            <td><input type="number" name="passport[staff_development][${nextIndex}][participants]" class="ni"></td>
+            <td><input type="text" name="passport[staff_development][${nextIndex}][duration]" class="ni"></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function getSelectedMissions() {
+        const selects = qsa('.foreign-mission-select');
+        const selected = [];
+        selects.forEach(s => {
+            if(s.value) selected.push(s.value);
+        });
+        return selected;
+    }
+
+    function updateMissionDropdowns() {
+        const selected = getSelectedMissions();
+        const selects = qsa('.foreign-mission-select');
+
+        selects.forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select a Mission...</option>';
+            allMissions.forEach(mission => {
+                const opt = document.createElement('option');
+                opt.value = mission;
+                opt.textContent = mission;
+                if (selected.includes(mission) && currentValue !== mission) {
+                    opt.disabled = true;
+                }
+                if (currentValue === mission) {
+                    opt.selected = true;
+                }
+                select.appendChild(opt);
+            });
+        });
+    }
+
+    function addForeignMissionRow() {
+        const tbody = qs('#foreign-missions-body');
+        const nextIndex = tbody.children.length;
+        const sn = nextIndex + 1;
+
+        const tr = document.createElement('tr');
+        const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+
+        let html = `
+            <td class="mission-sn">${sn}</td>
+            <td>
+                <select name="passport[foreign_missions][${nextIndex}][mission]" class="ni foreign-mission-select" style="padding:4px;font-size:0.75rem;min-width:180px;">
+                    <option value="">Select a Mission...</option>
+                </select>
+            </td>
+        `;
+
+        months.forEach(m => {
+            html += `<td><input type="number" name="passport[foreign_missions][${nextIndex}][${m}]" class="ni calc-mission-month calc-mission-month-${m}" data-idx="${nextIndex}" style="padding:4px;font-size:0.75rem;min-width:60px;"></td>`;
+        });
+
+        html += `<td><input type="number" name="passport[foreign_missions][${nextIndex}][total]" id="mission-total-${nextIndex}" class="ni calc-mission-row-total" readonly style="padding:4px;font-size:0.75rem;min-width:60px;background:var(--gray-100);font-weight:bold;"></td>`;
+
+        tr.innerHTML = html;
+        tbody.appendChild(tr);
+
+        tr.querySelectorAll('.calc-mission-month').forEach(input => {
+            input.addEventListener('input', function() {
+                const idx = this.getAttribute('data-idx');
+                let rowSum = 0;
+                qsa(`.calc-mission-month[data-idx="${idx}"]`).forEach(i => {
+                    rowSum += parseInt(i.value) || 0;
+                });
+                qs(`#mission-total-${idx}`).value = rowSum > 0 ? rowSum : '';
+                calculateAllTotals();
+            });
+        });
+
+        const select = tr.querySelector('.foreign-mission-select');
+        select.addEventListener('change', updateMissionDropdowns);
+        updateMissionDropdowns();
+    }
+
+    function addReformRow() {
+        const tbody = qs('#reforms-body');
+        const nextIndex = tbody.children.length;
+        const sn = nextIndex + 1;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="reform-sn">${sn}</td>
+            <td><input type="text" name="passport[reforms_innovations][${nextIndex}][title]" class="ni"></td>
+            <td><input type="date" name="passport[reforms_innovations][${nextIndex}][date]" class="ni"></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function addExecutiveSummaryRow() {
+        const tbody = qs('#exec-summary-body');
+        const nextIndex = tbody.children.length;
+        const sn = nextIndex + 1;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="exec-sn">${sn}</td>
+            <td>
+                <select name="passport[executive_summary][${nextIndex}][center]" class="ni exec-center-select" style="padding:6px;font-size:0.85rem;">
+                    <option value="">Select a Center...</option>
+                </select>
+            </td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][enrolled]" class="ni calc-exec-enrolled" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][fresh]" class="ni calc-exec-fresh" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][reissue]" class="ni calc-exec-reissue" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][loss]" class="ni calc-exec-loss" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][cod]" class="ni calc-exec-cod" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][male_adult]" class="ni calc-exec-male-adult" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][female_adult]" class="ni calc-exec-female-adult" style="padding:6px;font-size:0.85rem;"></td>
+            <td><input type="number" name="passport[executive_summary][${nextIndex}][male_minor]" class="ni calc-exec-male-minor" style="padding:6px;font-size:0.85rem;"></td>
+        `;
+        tbody.appendChild(tr);
+
+        // Attach event listeners to new inputs
+        tr.querySelectorAll('.calc-exec-enrolled, .calc-exec-fresh, .calc-exec-reissue, .calc-exec-loss, .calc-exec-cod, .calc-exec-male-adult, .calc-exec-female-adult, .calc-exec-male-minor').forEach(input => {
+            input.addEventListener('input', calculateAllTotals);
+        });
+
+        const select = tr.querySelector('.exec-center-select');
+        select.addEventListener('change', updateCenterDropdowns);
+
+        // Initialize options for the newly added select
+        updateCenterDropdowns();
+    }
+
+    function calculateAllTotals() {
+        // Staff Totals
+        let totalMale = 0, totalFemale = 0, totalAll = 0;
+        const males = qsa('.calc-male');
+        const females = qsa('.calc-female');
+        const rowTotals = qsa('.calc-row-total');
+        males.forEach((input, index) => {
+            const m = parseInt(input.value) || 0;
+            const f = parseInt(females[index].value) || 0;
+            const rowT = m + f;
+            rowTotals[index].value = rowT > 0 ? rowT : '';
+            totalMale += m; totalFemale += f; totalAll += rowT;
+        });
+        qs('#total-male').value = totalMale;
+        qs('#total-female').value = totalFemale;
+        qs('#total-all').value = totalAll;
+
+        // Column sums (New Passport Types)
+        const calcColSum = (selector, totalSelector) => {
+            let sum = 0;
+            qsa(selector).forEach(i => sum += parseInt(i.value) || 0);
+            const totalEl = qs(totalSelector);
+            if(totalEl) totalEl.value = sum > 0 ? sum : '';
+        };
+        calcColSum('.calc-std-32p', '.std-32p-total');
+        calcColSum('.calc-std-64p', '.std-64p-total');
+        calcColSum('.calc-official-32p', '.official-32p-total');
+        calcColSum('.calc-official-64p', '.official-64p-total');
+        calcColSum('.calc-diplo-32p', '.diplo-32p-total');
+        calcColSum('.calc-diplo-64p', '.diplo-64p-total');
+        calcColSum('.calc-ctc-32p', '.ctc-32p-total');
+        calcColSum('.calc-ctc-64p', '.ctc-64p-total');
+        calcColSum('.calc-step-32p', '.step-32p-total');
+        calcColSum('.calc-step-64p', '.step-64p-total');
+        calcColSum('.calc-rtd-32p', '.rtd-32p-total');
+        calcColSum('.calc-rtd-64p', '.rtd-64p-total');
+        calcColSum('.calc-enbic-32p', '.enbic-32p-total');
+        calcColSum('.calc-enbic-64p', '.enbic-64p-total');
+        calcColSum('.calc-dtc-32p', '.dtc-32p-total');
+        calcColSum('.calc-dtc-64p', '.dtc-64p-total');
+
+        // Exec Summary Totals
+        calcColSum('.calc-exec-enrolled', '#exec-total-enrolled');
+        calcColSum('.calc-exec-fresh', '#exec-total-fresh');
+        calcColSum('.calc-exec-reissue', '#exec-total-reissue');
+        calcColSum('.calc-exec-loss', '#exec-total-loss');
+        calcColSum('.calc-exec-cod', '#exec-total-cod');
+        calcColSum('.calc-exec-male-adult', '#exec-total-male-adult');
+        calcColSum('.calc-exec-female-adult', '#exec-total-female-adult');
+        calcColSum('.calc-exec-male-minor', '#exec-total-male-minor');
+
+        // Foreign Missions Column Totals
+        const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+        months.forEach(m => {
+            calcColSum(`.calc-mission-month-${m}`, `#mission-total-col-${m}`);
+        });
+        calcColSum('.calc-mission-row-total', '#mission-total-col-total');
+    }
+
+    /* Preview: read-only snapshot of every card in the form, rendered into the
+       shared layout's preview panel (#hrmPreviewBody). The layout calls this
+       whenever the Preview tab is opened. Guarded so the combined state form's
+       own preview builder (if any) is not clobbered. */
+    window.buildDirectoratePreview = window.buildDirectoratePreview || function () {
+        const container = document.getElementById('hrmPreviewBody');
+        const form = document.getElementById('dir-passport') || document.querySelector('main form');
+        if (!container || !form) return;
+        container.innerHTML = '';
+
+        form.querySelectorAll('.redas-card').forEach(card => {
+            const clone = card.cloneNode(true);
+
+            // Remove all buttons (Add More, etc)
+            clone.querySelectorAll('button').forEach(btn => btn.remove());
+
+            // Strip 'name'/'id' to prevent submission conflicts; show live values read-only
+            clone.querySelectorAll('input, select, textarea').forEach(input => {
+                const name = input.getAttribute('name');
+                const originalInput = name ? card.querySelector(`[name="${name}"]`) : null;
+                if (originalInput) {
+                    if (input.type === 'file') {
+                        input.outerHTML = originalInput.files.length > 0
+                            ? `<span style="font-weight:bold;color:var(--nis-600);">${originalInput.files.length} file(s) selected</span>`
+                            : `<span style="color:var(--gray-500);">No files selected</span>`;
+                        return;
+                    }
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        input.outerHTML = `<span style="font-weight:bold;color:var(--nis-600);">${originalInput.checked ? 'Yes' : 'No'}</span>`;
+                        return;
+                    }
+                    input.value = originalInput.value;
+                    if (input.tagName === 'SELECT') {
+                        input.innerHTML = `<option>${originalInput.value}</option>`;
+                    }
+                    if (input.tagName === 'TEXTAREA') {
+                        input.textContent = originalInput.value;
+                    }
+                }
+
+                input.removeAttribute('name');
+                input.removeAttribute('id');
+                input.setAttribute('readonly', 'readonly');
+                input.setAttribute('disabled', 'disabled');
+                input.style.backgroundColor = 'transparent';
+                input.style.border = 'none';
+                input.style.fontWeight = 'bold';
+                input.style.color = 'var(--nis-900)';
+                input.style.padding = '0';
+            });
+
+            clone.style.border = '1px solid var(--nis-200)';
+            clone.style.boxShadow = 'none';
+            clone.style.marginBottom = '14px';
+
+            container.appendChild(clone);
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attach calculation listeners to staff and column sums
+        qsa('.calc-male, .calc-female, .calc-passport-input, .calc-exec-enrolled, .calc-exec-fresh, .calc-exec-reissue, .calc-exec-loss, .calc-exec-cod, .calc-exec-male-adult, .calc-exec-female-adult, .calc-exec-male-minor').forEach(input => {
+            input.addEventListener('input', calculateAllTotals);
+        });
+
+        // Attach listeners for Foreign Missions Row Totals
+        qsa('.calc-mission-month').forEach(input => {
+            input.addEventListener('input', function() {
+                const idx = this.getAttribute('data-idx');
+                let rowSum = 0;
+                qsa(`.calc-mission-month[data-idx="${idx}"]`).forEach(i => {
+                    rowSum += parseInt(i.value) || 0;
+                });
+                qs(`#mission-total-${idx}`).value = rowSum > 0 ? rowSum : '';
+            });
+        });
+
+        /* "Add row" buttons (tab switching and the Preview tab are handled
+           globally by partials/footer.blade.php and the shared layout). */
+        qs('#passportAddStaffDevRow')?.addEventListener('click', addStaffDevelopmentRow);
+        qs('#passportAddExecRow')?.addEventListener('click', addExecutiveSummaryRow);
+        qs('#passportAddMissionRow')?.addEventListener('click', addForeignMissionRow);
+        qs('#passportAddReformRow')?.addEventListener('click', addReformRow);
+
+        // Initialize executive summary with 3 blank rows
+        addExecutiveSummaryRow();
+        addExecutiveSummaryRow();
+        addExecutiveSummaryRow();
+
+        // Initialize foreign missions with 3 blank rows
+        addForeignMissionRow();
+        addForeignMissionRow();
+        addForeignMissionRow();
+
+        /* Recalculate totals from any restored draft / prefilled values */
+        calculateAllTotals();
+    });
+})();
+</script>

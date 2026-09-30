@@ -910,7 +910,8 @@ $incidentCategories = [
     /* Listen for input */
     if (form) form.addEventListener('input', recomputeAll);
 
-    /* Let the host layout's preview tab use this page-specific renderer. */
+    /* Let the host layout's preview tab use this page-specific renderer.
+       Guarded so a builder already registered by another form is kept. */
     window.buildDirectoratePreview = window.buildDirectoratePreview || buildPreview;
 
     /* Init */

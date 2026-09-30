@@ -37,34 +37,36 @@
                     <span class="stat-label">Total Submitted</span>
                     <span class="stat-icon"><i class="fas fa-paper-plane"></i></span>
                 </div>
-                <div class="stat-value" data-count="12">0</div>
-                <div class="stat-change up"><i class="fas fa-arrow-up"></i> 2 this month</div>
+                <div class="stat-value" data-count="{{ $totalSubmissions }}">0</div>
+                <div class="stat-change neutral"><i class="fas fa-minus"></i> All time</div>
             </div>
             <div class="stat-card gold">
                 <div class="stat-header">
                     <span class="stat-label">Pending Review</span>
                     <span class="stat-icon"><i class="fas fa-hourglass-half"></i></span>
                 </div>
-                <div class="stat-value" data-count="3">0</div>
-                <div class="stat-change neutral"><i class="fas fa-minus"></i> Awaiting supervisor</div>
+                <div class="stat-value" data-count="{{ $pendingSubmissions }}">0</div>
+                <div class="stat-change neutral"><i class="fas fa-minus"></i> Awaiting review</div>
             </div>
             <div class="stat-card green">
                 <div class="stat-header">
                     <span class="stat-label">Approved</span>
                     <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
                 </div>
-                <div class="stat-value" data-count="8">0</div>
-                <div class="stat-change up"><i class="fas fa-arrow-up"></i> 1 this week</div>
+                <div class="stat-value" data-count="{{ $approvedSubmissions }}">0</div>
+                <div class="stat-change up"><i class="fas fa-arrow-up"></i> Approved returns</div>
             </div>
             <div class="stat-card danger">
                 <div class="stat-header">
                     <span class="stat-label">Returned / Queried</span>
                     <span class="stat-icon"><i class="fas fa-exclamation-circle"></i></span>
                 </div>
-                <div class="stat-value" data-count="1">0</div>
+                <div class="stat-value" data-count="{{ $queriedSubmissions }}">0</div>
                 <div class="stat-change down"><i class="fas fa-arrow-down"></i> Action required</div>
             </div>
         </div>
+
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start;margin-bottom:20px;">
             <!-- Recent Submissions -->
             <div class="redas-card delay-2">
                 <div class="card-head">
@@ -75,58 +77,80 @@
                     <a href="{{ route('user.submissions') }}" class="btn-nis btn-ghost btn-sm">View All</a>
                 </div>
                 <div class="card-body no-pad">
-                    <table class="redas-table searchable-table" id="submissionsTable">
+                    @php
+                    $statusConfig = [
+                        'pending'  => ['badge-pending',  'Pending Review'],
+                        'approved' => ['badge-approved', 'Approved'],
+                        'returned' => ['badge-rejected', 'Returned'],
+                        'rejected' => ['badge-rejected', 'Returned'],
+                        'queried'  => ['badge-rejected', 'Returned'],
+                    ];
+                    $typeLabels = [
+                        'monthly'   => 'Monthly Return',
+                        'quarterly' => 'Quarterly Return',
+                        'biannual'  => 'Bi-Annual Return',
+                        'annual'    => 'Annual Return',
+                        'special'   => 'Special Report',
+                    ];
+                    @endphp
+                    <table class="redas-table" id="submissionsTable">
                         <thead>
                             <tr>
                                 <th>Period</th>
                                 <th>Report Type</th>
                                 <th>Status</th>
+                                <th>Stage</th>
                                 <th>Date</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach([
-                                ['May 2025',   'Monthly Return',   'pending',  '01 May 2025',  'Awaiting supervisor review'],
-                                ['Apr 2025',   'Monthly Return',   'rejected', '02 Apr 2025',  'Supervisor: Passport figures inconsistent with previous month'],
-                                ['Mar 2025',   'Monthly Return',   'approved', '01 Mar 2025',  'Approved by ACI Bello'],
-                                ['Q1 2025',    'Quarterly Return', 'approved', '03 Apr 2025',  'Approved by ACI Bello'],
-                                ['Feb 2025',   'Monthly Return',   'approved', '01 Feb 2025',  'Approved by ACI Bello'],
-                                ['Jan 2025',   'Monthly Return',   'approved', '31 Jan 2025',  'Approved by ACI Bello'],
-                            ] as [$period, $type, $status, $date, $remarks])
+                            @forelse($submissions as $submission)
+                            @php
+                                $status = strtolower((string) $submission->status);
+                                [$badgeClass, $statusLabel] = $statusConfig[$status] ?? ['badge-draft', ucfirst((string) ($submission->status ?? 'Draft'))];
+                                $data = is_array($submission->return_data) ? $submission->return_data : [];
+                                $periodRaw = $data['report_period'] ?? $data['period'] ?? null;
+                                $period = $periodRaw ?: ($submission->created_at?->format('M Y') ?? '—');
+                                if ($periodRaw) {
+                                    try {
+                                        $period = \Carbon\Carbon::createFromFormat('Y-m', $periodRaw)->format('M Y');
+                                    } catch (\Throwable $e) {
+                                        $period = $periodRaw;
+                                    }
+                                }
+                                $type = $typeLabels[$data['return_type'] ?? ''] ?? ucfirst((string) ($data['return_type'] ?? '—'));
+                                $stage = $submission->workflow_stage ? ucwords(str_replace('_', ' ', $submission->workflow_stage)) : '—';
+                            @endphp
                             <tr>
                                 <td><strong>{{ $period }}</strong></td>
                                 <td style="font-size:.8rem;">{{ $type }}</td>
                                 <td>
-                                    <span class="status-badge
-                                        @if($status === 'approved') badge-approved
-                                        @elseif($status === 'pending') badge-pending
-                                        @elseif($status === 'rejected') badge-rejected
-                                        @else badge-draft @endif">
-                                        {{ ucfirst($status) }}
-                                    </span>
+                                    <span class="status-badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                                 </td>
-                                <td style="font-size:.78rem;color:var(--gray-500);">{{ $date }}</td>
                                 <td>
-                                    <button class="btn-nis btn-ghost btn-sm"
-                                        data-action="view"
-                                        data-title="{{ $period }} {{ $type }}"
-                                        data-date="{{ $date }}"
-                                        data-type="{{ $type }}"
-                                        data-status="{{ ucfirst($status) }}"
-                                        data-remarks="{{ $remarks }}"
-                                        data-bs-toggle="modal" data-bs-target="#viewModal">
+                                    <span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:600;background:var(--gray-100);color:var(--gray-600);">{{ $stage }}</span>
+                                </td>
+                                <td style="font-size:.78rem;color:var(--gray-500);">{{ $submission->created_at?->format('d M Y') ?? '—' }}</td>
+                                <td>
+                                    <a href="{{ route('user.returns.show', $submission) }}" class="btn-nis btn-ghost btn-sm" title="View Details">
                                         <i class="fas fa-eye"></i>
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:32px;color:var(--gray-500);font-size:.84rem;">
+                                    No submissions yet. Use <strong>Submit New Return</strong> above to file your first return.
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Right Column: Mini chart + Notifications -->
+            <!-- Right Column: Mini chart + Quick Actions -->
             <div style="display:flex;flex-direction:column;gap:20px;">
 
                 <!-- Submission trend -->
@@ -139,7 +163,7 @@
                         <span style="font-size:.72rem;color:var(--gray-400);">Last 6 months</span>
                     </div>
                     <div class="card-body" style="height:160px;padding-bottom:8px;">
-                        <canvas id="miniTrend"></canvas>
+                        <canvas id="miniTrend" data-labels='@json($trendLabels ?? [])' data-values='@json($trendValues ?? [])'></canvas>
                     </div>
                 </div>
 
@@ -178,70 +202,44 @@
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#fee2e2;color:#dc2626;"><i class="fas fa-bell"></i></div>
                     Recent Notifications
+                    @if($unreadNotifications > 0)
+                        <span style="background:#dc2626;color:#fff;border-radius:999px;padding:1px 8px;font-size:.68rem;font-weight:700;">{{ $unreadNotifications }}</span>
+                    @endif
                 </div>
                 <a href="{{ route('user.notifications') }}" class="btn-nis btn-ghost btn-sm">View All</a>
             </div>
             <div class="card-body no-pad">
-                @foreach([
-                    ['danger', 'fas fa-exclamation-triangle', 'April Return Overdue',      'Your April 2025 monthly return has not been submitted. Please submit immediately.', '2 hours ago'],
-                    ['warning','fas fa-clock',                'Deadline Reminder',          'May 2025 monthly return is due in 5 days ({{ now()->endOfMonth()->format("d M") }}).', '1 day ago'],
-                    ['success','fas fa-check-circle',         'Return Approved',            'Your March 2025 monthly return was approved by ACI A. Bello.', '3 days ago'],
-                    ['info',   'fas fa-info-circle',          'System Maintenance Notice', 'Scheduled maintenance: Sunday 04:00–06:00 WAT. Plan submissions accordingly.', '5 days ago'],
-                ] as [$type, $icon, $title, $desc, $time])
-                <div class="notif-item {{ $loop->index < 2 ? 'unread' : '' }}">
-                    <div class="notif-icon" style="background:{{ $type === 'danger' ? '#fee2e2' : ($type === 'warning' ? '#fef9c3' : ($type === 'success' ? '#dcfce7' : '#dbeafe')) }};color:{{ $type === 'danger' ? '#dc2626' : ($type === 'warning' ? '#a16207' : ($type === 'success' ? '#15803d' : '#1d4ed8')) }};">
-                        <i class="{{ $icon }}"></i>
+                @php
+                $notifTypeConfig = [
+                    'danger'  => ['fas fa-exclamation-triangle', '#fee2e2', '#dc2626'],
+                    'warning' => ['fas fa-clock', '#fef9c3', '#a16207'],
+                    'success' => ['fas fa-check-circle', '#dcfce7', '#15803d'],
+                    'info'    => ['fas fa-info-circle', '#dbeafe', '#1d4ed8'],
+                ];
+                @endphp
+                @forelse($notifications as $notification)
+                @php
+                    [$notifIcon, $notifBg, $notifColor] = $notifTypeConfig[$notification->type] ?? ['fas fa-bell', 'var(--gray-100)', 'var(--gray-600)'];
+                @endphp
+                <div class="notif-item {{ $notification->is_read ? '' : 'unread' }}">
+                    <div class="notif-icon" style="background:{{ $notifBg }};color:{{ $notifColor }};">
+                        <i class="{{ $notifIcon }}"></i>
                     </div>
                     <div class="notif-content">
-                        <div class="notif-title">{{ $title }}</div>
-                        <div class="notif-desc">{{ $desc }}</div>
+                        <div class="notif-title">{{ $notification->title }}</div>
+                        <div class="notif-desc">{{ $notification->description }}</div>
                     </div>
-                    <div class="notif-time" style="flex-shrink:0;">{{ $time }}</div>
+                    <div class="notif-time" style="flex-shrink:0;">{{ $notification->created_at?->diffForHumans() ?? '' }}</div>
                 </div>
-                @endforeach
+                @empty
+                <div style="text-align:center;padding:36px 20px;color:var(--gray-400);font-size:.84rem;">
+                    <i class="fas fa-bell-slash" style="font-size:1.6rem;color:var(--gray-200);display:block;margin-bottom:10px;"></i>
+                    No notifications yet. You're all caught up.
+                </div>
+                @endforelse
             </div>
         </div>
 
     </main>
-
-<!-- ─── View Report Modal ─── -->
-{{-- <div class="modal fade" id="viewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:var(--radius-lg);border:none;overflow:hidden;">
-            <div class="modal-header" style="background:var(--nis-700);color:white;border:none;padding:14px 20px;">
-                <h5 class="modal-title" style="font-weight:700;font-size:.95rem;" id="viewModalTitle">Return Details</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" style="padding:24px;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-                    <div>
-                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:4px;">Period</div>
-                        <div style="font-weight:700;color:var(--gray-800);" id="modalTitle">—</div>
-                    </div>
-                    <div>
-                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:4px;">Date Submitted</div>
-                        <div style="font-weight:600;color:var(--gray-700);" id="modalDate">—</div>
-                    </div>
-                    <div>
-                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:4px;">Report Type</div>
-                        <div style="font-weight:600;color:var(--gray-700);" id="modalType">—</div>
-                    </div>
-                    <div>
-                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:4px;">Status</div>
-                        <div id="modalStatus">—</div>
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:6px;">Supervisor Remarks</div>
-                    <div style="background:var(--gray-50);border-radius:var(--radius-md);padding:12px;font-size:.875rem;color:var(--gray-700);border:1px solid var(--gray-200);" id="modalRemarks">—</div>
-                </div>
-            </div>
-            <div class="modal-footer" style="border-top:1px solid var(--gray-100);padding:14px 20px;display:flex;gap:8px;justify-content:flex-end;">
-                <button class="btn-nis btn-ghost btn-sm" data-bs-dismiss="modal">Close</button>
-                <a href="#" class="btn-nis btn-outline-nis btn-sm"><i class="fas fa-download"></i> Download PDF</a>
-            </div>
-        </div>
-    </div>
-</div> --}}
 
 @include('partials.footer')

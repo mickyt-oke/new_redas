@@ -51,8 +51,10 @@ $rankRows = [
                         ['id' => 'investigation-section-8', 'label' => '8. Suspect Index', 'icon' => 'fa-search'],
                         ['id' => 'investigation-section-9', 'label' => '9. Screening', 'icon' => 'fa-building'],
                         ['id' => 'investigation-section-10', 'label' => '10. D&R', 'icon' => 'fa-plane-departure'],
-                        ['id' => 'investigation-section-11', 'label' => '11. Declaration', 'icon' => 'fa-shield-alt'],
                     ];
+                    if (empty($stateEmbedded)) {
+                        $sections[] = ['id' => 'investigation-section-11', 'label' => '11. Declaration', 'icon' => 'fa-shield-alt'];
+                    }
                 @endphp
                 @foreach($sections as $sec)
                     <a href="#{{ $sec['id'] }}"
@@ -526,3 +528,479 @@ $rankRows = [
                 </p>
             </div>
         </div>
+        {{-- ============ 8. SUSPECT INDEX ============ --}}
+        @php
+            $suspectCols = [
+                'watch_persons'    => 'No. of Watch Listed Persons',
+                'stop_persons'     => 'No. of Stop Listed Persons',
+                'watch_passports'  => 'No. of Watch Listed Passports',
+                'vacation_stop'    => 'No. of Vacation of Stop List Order',
+                'persons_index'    => 'No. of Persons in Suspect Index',
+                'searches'         => 'Searches',
+            ];
+        @endphp
+        <div id="investigation-section-8" class="redas-card investigation-step" data-page="8" style="margin-bottom:14px;">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    8. Suspect Index
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+<table class="nis-table" id="investigation-suspect-table" style="min-width:1200px;">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">S/N</th>
+                                <th style="min-width:160px;">SHQ / Zone</th>
+                                <th style="min-width:100px;">Command</th>
+                                @foreach($suspectCols as $colKey => $colLabel)
+                                    <th title="{{ $colLabel }}">{{ $colLabel }}</th>
+                                @endforeach
+                                <th style="width:100px;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php $sn = 0; @endphp
+                            {{-- SHQ row --}}
+                            <tr class="zone-row">
+                                <td>{{ ++$sn }}</td>
+                                <td><strong>SHQ</strong></td>
+                                <td></td>
+                                @foreach($suspectCols as $colKey => $colLabel)
+                                    <td>
+                                        <input type="number" min="0" class="ni qty-input"
+                                               name="suspect[SHQ][_shq][{{ $colKey }}]"
+                                               value="{{ old('suspect.SHQ._shq.'.$colKey) }}" placeholder="0">
+                                    </td>
+                                @endforeach
+                                <td>
+                                    <input type="number" min="0" class="ni row-total" readonly tabindex="-1"
+                                           name="suspect[SHQ][_shq][total]"
+                                           value="{{ old('suspect.SHQ._shq.total') }}" placeholder="0">
+                                </td>
+                            </tr>
+                            @foreach($zoneMap as $zoneKey => $zone)
+                                @continue($zoneKey === 'SHQ')
+                                <tr class="zone-row">
+                                    <td>{{ ++$sn }}</td>
+                                    <td><strong>{{ $zone['label'] }}</strong></td>
+                                    <td></td>
+                                    @foreach($suspectCols as $colKey => $colLabel)
+                                        <td>
+                                            <input type="number" min="0" class="ni qty-input"
+                                                   name="suspect[{{ $zoneKey }}][_zone][{{ $colKey }}]"
+                                                   value="{{ old('suspect.'.$zoneKey.'._zone.'.$colKey) }}" placeholder="0">
+                                        </td>
+                                    @endforeach
+                                    <td>
+                                        <input type="number" min="0" class="ni row-total" readonly tabindex="-1"
+                                               name="suspect[{{ $zoneKey }}][_zone][total]"
+                                               value="{{ old('suspect.'.$zoneKey.'._zone.total') }}" placeholder="0">
+                                    </td>
+                                </tr>
+                                @foreach($zone['commands'] as $cmd)
+                                    <tr>
+                                        <td>{{ ++$sn }}</td>
+                                        <td></td>
+                                        <td style="padding-left:22px;">{{ $cmd }}</td>
+                                        @foreach($suspectCols as $colKey => $colLabel)
+                                            <td>
+                                                <input type="number" min="0" class="ni qty-input"
+                                                       name="suspect[{{ $zoneKey }}][{{ $cmd }}][{{ $colKey }}]"
+                                                       value="{{ old('suspect.'.$zoneKey.'.'.$cmd.'.'.$colKey) }}" placeholder="0">
+                                            </td>
+                                        @endforeach
+                                        <td>
+                                            <input type="number" min="0" class="ni row-total" readonly tabindex="-1"
+                                                   name="suspect[{{ $zoneKey }}][{{ $cmd }}][total]"
+                                                   value="{{ old('suspect.'.$zoneKey.'.'.$cmd.'.total') }}" placeholder="0">
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- ============ 9. SCREENING CENTRE ACTIVITIES ============ --}}
+        <div id="investigation-section-9" class="redas-card investigation-step" data-page="9" style="margin-bottom:14px;">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    9. Screening Centre Activities (Detainees and their Nationality)
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="nis-table" id="investigation-screening-table">
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">S/NO.</th>
+                                <th style="min-width:220px;">Nationality</th>
+                                <th style="width:140px;">No. of Persons</th>
+                                <th style="width:44px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="investigation-screening-tbody">
+                            @forelse(old('screening', []) as $i => $row)
+                                <tr>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td><input type="text" class="ni" name="screening[{{ $i }}][nationality]" value="{{ $row['nationality'] ?? '' }}" placeholder="Nationality"></td>
+                                    <td><input type="number" min="0" class="ni" name="screening[{{ $i }}][persons]" value="{{ $row['persons'] ?? '' }}" placeholder="0"></td>
+                                    <td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                            @empty
+                                @for($i = 0; $i < 5; $i++)
+                                <tr>
+                                    <td>{{ $i + 1 }}</td>
+                                    <td><input type="text" class="ni" name="screening[{{ $i }}][nationality]" placeholder="Nationality"></td>
+                                    <td><input type="number" min="0" class="ni" name="screening[{{ $i }}][persons]" placeholder="0"></td>
+                                    <td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                                @endfor
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="add-row-btn" id="investigation-add-screening-row" data-row-target="investigation-screening-tbody"><i class="fas fa-plus"></i> Add Row</button>
+            </div>
+        </div>
+
+        {{-- ============ 10. DEPORTATION AND REPATRIATION (D&R) ============ --}}
+        <div id="investigation-section-10" class="redas-card investigation-step" data-page="10" style="margin-bottom:14px;">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                        <i class="fas fa-plane-departure"></i>
+                    </div>
+                    10. Deportation and Repatriation (D&amp;R)
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="nis-table" id="investigation-dr-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px;">S/N</th>
+                                <th style="width:120px;">No. of Persons</th>
+                                <th style="min-width:180px;">Nationality</th>
+                                <th style="width:110px;">Gender</th>
+                                <th style="width:110px;">Court Ordered</th>
+                                <th style="width:110px;">HOI Ordered</th>
+                                <th style="width:110px;">Service Ordered</th>
+                                <th style="width:44px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="investigation-dr-tbody">
+                            @forelse(old('deportation', []) as $i => $row)
+                                <tr>
+                                    <td>{{ $loop->iteration }}</td>
+                                    <td><input type="number" min="0" class="ni" name="deportation[{{ $i }}][no_persons]" value="{{ $row['no_persons'] ?? '' }}" placeholder="0"></td>
+                                    <td><input type="text" class="ni" name="deportation[{{ $i }}][nationality]" value="{{ $row['nationality'] ?? '' }}" placeholder="Nationality"></td>
+                                    <td>
+                                        <select class="ni ni-select" name="deportation[{{ $i }}][gender]">
+                                            <option value="">Select</option>
+                                            <option value="Male" {{ ($row['gender'] ?? '') === 'Male' ? 'selected' : '' }}>Male</option>
+                                            <option value="Female" {{ ($row['gender'] ?? '') === 'Female' ? 'selected' : '' }}>Female</option>
+                                        </select>
+                                    </td>
+                                    <td style="text-align:center;"><input type="checkbox" name="deportation[{{ $i }}][court_ordered]" value="1" {{ !empty($row['court_ordered']) ? 'checked' : '' }}></td>
+                                    <td style="text-align:center;"><input type="checkbox" name="deportation[{{ $i }}][hoi_ordered]" value="1" {{ !empty($row['hoi_ordered']) ? 'checked' : '' }}></td>
+                                    <td style="text-align:center;"><input type="checkbox" name="deportation[{{ $i }}][service_ordered]" value="1" {{ !empty($row['service_ordered']) ? 'checked' : '' }}></td>
+                                    <td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td>1</td>
+                                    <td><input type="number" min="0" class="ni" name="deportation[0][no_persons]" placeholder="0"></td>
+                                    <td><input type="text" class="ni" name="deportation[0][nationality]" placeholder="Nationality"></td>
+                                    <td>
+                                        <select class="ni ni-select" name="deportation[0][gender]">
+                                            <option value="">Select</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                        </select>
+                                    </td>
+                                    <td style="text-align:center;"><input type="checkbox" name="deportation[0][court_ordered]" value="1"></td>
+                                    <td style="text-align:center;"><input type="checkbox" name="deportation[0][hoi_ordered]" value="1"></td>
+                                    <td style="text-align:center;"><input type="checkbox" name="deportation[0][service_ordered]" value="1"></td>
+                                    <td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="add-row-btn" id="investigation-add-dr-row" data-row-target="investigation-dr-tbody"><i class="fas fa-plus"></i> Add Row</button>
+            </div>
+        </div>
+
+        {{-- ============ DECLARATION & CONSENT ============ --}}
+        @unless($stateEmbedded ?? false)
+        <div id="investigation-section-11" class="redas-card investigation-step" data-page="11" style="margin-bottom:14px;border-left:4px solid #1d4ed8;">
+            <div class="card-head">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    Declaration &amp; Consent
+                </div>
+            </div>
+            <div class="card-body">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.84rem;color:var(--gray-700);">
+                    <input type="checkbox" name="data_consent" value="1" required style="accent-color:var(--nis-600);margin-top:2px;">
+                    <span>
+                        I confirm that the information provided is accurate, limited to what is necessary for official NIS reporting,
+                        and that I have authority to submit it. I understand that this data will be processed and retained in accordance with
+                        the <a href="{{ route('privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Privacy Policy</a>.
+                    </span>
+                </label>
+            </div>
+        </div>
+
+        {{-- ============ SUBMIT ============ --}}
+        <div class="redas-card">
+            <div class="card-body" style="display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;">
+                <a href="{{ route('user.dashboard') }}" class="btn-nis btn-ghost">Cancel</a>
+                <button type="submit" class="btn-nis btn-primary-nis">
+                    <i class="fas fa-paper-plane"></i> Submit {{ $directorateName ?? 'Directorate' }} Return
+                </button>
+            </div>
+        </div>
+        @endunless
+
+<script>
+(function () {
+    'use strict';
+
+    /* On the combined state form this partial lives inside #dir-investigation;
+       on the standalone page that id does not exist, so fall back to document. */
+    var INV_ROOT = document.getElementById('dir-investigation') || document;
+
+    /* ---------- Row total auto-calculation ---------- */
+    function recalcRow(tr) {
+        if (!tr) return;
+        const totalField = tr.querySelector('.row-total');
+        if (!totalField) return;
+        let sum = 0;
+        tr.querySelectorAll('.qty-input').forEach(function (input) {
+            sum += parseFloat(input.value) || 0;
+        });
+        totalField.value = sum;
+    }
+
+    INV_ROOT.querySelectorAll('.qty-input').forEach(function (input) {
+        input.addEventListener('input', function () {
+            recalcRow(input.closest('tr'));
+        });
+    });
+
+    /* ---------- Staff Strength grand total ---------- */
+    function recalcStaffTotals() {
+        let male = 0, female = 0;
+        INV_ROOT.querySelectorAll('.staff-male').forEach(function (i) { male += parseFloat(i.value) || 0; });
+        INV_ROOT.querySelectorAll('.staff-female').forEach(function (i) { female += parseFloat(i.value) || 0; });
+        const mEl = document.getElementById('investigation-staff-total-male');
+        const fEl = document.getElementById('investigation-staff-total-female');
+        const aEl = document.getElementById('investigation-staff-total-all');
+        if (mEl) mEl.textContent = male;
+        if (fEl) fEl.textContent = female;
+        if (aEl) aEl.textContent = male + female;
+    }
+    INV_ROOT.querySelectorAll('.staff-male, .staff-female').forEach(function (input) {
+        input.addEventListener('input', recalcStaffTotals);
+    });
+    recalcStaffTotals();
+
+    /* ---------- Remove-row buttons (existing rows) ---------- */
+    function bindRemove(tr) {
+        const btn = tr.querySelector('.remove-row-btn');
+        if (btn && !btn.dataset.bound) {
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', function () { tr.remove(); });
+        }
+    }
+    INV_ROOT.querySelectorAll('#investigation-dofit-table tbody tr, #investigation-surveillance-table tbody tr, #investigation-citizenship-table tbody tr, #investigation-screening-table tbody tr, #investigation-dr-table tbody tr').forEach(bindRemove);
+
+    /* ---------- Generic dynamic-row adder ---------- */
+    let rowCounters = {};
+    function addDynamicRow(tbodyId, prefix, buildRowHtml) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        rowCounters[tbodyId] = (rowCounters[tbodyId] || tbody.querySelectorAll('tr').length) + 1;
+        const idx = 'n' + Date.now() + '_' + rowCounters[tbodyId];
+        const tr = document.createElement('tr');
+        tr.innerHTML = buildRowHtml(prefix, idx);
+        tbody.appendChild(tr);
+        bindRemove(tr);
+        const firstInput = tr.querySelector('input, select');
+        if (firstInput) firstInput.focus();
+        tr.querySelectorAll('.qty-input').forEach(function (input) {
+            input.addEventListener('input', function () { recalcRow(input.closest('tr')); });
+        });
+    }
+
+    const addBtn = function (id, handler) {
+        const btn = document.getElementById(id);
+        if (btn) btn.addEventListener('click', handler);
+    };
+
+    addBtn('investigation-add-dofit-row', function () {
+        addDynamicRow('investigation-dofit-tbody', 'dofit', function (prefix, idx) {
+            return '' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][command]" placeholder="Command"></td>' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][embassy]" placeholder="Embassy / High Commission"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][no_referred]" placeholder="0"></td>' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][reason]" placeholder="Reason"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][no_returned]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][no_retained]" placeholder="0"></td>' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][remark]" placeholder="Remark"></td>' +
+                '<td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>';
+        });
+    });
+
+    addBtn('investigation-add-surveillance-row', function () {
+        addDynamicRow('investigation-surveillance-tbody', 'surveillance', function (prefix, idx) {
+            return '' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][shq]" placeholder="SHQ"></td>' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][activity]" placeholder="Activity"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][number]" placeholder="0"></td>' +
+                '<td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>';
+        });
+    });
+
+    addBtn('investigation-add-citizenship-row', function () {
+        addDynamicRow('investigation-citizenship-tbody', 'citizenship', function (prefix, idx) {
+            return '' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][command]" placeholder="Command"></td>' +
+                '<td><input type="number" min="0" class="ni qty-input" name="' + prefix + '[' + idx + '][brought_forward]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni qty-input" name="' + prefix + '[' + idx + '][received]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][treated]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][rejected]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][kiv]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][cumulative]" placeholder="0"></td>' +
+                '<td><input type="number" min="0" class="ni row-total" readonly tabindex="-1" name="' + prefix + '[' + idx + '][total]" placeholder="0"></td>' +
+                '<td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>';
+        });
+    });
+
+    addBtn('investigation-add-screening-row', function () {
+        addDynamicRow('investigation-screening-tbody', 'screening', function (prefix, idx) {
+            return '' +
+                '<td>' + (parseInt(INV_ROOT.querySelectorAll('#investigation-screening-tbody tr').length) + 1) + '</td>' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][nationality]" placeholder="Nationality"></td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][persons]" placeholder="0"></td>' +
+                '<td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>';
+        });
+    });
+
+    addBtn('investigation-add-dr-row', function () {
+        addDynamicRow('investigation-dr-tbody', 'deportation', function (prefix, idx) {
+            return '' +
+                '<td>' + (parseInt(INV_ROOT.querySelectorAll('#investigation-dr-tbody tr').length) + 1) + '</td>' +
+                '<td><input type="number" min="0" class="ni" name="' + prefix + '[' + idx + '][no_persons]" placeholder="0"></td>' +
+                '<td><input type="text" class="ni" name="' + prefix + '[' + idx + '][nationality]" placeholder="Nationality"></td>' +
+                '<td><select class="ni ni-select" name="' + prefix + '[' + idx + '][gender]"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option></select></td>' +
+                '<td style="text-align:center;"><input type="checkbox" name="' + prefix + '[' + idx + '][court_ordered]" value="1"></td>' +
+                '<td style="text-align:center;"><input type="checkbox" name="' + prefix + '[' + idx + '][hoi_ordered]" value="1"></td>' +
+                '<td style="text-align:center;"><input type="checkbox" name="' + prefix + '[' + idx + '][service_ordered]" value="1"></td>' +
+                '<td><button type="button" class="remove-row-btn" title="Remove row"><i class="fas fa-trash"></i></button></td>';
+        });
+    });
+
+    /* ---------- Basic client-side confirmation before submit ---------- */
+    const form = document.querySelector('main form') || document.querySelector('form[action*="directorates"]');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            const period = form.querySelector('[name="report_period"]');
+            if (period && !period.value) {
+                e.preventDefault();
+                period.focus();
+                alert('Please select the report period before submitting.');
+            }
+        });
+    }
+
+    /* ---------- Section page navigation ---------- */
+    const steps = Array.from(INV_ROOT.querySelectorAll('.investigation-step'));
+    const prevBtn = document.getElementById('investigation-prev-btn');
+    const nextBtn = document.getElementById('investigation-next-btn');
+    const pageLabel = document.getElementById('investigation-page-label');
+    let currentPage = 1;
+    const lastPage = steps.length;
+
+    const navLinks = Array.from(INV_ROOT.querySelectorAll('.investigation-section-nav a'));
+
+    function updateStepNavigation() {
+        steps.forEach(function (step) {
+            const page = Number(step.dataset.page || 0);
+            step.classList.toggle('active', page === currentPage);
+        });
+        navLinks.forEach(function (link) {
+            const sectionId = link.dataset.section;
+            const page = Number(sectionId?.replace('investigation-section-', '') || 0);
+            link.classList.toggle('active', page === currentPage);
+        });
+        if (pageLabel) {
+            pageLabel.textContent = 'Page ' + currentPage + ' of ' + lastPage;
+        }
+        if (prevBtn) {
+            prevBtn.disabled = currentPage === 1;
+        }
+        if (nextBtn) {
+            if (currentPage === lastPage) {
+                nextBtn.innerHTML = 'Finish <i class="fas fa-check"></i>';
+            } else {
+                nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
+            }
+        }
+    }
+
+    function goToPage(page) {
+        currentPage = Math.min(Math.max(1, page), lastPage);
+        updateStepNavigation();
+        const section = INV_ROOT.querySelector('.investigation-step.active');
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+            goToPage(currentPage - 1);
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+            if (currentPage === lastPage) {
+                if (form && window.confirm('Are you sure you want to submit this return?\n\nPlease verify all information before continuing.')) {
+                    if (form.requestSubmit) form.requestSubmit();
+                    else form.submit();
+                }
+                return;
+            }
+            goToPage(currentPage + 1);
+        });
+    }
+
+    navLinks.forEach(function (link) {
+        const page = Number(link.dataset.section?.replace('investigation-section-', '') || 0);
+        if (!page) {
+            return;
+        }
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            goToPage(page);
+        });
+    });
+
+    updateStepNavigation();
+})();
+</script>

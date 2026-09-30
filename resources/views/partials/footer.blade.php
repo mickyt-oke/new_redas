@@ -69,15 +69,19 @@
         const panels = document.querySelectorAll('.tab-panel');
         const tabsBar = document.getElementById('entryTabs');
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.classList.remove('active'));
-                panels.forEach(p => p.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
-                if (tabsBar) tabsBar.scrollLeft = tab.offsetLeft - 60;
+        /* Pages with their own scoped tab handling (e.g. the combined state
+           return) set window.REDAS_SCOPED_TABS before this script runs. */
+        if (!window.REDAS_SCOPED_TABS) {
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panels.forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('tab-' + tab.dataset.tab)?.classList.add('active');
+                    if (tabsBar) tabsBar.scrollLeft = tab.offsetLeft - 60;
+                });
             });
-        });
+        }
 
         /* ── Sidebar/topbar standard toggles ── */
         const sidebar = document.getElementById('redasSidebar');

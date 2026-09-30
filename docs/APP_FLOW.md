@@ -29,22 +29,22 @@
 | `GET|POST /mfa/challenge` | `MfaController@challenge` / `verifyChallenge` (TOTP or backup code) |
 | `POST /mfa/complete`, `/mfa/cancel` | finish / abort pending login |
 
-### 1.3 State user / officer (`auth` + `abac.geo`)
+### 1.3 State user / officer (`access:category=state_user,location=state,role=user|officer|minLevel=0` + `abac.geo`)
 
 | Route | Handler / view |
 |---|---|
-| `GET /user/dashboard` | `user.dashboard` |
-| `GET /user/returns/create`, `POST /user/returns` | return form; `SubmissionWorkflow::create()` |
+| `GET /user/dashboard` | `Web\DashboardController@stateDashboard` — real per-user metrics (own submissions only), recent submissions, notifications, 6-month trend |
+| `GET /user/returns/create` | `Web\DashboardController@createStateReturn` — combined return form embedding **all ten directorate sections** as tabs (`user.states._return-layout` + `user.states.sections.{slug}` partials shared with the directorate forms); field names are namespaced per directorate (e.g. `passport[staff_strength]`, `works[staff_strength]`) |
+| `POST /user/returns` | `SubmissionWorkflow::create()` — `return_data` keeps the namespaced shape |
+| `POST /user/returns/preview` | `Web\DashboardController@previewStateReturn` — read-only preview **as a separate page** (opened in a new tab; no persistence, no file upload) |
 | `GET /user/submissions` | `Web\DashboardController@stateSubmissions` — own submission list (dynamic) |
 | `GET /user/returns/{application}` | `Web\DashboardController@showSubmission` — owner-only detail |
+| `GET /user/returns/{application}/print` | `Web\DashboardController@printSubmission` — auto-print view |
 | `GET /user/returns/{application}/edit`, `PUT /user/returns/{application}` | owner edit/resubmit (while not approved) |
 | `DELETE /user/returns/{application}` | owner delete (while not approved); removes uploaded files from storage |
 | `GET /user/returns/{application}/documents/{collection}/{index}` | owner document streaming |
-| `GET /user/submissions/{application}/pdf` | `Web\DashboardController@downloadSubmissionPdf` (owner or in-scope approver) |
-| `GET /user/notifications` (+ `/api`, `/count`, mark-read) | `ApiNotificationController` (session auth) |
-| `GET /user/archive`, `GET|POST /user/archive/upload` | approved returns in scope; upload is a **validated stub** |
-| `GET /user/reports`, `POST /user/reports/generate` | **stub** — redirects with success message |
-| `GET|PATCH /user/profile` | `ProfileController` — password change |
+
+Shared authenticated routes (all roles): `GET /user/submissions/{application}/pdf` (owner or in-scope approver), notifications (+api), archive, reports (stub), profile.
 
 ### 1.4 Directorate users (`access:category=directorate_user|directorate_admin` — state users also allowed on form routes)
 

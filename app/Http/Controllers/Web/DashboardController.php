@@ -469,6 +469,122 @@ class DashboardController extends Controller
     }
 
     /**
+     * Show the combined state return form (all ten directorate sections).
+     */
+    public function createStateReturn(): View
+    {
+        return view('user.states.create-return', $this->passportDirectoryData());
+    }
+
+    /**
+     * Display the state user dashboard with live submission metrics.
+     */
+    public function stateDashboard(): View
+    {
+        $user = Auth::user();
+
+        $baseQuery = Schema::hasTable('applications')
+            ? Application::query()->where('user_id', $user?->id)
+            : null;
+
+        $submissions = $baseQuery !== null
+            ? (clone $baseQuery)->orderByDesc('created_at')->limit(5)->get()
+            : collect();
+
+        $totalSubmissions = $baseQuery !== null ? (clone $baseQuery)->count() : 0;
+        $pendingSubmissions = $baseQuery !== null
+            ? (clone $baseQuery)->whereIn('status', ['pending', 'Pending Review', 'submitted'])->count()
+            : 0;
+        $approvedSubmissions = $baseQuery !== null
+            ? (clone $baseQuery)->where('status', 'approved')->count()
+            : 0;
+        $queriedSubmissions = $baseQuery !== null
+            ? (clone $baseQuery)->whereIn('status', ['queried', 'rejected', 'returned'])->count()
+            : 0;
+
+        $unreadNotifications = Schema::hasTable('user_notifications')
+            ? UserNotification::query()
+                ->where('user_id', $user?->id)
+                ->where('is_read', false)
+                ->count()
+            : 0;
+
+        $notifications = Schema::hasTable('user_notifications')
+            ? UserNotification::query()
+                ->where('user_id', $user?->id)
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get()
+            : collect();
+
+        $trendLabels = [];
+        $trendValues = [];
+        if ($baseQuery !== null) {
+            $countsByMonth = (clone $baseQuery)
+                ->where('created_at', '>=', now()->startOfMonth()->subMonths(5))
+                ->get(['created_at'])
+                ->groupBy(fn ($application) => $application->created_at?->format('Y-m'))
+                ->map->count();
+
+            for ($i = 5; $i >= 0; $i--) {
+                $month = now()->startOfMonth()->subMonths($i);
+                $trendLabels[] = $month->format('M');
+                $trendValues[] = (int) ($countsByMonth[$month->format('Y-m')] ?? 0);
+            }
+        }
+
+        return view('user.dashboard', compact(
+            'submissions',
+            'totalSubmissions',
+            'pendingSubmissions',
+            'approvedSubmissions',
+            'queriedSubmissions',
+            'unreadNotifications',
+            'notifications',
+            'trendLabels',
+            'trendValues'
+        ));
+    }
+
+    /**
+     * Render a read-only preview of the combined state return (no persistence).
+     */
+    public function previewStateReturn(Request $request): View
+    {
+        $previewData = $request->except(['_token', 'data_consent', 'attachments', 'supporting_documents', 'workflow_path', 'status']);
+
+        $user = Auth::user();
+
+        return view('user.states.preview', [
+            'previewData' => $previewData,
+            'user' => $user,
+            'commandName' => $this->commandNameForUser($user),
+        ]);
+    }
+
+    /**
+     * Directorate metadata for views that render all ten state sections.
+     */
+    public static function directorates(): array
+    {
+        return self::DIRECTORATES;
+    }
+
+    /**
+     * Resolve the human command name for a state user's state code.
+     */
+    private function commandNameForUser(?User $user): ?string
+    {
+        $code = $user?->primary_location_code ?: $user?->assigned_state_code;
+
+        if ($code === null || $code === '') {
+            return null;
+        }
+
+        return GeolocationService::stateNameFromCode((string) $code) ?? strtoupper((string) $code);
+    }
+
+    /**
      * List the logged-in state user's own submissions.
      */
     public function stateSubmissions(): View
@@ -559,9 +675,9 @@ class DashboardController extends Controller
         }
 
         if ($isStateUser) {
-            return view('user.states.create-return', [
+            return view('user.states.create-return', array_merge([
                 'editing' => $application,
-            ]);
+            ], $this->passportDirectoryData()));
         }
 
         $slug = $this->formSlugForUser($user);
@@ -593,7 +709,20 @@ class DashboardController extends Controller
      */
     private function passportViewData(string $slug): array
     {
-        if ($slug !== 'passport' || ! Schema::hasTable('nis_directories')) {
+        if ($slug !== 'passport') {
+            return ['processingCenters' => [], 'foreignMissions' => []];
+        }
+
+        return $this->passportDirectoryData();
+    }
+
+    /**
+     * Passport centre and foreign mission name lists, unconditionally — the
+     * combined state form embeds the passport section alongside all others.
+     */
+    private function passportDirectoryData(): array
+    {
+        if (! Schema::hasTable('nis_directories')) {
             return ['processingCenters' => [], 'foreignMissions' => []];
         }
 

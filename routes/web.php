@@ -60,9 +60,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware([Authenticate::class, 'access:category=state_user,location=state,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/dashboard', [DashboardController::class, 'stateDashboard'])->name('user.dashboard');
 
-    Route::get('/user/returns/create', function () {
-        return view('user.states.create-return');
-    })->name('user.returns.create');
+    Route::get('/user/returns/create', [DashboardController::class, 'createStateReturn'])->name('user.returns.create');
 
     Route::post('/user/returns/preview', [DashboardController::class, 'previewStateReturn'])->middleware('throttle:60,1')->name('user.returns.preview');
 

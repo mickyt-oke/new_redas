@@ -75,8 +75,8 @@
                 <div>
                     <strong style="color:#1e3a8a;display:block;margin-bottom:4px;">Data Protection Notice</strong>
                     The information submitted on this form is processed for official records for the Service.
-                    Only data that is adequate, relevant, and limited to what is necessary should be entered.
-                    Personal data will be retained in accordance with NIS archival policy and applicable data-protection law.
+                    Only data that is adequate, relevant, and confirmed true should be inputted.
+                    All data will be retained digitally in accordance with data retention policy and applicable data-protection law.
                     <a href="{{ url('/privacy') }}" target="_blank" style="color:#1d4ed8;text-decoration:underline;">Read the Privacy Policy</a>.
                 </div>
             </div>

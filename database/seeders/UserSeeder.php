@@ -21,18 +21,19 @@ class UserSeeder extends Seeder
         $password = Hash::make('password123');
 
         $officers = [
-            ['first_name' => '', 'last_name' => 'Oke', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Akintunde', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Dagogo', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Eze', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Taiwo', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Baruwa', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Kawu', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Adewumi', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Oshifekun', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Ige', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Ogheneovo', 'email' => ''],
-            ['first_name' => '', 'last_name' => 'Akinsowon', 'email' => '']
+            ['first_name' => 'SA', 'last_name' => 'OBAJE', 'email' => 'obajeameh@gmail.com'],
+            ['first_name' => 'YA', 'last_name' => 'NASIRU', 'email' => 'nasyak14@gmail.com'],
+            ['first_name' => 'MD', 'last_name' => 'ABDULWAHAB', 'email' => 'quaresmary3@gmail.com'],
+            ['first_name' => 'E', 'last_name' => 'EKHATOR', 'email' => 'edefe.ekhator@gmail.com'],
+            ['first_name' => 'BB', 'last_name' => 'MFONOBONG', 'email' => 'bmfonobong@gmail.com'],
+            ['first_name' => 'A', 'last_name' => 'HUSSEIN', 'email' => 'adamshusen@gmail.com'],
+            ['first_name' => 'SM', 'last_name' => 'ZANNA', 'email' => 'smzanna@gmail.com'],
+            ['first_name' => 'MM', 'last_name' => 'AKEJU', 'email' => 'rosemarymichaelakeju@gmail.com'],
+            ['first_name' => 'AM', 'last_name' => 'FRIDAY', 'email' => 'standbic5@gmail.com'],
+            ['first_name' => 'GO', 'last_name' => 'ADA', 'email' => 'gabrielochoche014@gmail.com'],
+            ['first_name' => 'AA', 'last_name' => 'OHANUGO', 'email' => 'augustineohanugo@gmail.com'],
+            ['first_name' => 'GW', 'last_name' => 'DAGOGO', 'email' => 'dago26go@gmail.com'],
+            ['first_name' => 'MO', 'last_name' => 'OKE', 'email' => 'okemichael@yahoo.com'],
         ];
 
 
@@ -55,7 +56,7 @@ class UserSeeder extends Seeder
                 $this->createOrUpdateUser([
                     'name' => $officer['last_name'].' '.$officer['first_name'].' '.$directorate['code'].' User',
                     'service_number' => 'NIS/'.$directorate['code'].'/'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
-                    'email' => strtolower($officer['last_name'].'.'.$directorate['code'].'@nis.gov.ng'),
+                    'email' => $officer['email'],
                     'password' => $password,
                     'role' => 'directorate',
                     'user_category' => 'directorate_user',
@@ -64,32 +65,9 @@ class UserSeeder extends Seeder
                     'geo_state' => 'FC',
                     'access_level' => 1,
                     'assigned_directorate_code' => $directorate['code'],
-                    'email_verified_at' => $now,
                 ]);
             }
         }
-
-        // Create a super admin user with access level 3
-
-        // Create directorate_admin user for each officers. Each officer has login for all directorates with access level 2
-        // foreach ($officers as $index => $officer) {
-        //     foreach ($directorates as $directorate) {
-        //         $this->createOrUpdateUser([
-        //             'name' => $officer['last_name'].' '.$officer['first_name'].' '.$directorate['code'].' Admin',
-        //             'service_number' => 'NIS/'.$directorate['code'].'/'.str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT),
-        //             'email' => strtolower($officer['last_name'].'.'.$officer['first_name'].'.'.$directorate['code'].'@nis.gov.ng'),
-        //             'password' => $password,
-        //             'role' => 'admin',
-        //             'user_category' => 'directorate_admin',
-        //             'primary_location_type' => 'directorate',
-        //             'primary_location_code' => $directorate['code'],
-        //             'geo_state' => 'FC',
-        //             'access_level' => 2,
-        //             'assigned_directorate_code' => $directorate['code'],
-        //             'email_verified_at' => $now,
-        //         ]);
-        //     }
-        // }
     }
 
     // create user if not exists, otherwise update the existing user with the new data
