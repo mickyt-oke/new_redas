@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
         $now = now();
         $password = Hash::make('password123');
 
-        $officers = [
+       $officers = [
             ['first_name' => 'SA', 'last_name' => 'OBAJE', 'email' => 'obajeameh@gmail.com'],
             ['first_name' => 'YA', 'last_name' => 'NASIRU', 'email' => 'nasyak14@gmail.com'],
             ['first_name' => 'MD', 'last_name' => 'ABDULWAHAB', 'email' => 'quaresmary3@gmail.com'],
@@ -32,7 +32,10 @@ class UserSeeder extends Seeder
             ['first_name' => 'AM', 'last_name' => 'FRIDAY', 'email' => 'standbic5@gmail.com'],
             ['first_name' => 'GO', 'last_name' => 'ADA', 'email' => 'gabrielochoche014@gmail.com'],
             ['first_name' => 'AA', 'last_name' => 'OHANUGO', 'email' => 'augustineohanugo@gmail.com'],
+            ['first_name' => 'GW', 'last_name' => 'DAGOGO', 'email' => 'dago26go@gmail.com'],
+            ['first_name' => 'MO', 'last_name' => 'OKE', 'email' => 'okemichael@yahoo.com'],
         ];
+
 
 
         $directorates = [
