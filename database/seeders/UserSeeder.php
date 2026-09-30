@@ -21,20 +21,20 @@ class UserSeeder extends Seeder
         $password = Hash::make('password123');
 
         $officers = [
-            ['first_name' => 'SA', 'last_name' => 'OBAJE', 'email' => 'obajeameh@gmail.com'],
-            ['first_name' => 'YA', 'last_name' => 'NASIRU', 'email' => 'nasyak14@gmail.com'],
-            ['first_name' => 'MD', 'last_name' => 'ABDULWAHAB', 'email' => 'quaresmary3@gmail.com'],
-            ['first_name' => 'E', 'last_name' => 'EKHATOR', 'email' => 'edefe.ekhator@gmail.com'],
-            ['first_name' => 'BB', 'last_name' => 'MFONOBONG', 'email' => 'bmfonobong@gmail.com'],
-            ['first_name' => 'A', 'last_name' => 'HUSSEIN', 'email' => 'adamshusen@gmail.com'],
-            ['first_name' => 'SM', 'last_name' => 'ZANNA', 'email' => 'smzanna@gmail.com'],
-            ['first_name' => 'MM', 'last_name' => 'AKEJU', 'email' => 'rosemarymichaelakeju@gmail.com'],
-            ['first_name' => 'AM', 'last_name' => 'FRIDAY', 'email' => 'standbic5@gmail.com'],
-            ['first_name' => 'GO', 'last_name' => 'ADA', 'email' => 'gabrielochoche014@gmail.com'],
-            ['first_name' => 'AA', 'last_name' => 'OHANUGO', 'email' => 'augustineohanugo@gmail.com'],
-            ['first_name' => 'GW', 'last_name' => 'DAGOGO', 'email' => 'dago26go@gmail.com'],
-            ['first_name' => 'MO', 'last_name' => 'OKE', 'email' => 'okemichael@yahoo.com'],
+            ['first_name' => '', 'last_name' => 'Oke', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Akintunde', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Dagogo', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Eze', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Taiwo', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Baruwa', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Kawu', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Adewumi', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Oshifekun', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Ige', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Ogheneovo', 'email' => ''],
+            ['first_name' => '', 'last_name' => 'Akinsowon', 'email' => '']
         ];
+
 
 
         $directorates = [

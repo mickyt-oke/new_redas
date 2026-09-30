@@ -112,3 +112,4 @@ class AbacGeolocationMiddleware
         return $location;
     }
 }
+
