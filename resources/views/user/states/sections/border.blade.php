@@ -220,12 +220,6 @@
                 'Tip San'
             ],
 
-            'Akwa Ibom' => [
-                'Adadia',
-                'Nwaniba',
-                'Yoho'
-            ],
-
             'Benue' => [
                 'Jato-Aka',
                 'Abande'
@@ -2822,17 +2816,229 @@ $lastSection = $category['section'];
     // =========================================
 
     var nationalityList = [
-        "Nigeria", "Benin", "Burkina Faso", "Cameroon", "Cape Verde",
-        "Central African Republic", "Chad", "Congo", "Côte d'Ivoire",
-        "DR Congo", "Egypt", "Equatorial Guinea", "Eritrea",
-        "Eswatini", "Ethiopia", "Gabon", "Gambia", "Ghana",
-        "Guinea", "Guinea-Bissau", "Kenya", "Liberia",
-        "Libya", "Mali", "Morocco", "Niger", "Senegal",
-        "Sierra Leone", "South Africa", "Sudan", "Togo",
-        "Tunisia", "United Kingdom", "United States",
-        "Canada", "France", "Germany", "Italy", "Spain",
-        "Turkey", "China", "India", "Pakistan",
-        "Japan", "South Korea", "Brazil", "Russia"
+        "Afghan",
+"Albanian",
+"Algerian",
+"American Samoan",
+"Andorran",
+"Angolan",
+"Antiguan",
+"Argentinean",
+"Armenian",
+"Australian",
+"Austrian",
+"Azerbaijani",
+"Bahamian",
+"Bahraini",
+"Bangladeshi",
+"Barbadian",
+"Belarusian",
+"Belgian",
+"Belizean",
+"Beninese",
+"Bermudian",
+"Bhutanese",
+"Bolivian",
+"Bosnian",
+"Botswanan",
+"Brazilian",
+"British",
+"British Virgin Islander",
+"Bruneian",
+"Bulgarian",
+"Burkinabé",
+"Burmese",
+"Burundian",
+"Cambodian",
+"Cameroonian",
+"Canadian",
+"Cape Verdean",
+"Cayman Islander",
+"Central African",
+"Chadian",
+"Chilean",
+"Chinese",
+"Colombian",
+"Comoran",
+"Congolese-Brazzaville",
+"Congolese-Kinshasa",
+"Cook Islander",
+"Costa Rican",
+"Croatian",
+"Cuban",
+"Cymric",
+"Cypriot",
+"Czech",
+"Danish",
+"Djoutian",
+"Dominican",
+"Dominican",
+"Dutch",
+"East Timorese",
+"Ecuadorian",
+"Egyptian",
+"Emirati",
+"Equatorial Guinean",
+"Eritrean",
+"Estonian",
+"Ethiopian",
+"Faroese",
+"Fijian",
+"Filipino",
+"Finnish",
+"French",
+"French Guianese",
+"French Polynesian",
+"Gabonese",
+"Gambian",
+"Georgian",
+"German",
+"Ghanaian",
+"Gibraltarian",
+"Greek",
+"Greenlandic",
+"Grenadian",
+"Guadeloupean",
+"Guamanian",
+"Guatemalan",
+"Guinean",
+"Guinea-Bissau",
+"Guyanese",
+"Haitian",
+"Honduran",
+"Hong Konger",
+"Hungarian",
+"Icelandic",
+"Indian",
+"Indonesian",
+"Iranian",
+"Iraqi",
+"Irish",
+"Israeli",
+"Italian",
+"Ivorian",
+"Jamaican",
+"Japanese",
+"Jordanian",
+"Kazakhstani",
+"Kenyan",
+"Kittitian",
+"Kuwaiti",
+"Kyrgyzstani",
+"Laotian",
+"Latvian",
+"Lebanese",
+"Liberian",
+"Libyan",
+"Liechtensteiner",
+"Lithuanian",
+"Luxembourger",
+"Macanese",
+"Macedonian",
+"Malagasy",
+"Malawian",
+"Malaysian",
+"Maldivian",
+"Malian",
+"Maltese",
+"Marshallese",
+"Martiniquais",
+"Mauritanian",
+"Mauritian",
+"Mahorais",
+"Mexican",
+"Micronesian",
+"Moldovan",
+"Monacan",
+"Mongolian",
+"Montenegrin",
+"Montserratian",
+"Moroccan",
+"Mozambican",
+"Namibian",
+"Nauruan",
+"Nepalese",
+"New Zealander",
+"Nicaraguan",
+"Nigerian",
+"Nigerien",
+"Niuean",
+"North Korean",
+"Northern Irish",
+"Northern Mariana Islander",
+"Norwegian",
+"Omani",
+"Pakistani",
+"Palauan",
+"Palestinian",
+"Panamanian",
+"Papua New Guinean",
+"Paraguayan",
+"Peruvian",
+"Pitcairn Islander",
+"Polish",
+"Portuguese",
+"Puerto Rican",
+"Qatari",
+"Réunionnais",
+"Romanian",
+"Russian",
+"Rwandan",
+"Saint Helenian",
+"Saint Lucian",
+"Saint Vincentian",
+"Samoan",
+"San Marinese",
+"São Toméan",
+"Saudi Arabian",
+"Scottish",
+"Senegalese",
+"Serbian",
+"Seychellois",
+"Sierra Leonean",
+"Singaporean",
+"Slovak",
+"Slovenian",
+"Solomon Islander",
+"Somali",
+"South African",
+"South Korean",
+"South Sudanese",
+"Spanish",
+"Sri Lankan",
+"Sudanese",
+"Surinamese",
+"Swazi",
+"Swedish",
+"Swiss",
+"Syrian",
+"Taiwanese",
+"Tajikistani",
+"Tanzanian",
+"Thai",
+"Togolese",
+"Tokelauan",
+"Tongan",
+"Trinidadian or Tobagonian",
+"Tunisian",
+"Turkish",
+"Turkmen",
+"Turks and Caicos Islander",
+"Tuvaluan",
+"Ugandan",
+"Ukrainian",
+"Uruguayan",
+"Uzbekistani",
+"Vanuatuan",
+"Venezuelan",
+"Vietnamese",
+"Vincentian",
+"Wallisian",
+"Welsh",
+"Western Saharan",
+"Yemeni",
+"Zambian",
+"Zimbabwean"
     ];
 
     // =========================================
@@ -2898,28 +3104,28 @@ $lastSection = $category['section'];
 
         if(state === "") return;
 
-        // Prevent duplicate states
-        let duplicate = false;
+        // // Prevent duplicate states
+        // let duplicate = false;
 
-        bqa(".command-state").forEach(function(item){
+        // bqa(".command-state").forEach(function(item){
 
-            if(item !== select && item.value === state){
+        //     if(item !== select && item.value === state){
 
-                duplicate = true;
+        //         duplicate = true;
 
-            }
+        //     }
 
-        });
+        // });
 
-        if(duplicate){
+    //     if(duplicate){
 
-            alert(state + " has already been added.");
+    //         alert(state + " has already been added.");
 
-            select.value = "";
+    //         select.value = "";
 
-            return;
+    //         return;
 
-        }
+    //     }
 
         if(!landBorderStates[state]) return;
 
@@ -3154,38 +3360,38 @@ $lastSection = $category['section'];
     // PREVENT DUPLICATE NATIONALITIES
     // =========================================
 
-    document.addEventListener("change", function(e){
+    // document.addEventListener("change", function(e){
 
-        if (!inScope(e.target)) return;
-        if(!e.target.classList.contains("nationality-select")) return;
+    //     if (!inScope(e.target)) return;
+    //     if(!e.target.classList.contains("nationality-select")) return;
 
-        const select = e.target;
+    //     const select = e.target;
 
-        if(select.value === "") return;
+    //     if(select.value === "") return;
 
-        const card = select.closest(".nationality-card");
+    //     const card = select.closest(".nationality-card");
 
-        let duplicate = false;
+    //     let duplicate = false;
 
-        card.querySelectorAll(".nationality-select").forEach(function(item){
+    //     card.querySelectorAll(".nationality-select").forEach(function(item){
 
-            if(item !== select && item.value === select.value){
+    //         if(item !== select && item.value === select.value){
 
-                duplicate = true;
+    //             duplicate = true;
 
-            }
+    //         }
 
-        });
+    //     });
 
-        if(duplicate){
+    //     if(duplicate){
 
-            alert(select.value + " has already been selected.");
+    //         alert(select.value + " has already been selected.");
 
-            select.value = "";
+    //         select.value = "";
 
-        }
+    //     }
 
-    });
+    // });
 
     // =========================================
     // OVERALL TOTALS
