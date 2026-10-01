@@ -89,35 +89,8 @@ $commandList = $commands ?? [
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
-                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-id-card"></i></div>
-                    Reporting Officer &amp; Command
-                </div>
-            </div>
-            <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
-                <div>
-                    <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Officer Service Number</label>
-                    <input type="text" name="works[reporting_officer_nis]" class="ni" pattern="[0-9]*" inputmode="numeric" value="{{ old('works.reporting_officer_nis', preg_replace('/[^0-9]/', '', auth()->user()->service_number)) }}" placeholder="e.g. 002" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                </div>
-                <div>
-                    <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Command / Formation</label>
-                    <input type="text" name="works[command_name]" class="ni" value="{{ old('works.command_name') }}">
-                </div>
-                <div>
-                    <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Rank</label>
-                    <input type="text" name="works[rank]" class="ni" value="{{ old('works.rank') }}">
-                </div>
-                <div>
-                    <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Phone Number</label>
-                    <input type="text" name="works[gsm_number]" class="ni" value="{{ old('works.gsm_number') }}">
-                </div>
-            </div>
-        </div>
-
-        <div class="redas-card" style="margin-bottom:14px;">
-            <div class="card-head">
-                <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-users"></i></div>
-                    1. Staff Strength Cadre breakdown
+                    1. Personnel Strength Cadre
                 </div>
             </div>
             <div class="card-body">

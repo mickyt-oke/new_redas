@@ -75,7 +75,7 @@
             : '';
         $commandValue = old('command_name', $editData['command_name'] ?? $resolvedCommand);
         $periodValue = old('period', $editData['period'] ?? $editData['report_period'] ?? now()->format('Y-m'));
-        $selectedType = old('return_type', $editData['return_type'] ?? 'monthly');
+        $selectedType = old('return_type', $editData['return_type'] ?? request('type', 'monthly'));
         $officerValue = old('reporting_officer', $editData['reporting_officer'] ?? ($stateUser?->name ?? ''));
     @endphp
 

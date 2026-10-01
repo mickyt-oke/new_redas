@@ -5,14 +5,15 @@
         <!-- Page Header -->
         <div class="page-header">
             <div>
-                <h1 class="page-title">Officer Dashboard</h1>
+                <!-- Dynamic name of State by fetching from the authenticated user's state -->
+                <h1 class="page-title"> {{ auth()->user()->state ?? 'State' }} Officer Dashboard</h1>
                 <p class="page-subtitle">
                     Welcome back, <strong>{{ auth()->user()->name ?? 'Officer' }}</strong> —
                     {{ now()->format('l, d F Y') }}
                 </p>
             </div>
-            <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis">
-                <i class="fas fa-plus"></i> Submit New Return
+            <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis" id="submitReturnBtn">
+                <i class="fas fa-plus"></i> <span>Submit New Return</span>
             </a>
         </div>
 
@@ -176,8 +177,8 @@
                         </div>
                     </div>
                     <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
-                        <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis full-width">
-                            <i class="fas fa-plus-circle"></i> Submit Monthly Return
+                        <a href="{{ route('user.returns.create') }}" class="btn-nis btn-primary-nis full-width" id="qaMonthlyBtn">
+                            <i class="fas fa-plus-circle"></i> <span>Submit Monthly Return</span>
                         </a>
                         <a href="{{ route('user.returns.create', ['type' => 'quarterly']) }}" class="btn-nis btn-outline-nis full-width">
                             <i class="fas fa-calendar-alt"></i> Submit Quarterly Return
@@ -241,5 +242,99 @@
         </div>
 
     </main>
+
+{{-- A saved state return draft lives in the browser's localStorage under a single
+     key (redas_state_draft, written by the combined return form). Surface it here
+     so the officer can resume or discard it without opening the form first. --}}
+<script>
+(function () {
+    var DRAFT_KEY = 'redas_state_draft';
+    var resumeUrl = @json(route('user.returns.create'));
+
+    var saved = null;
+    try { saved = localStorage.getItem(DRAFT_KEY); } catch (e) {}
+    if (!saved) return;
+
+    var data;
+    try { data = JSON.parse(saved); } catch (e) { return; }
+
+    function esc(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    /* Flip the two primary submission buttons into a "Resume Draft" state. */
+    ['submitReturnBtn', 'qaMonthlyBtn'].forEach(function (id) {
+        var btn = document.getElementById(id);
+        if (!btn) return;
+        var label = btn.querySelector('span');
+        var icon = btn.querySelector('i');
+        if (label) label.textContent = 'Resume Draft Return';
+        if (icon) icon.className = 'fas fa-rotate-right';
+        btn.title = 'Continue your saved draft return';
+    });
+
+    /* Prepend a resumable row to the Recent Submissions table. */
+    var tbody = document.querySelector('#submissionsTable tbody');
+    if (!tbody) return;
+
+    var typeLabels = {
+        monthly: 'Monthly Return', quarterly: 'Quarterly Return',
+        biannual: 'Bi-Annual Return', annual: 'Annual Return', special: 'Special Report'
+    };
+    var periodLabel = '—';
+    if (data.period) {
+        var d = new Date(data.period + '-01');
+        periodLabel = isNaN(d) ? data.period : d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+    }
+    var typeLabel = typeLabels[data.return_type] || 'Return';
+    var savedLabel = 'Saved locally';
+    if (data.__saved_at) {
+        var sd = new Date(data.__saved_at);
+        if (!isNaN(sd)) savedLabel = sd.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' + sd.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    }
+
+    var emptyRow = tbody.querySelector('td[colspan]');
+    if (emptyRow) emptyRow.closest('tr').style.display = 'none';
+
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+        '<td><strong>' + esc(periodLabel) + '</strong></td>' +
+        '<td style="font-size:.8rem;">' + esc(typeLabel) + '</td>' +
+        '<td><span class="status-badge badge-draft">Saved Draft</span></td>' +
+        '<td><span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:600;background:var(--gray-100);color:var(--gray-600);">' + esc(savedLabel) + '</span></td>' +
+        '<td style="font-size:.78rem;color:var(--gray-500);">Not yet submitted</td>' +
+        '<td><div style="display:flex;gap:6px;">' +
+            '<a href="' + resumeUrl + '" class="btn-nis btn-ghost btn-sm" title="Resume draft"><i class="fas fa-play"></i></a>' +
+            '<button type="button" class="btn-nis btn-ghost btn-sm draft-discard-btn" style="color:#b91c1c;" title="Discard draft"><i class="fas fa-trash"></i></button>' +
+        '</div></td>';
+
+    tr.querySelector('.draft-discard-btn').addEventListener('click', function () {
+        if (!window.confirm('Discard this saved draft? This cannot be undone.')) return;
+        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+        tr.remove();
+        var emptyTr = emptyRow ? emptyRow.closest('tr') : null;
+        var remaining = Array.from(tbody.querySelectorAll('tr')).filter(function (r) { return r !== emptyTr; });
+        if (emptyTr && remaining.length === 0) emptyTr.style.display = '';
+        ['submitReturnBtn', 'qaMonthlyBtn'].forEach(function (id) {
+            var btn = document.getElementById(id);
+            if (!btn) return;
+            var label = btn.querySelector('span');
+            var icon = btn.querySelector('i');
+            if (id === 'submitReturnBtn') {
+                if (label) label.textContent = 'Submit New Return';
+                if (icon) icon.className = 'fas fa-plus';
+            } else {
+                if (label) label.textContent = 'Submit Monthly Return';
+                if (icon) icon.className = 'fas fa-plus-circle';
+            }
+            btn.removeAttribute('title');
+        });
+    });
+
+    tbody.insertBefore(tr, tbody.firstChild);
+})();
+</script>
 
 @include('partials.footer')

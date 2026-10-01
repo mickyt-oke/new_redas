@@ -84,24 +84,21 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                 ['cadre','fas fa-users','1. Cadre'],
                 ['rank','fas fa-star','2. Rank'],
                 ['zones','fas fa-map-marker-alt','3. Zones'],
-                ['gender-cadre','fas fa-venus-mars','4. Gender by Cadre'],
-                ['gender-zone','fas fa-globe','5. Gender by Zone'],
-                ['gender-rank','fas fa-user-tag','6. Gender by Rank'],
-                ['training','fas fa-chalkboard-teacher','7. Training'],
-                ['records','fas fa-folder-open','8. Records'],
-                ['registry','fas fa-envelope','9. Registry'],
-                ['apu','fas fa-user-plus','10. APU'],
-                ['recruitment','fas fa-user-check','11. Recruitment'],
-                ['career','fas fa-chart-line','12. Career'],
-                ['officer-promotion','fas fa-medal','13. Officer Promo'],
-                ['upgrading-conversion','fas fa-exchange-alt','14. Upgr/Conv'],
-                ['upgrading','fas fa-arrow-up','15. Upgrading'],
-                ['promotion-eligibility','fas fa-clipboard-check','16. Promo Elig'],
-                ['permission-study','fas fa-book-reader','17. Study'],
-                ['pension','fas fa-hand-holding-usd','18. Pension'],
-                ['discipline','fas fa-gavel','19. Discipline'],
-                ['nimcos','fas fa-credit-card','20. NIMCOS'],
-                ['general-report','fas fa-file-alt','21. General Report'],
+                ['training','fas fa-chalkboard-teacher','4. Training'],
+                ['records','fas fa-folder-open','5. Records'],
+                ['registry','fas fa-envelope','6. Registry'],
+                ['apu','fas fa-user-plus','7. APU'],
+                ['recruitment','fas fa-user-check','8. Recruitment'],
+                ['career','fas fa-chart-line','9. Career'],
+                ['officer-promotion','fas fa-medal','10. Officer Promo'],
+                ['upgrading-conversion','fas fa-exchange-alt','11. Upgr/Conv'],
+                ['upgrading','fas fa-arrow-up','12. Upgrading'],
+                ['promotion-eligibility','fas fa-clipboard-check','13. Promo Elig'],
+                ['permission-study','fas fa-book-reader','14. Study'],
+                ['pension','fas fa-hand-holding-usd','15. Pension'],
+                ['discipline','fas fa-gavel','16. Discipline'],
+                ['nimcos','fas fa-credit-card','17. NIMCOS'],
+                ['general-report','fas fa-file-alt','18. General Report'],
             ]; @endphp
             @foreach($tabs as $i => [$id,$icon,$label])
             <button type="button" class="entry-tab {{ $i === 0 ? 'active' : '' }}" data-tab="hrm-{{ $id }}">
@@ -129,7 +126,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-users"></i></div>
-                    1. Service Personnel Strength by Cadre
+                    1. Personnel Strength by Cadre
                 </div>
             </div>
             <div class="card-body">
@@ -281,7 +278,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div>
 
-    <!-- TAB 4: Gender Distribution by Cadre -->
+    {{-- <!-- TAB 4: Gender Distribution by Cadre -->
     <div class="tab-panel" id="tab-hrm-gender-cadre">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
@@ -339,9 +336,9 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
+    </div> --}}
 
-    <!-- TAB 5: Gender Distribution by Zone -->
+    {{-- <!-- TAB 5: Gender Distribution by Zone -->
     <div class="tab-panel" id="tab-hrm-gender-zone">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
@@ -392,10 +389,10 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
+    </div> --}}
 
     <!-- TAB 6: Gender Distribution by Rank -->
-    <div class="tab-panel" id="tab-hrm-gender-rank">
+    {{-- <div class="tab-panel" id="tab-hrm-gender-rank">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -436,7 +433,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
+    </div> --}}
 
     <!-- TAB 7: Training and Staff Development -->
     <div class="tab-panel" id="tab-hrm-training">
