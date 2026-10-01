@@ -26,27 +26,27 @@ class DashboardController extends Controller
      */
     private const DIRECTORATES = [
         'hrm' => [
-            'name' => 'Human Resources Management (HRM)',
+            'name' => 'Human Resources Management',
             'icon' => 'fas fa-users',
         ],
         'prs' => [
-            'name' => 'Planning, Research and Statistics (PRS)',
+            'name' => 'Planning, Research, Statistics',
             'icon' => 'fas fa-chart-bar',
         ],
         'finance' => [
-            'name' => 'Finance and Accounts (F/A)',
+            'name' => 'Finance & Accounts',
             'icon' => 'fas fa-coins',
         ],
         'investigation' => [
-            'name' => 'Investigation and Compliance (I/C)',
+            'name' => 'Investigation & Compliance',
             'icon' => 'fas fa-search',
         ],
         'passport' => [
-            'name' => 'Passport and Other Travel Documents (P/OTD)',
+            'name' => 'Passport & Travel Documents',
             'icon' => 'fas fa-passport',
         ],
         'visa' => [
-            'name' => 'Visa and Residency (V/R)',
+            'name' => 'Visa & Residency',
             'icon' => 'fas fa-stamp',
         ],
         'migration' => [
@@ -54,15 +54,15 @@ class DashboardController extends Controller
             'icon' => 'fas fa-globe-africa',
         ],
         'border' => [
-            'name' => 'Border Management (BMD)',
+            'name' => 'Border Management',
             'icon' => 'fas fa-border-all',
         ],
         'ict' => [
-            'name' => 'ICT Directorate',
+            'name' => 'ICT',
             'icon' => 'fas fa-laptop-code',
         ],
         'works-logistics' => [
-            'name' => 'Works and Logistics',
+            'name' => 'Works & Logistics',
             'icon' => 'fas fa-truck',
         ],
     ];
@@ -573,7 +573,7 @@ class DashboardController extends Controller
     /**
      * Resolve the human command name for a state user's state code.
      */
-    private function commandNameForUser(?User $user): ?string
+    public static function commandNameForUser(?User $user): ?string
     {
         $code = $user?->primary_location_code ?: $user?->assigned_state_code;
 
@@ -775,6 +775,10 @@ class DashboardController extends Controller
                 $request->except(['_token', '_method', 'data_consent', 'attachments', 'workflow_path', 'status']),
                 [
                     'report_period' => $request->input('period'),
+                    // Command/officer identity is server-derived, never trusted from the
+                    // (readonly, but client-editable) POST body.
+                    'command_name' => self::commandNameForUser($user) ?? $request->input('command_name'),
+                    'reporting_officer' => $user?->name ?? $request->input('reporting_officer'),
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', 'state'),
                 ]
             );

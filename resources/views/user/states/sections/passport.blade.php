@@ -32,6 +32,12 @@
             <div class="redas-card" style="margin-bottom:16px;">
                 <div class="card-head"><div class="card-head-title">1. STAFF STRENGTH (Current nominal roll)</div></div>
                 <div class="card-body no-pad" style="overflow-x:auto;">
+                @if($stateEmbedded ?? false)
+                    <p style="font-size:.82rem;color:var(--gray-500);padding:12px 16px;">
+                        <i class="fas fa-circle-info" style="color:var(--nis-500);margin-right:6px;"></i>
+                        Staff strength for this directorate is captured once under the <strong>HRM</strong> section of this return.
+                    </p>
+                @else
                     <table class="redas-table">
                         <thead>
                             <tr>
@@ -140,6 +146,7 @@
                             </tr>
                         </tbody>
                     </table>
+                @endif
                 </div>
             </div>
 
@@ -941,9 +948,12 @@
             rowTotals[index].value = rowT > 0 ? rowT : '';
             totalMale += m; totalFemale += f; totalAll += rowT;
         });
-        qs('#total-male').value = totalMale;
-        qs('#total-female').value = totalFemale;
-        qs('#total-all').value = totalAll;
+        const totalMaleEl = qs('#total-male');
+        if (totalMaleEl) totalMaleEl.value = totalMale;
+        const totalFemaleEl = qs('#total-female');
+        if (totalFemaleEl) totalFemaleEl.value = totalFemale;
+        const totalAllEl = qs('#total-all');
+        if (totalAllEl) totalAllEl.value = totalAll;
 
         // Column sums (New Passport Types)
         const calcColSum = (selector, totalSelector) => {

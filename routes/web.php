@@ -84,8 +84,13 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
             'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
         ]);
 
+        $user = Auth::user();
         $returnData = $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status']);
         $returnData['report_period'] = $request->input('period');
+        // Command/officer identity is server-derived, never trusted from the
+        // (readonly, but client-editable) POST body.
+        $returnData['command_name'] = \App\Http\Controllers\Web\DashboardController::commandNameForUser($user) ?? $request->input('command_name');
+        $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
 
         $paths = [];
         foreach ((array) $request->file('attachments', []) as $file) {

@@ -87,6 +87,12 @@
                     <div class="card-head-title">Personnel Strength Rank-by-Rank Breakdown</div>
                 </div>
                 <div class="card-body no-pad" style="overflow-x:auto;">
+                @if($stateEmbedded ?? false)
+                    <p style="font-size:.82rem;color:var(--gray-500);padding:12px 16px;">
+                        <i class="fas fa-circle-info" style="color:var(--nis-500);margin-right:6px;"></i>
+                        Staff strength for this directorate is captured once under the <strong>HRM</strong> section of this return.
+                    </p>
+                @else
                     <table class="redas-table" style="min-width:600px;">
                         <thead>
                             <tr>
@@ -126,6 +132,7 @@
                             </tr>
                         </tbody>
                     </table>
+                @endif
                 </div>
             </div>
             <div class="hrm-actions">
@@ -332,7 +339,7 @@
                         <tbody id="refugeesBody">
                             <tr class="refugee-row">
                                 <td>
-                                    <select name="refugees_asylum_seekers[refugees][0][state]" class="ni ni-select" required style="padding:6px 10px;">
+                                    <select name="refugees_asylum_seekers[refugees][0][state]" class="ni ni-select" style="padding:6px 10px;">
                                         <option value="">Select State</option>
                                         @foreach(['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT'] as $s)
                                         <option value="{{ $s }}">{{ $s }}</option>
@@ -383,7 +390,7 @@
                         <tbody id="asylumBody">
                             <tr class="asylum-row">
                                 <td>
-                                    <select name="refugees_asylum_seekers[asylum_seekers][0][state]" class="ni ni-select" required style="padding:6px 10px;">
+                                    <select name="refugees_asylum_seekers[asylum_seekers][0][state]" class="ni ni-select" style="padding:6px 10px;">
                                         <option value="">Select State</option>
                                         @foreach(['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT'] as $s)
                                         <option value="{{ $s }}">{{ $s }}</option>
@@ -442,7 +449,7 @@
                         <tbody id="mouBody-{{ $key }}">
                             <tr class="mou-row-{{ $key }}">
                                 <td>
-                                    <select name="mou_countries[{{ $key }}][0][country]" class="ni ni-select" required style="padding:6px 10px;">
+                                    <select name="mou_countries[{{ $key }}][0][country]" class="ni ni-select" style="padding:6px 10px;">
                                         <option value="">Select Country</option>
                                         @foreach($mouCountries[$key] as $country)
                                         <option value="{{ $country }}">{{ $country }}</option>
@@ -450,7 +457,7 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <input type="text" class="ni" name="mou_countries[{{ $key }}][0][description]" placeholder="e.g. Visa Waiver Agreement (2024)" required style="padding:6px 10px;">
+                                    <input type="text" class="ni" name="mou_countries[{{ $key }}][0][description]" placeholder="e.g. Visa Waiver Agreement (2024)" style="padding:6px 10px;">
                                 </td>
                                 <td>
                                     <button type="button" class="btn-nis btn-ghost btn-sm" data-m-action="remove-row" style="color:var(--color-danger);"><i class="fas fa-trash"></i></button>
@@ -531,7 +538,7 @@
         newRow.className = 'refugee-row';
         newRow.innerHTML = `
             <td>
-                <select name="refugees_asylum_seekers[refugees][${refugeeIndex}][state]" class="ni ni-select" required style="padding:6px 10px;">
+                <select name="refugees_asylum_seekers[refugees][${refugeeIndex}][state]" class="ni ni-select" style="padding:6px 10px;">
                     <option value="">Select State</option>
                     @foreach(['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT'] as $s)
                     <option value="{{ $s }}">{{ $s }}</option>
@@ -574,7 +581,7 @@
         newRow.className = 'asylum-row';
         newRow.innerHTML = `
             <td>
-                <select name="refugees_asylum_seekers[asylum_seekers][${asylumIndex}][state]" class="ni ni-select" required style="padding:6px 10px;">
+                <select name="refugees_asylum_seekers[asylum_seekers][${asylumIndex}][state]" class="ni ni-select" style="padding:6px 10px;">
                     <option value="">Select State</option>
                     @foreach(['Abia','Adamawa','Akwa Ibom','Anambra','Bauchi','Bayelsa','Benue','Borno','Cross River','Delta','Ebonyi','Edo','Ekiti','Enugu','Gombe','Imo','Jigawa','Kaduna','Kano','Katsina','Kebbi','Kogi','Kwara','Lagos','Nasarawa','Niger','Ogun','Ondo','Osun','Oyo','Plateau','Rivers','Sokoto','Taraba','Yobe','Zamfara','FCT'] as $s)
                     <option value="{{ $s }}">{{ $s }}</option>
@@ -626,12 +633,12 @@
 
         newRow.innerHTML = `
             <td>
-                <select name="mou_countries[${key}][${mouIndices[key]}][country]" class="ni ni-select" required style="padding:6px 10px;">
+                <select name="mou_countries[${key}][${mouIndices[key]}][country]" class="ni ni-select" style="padding:6px 10px;">
                     ${options}
                 </select>
             </td>
             <td>
-                <input type="text" class="ni" name="mou_countries[${key}][${mouIndices[key]}][description]" placeholder="e.g. Agreement details" required style="padding:6px 10px;">
+                <input type="text" class="ni" name="mou_countries[${key}][${mouIndices[key]}][description]" placeholder="e.g. Agreement details" style="padding:6px 10px;">
             </td>
             <td>
                 <button type="button" class="btn-nis btn-ghost btn-sm" data-m-action="remove-row" style="color:var(--color-danger);"><i class="fas fa-trash"></i></button>

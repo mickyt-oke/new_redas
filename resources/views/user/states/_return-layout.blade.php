@@ -11,6 +11,12 @@
     .state-dir-panel.active { display:block; }
     .state-return-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 0; margin-top:10px; border-top:1px solid var(--gray-200); position:sticky; bottom:0; background:#fff; z-index:20; }
     .state-return-actions-right { display:flex; gap:10px; }
+    /* Each directorate partial ships its own per-tab Previous/Save Draft/Next bar
+       (used standalone on the per-directorate pages). On the combined state form
+       those are redundant: tabs are reachable from the tab bar above, and Save
+       Draft/Preview/Submit already live once in .state-return-actions below. */
+    .state-dir-panel .border-actions,
+    .state-dir-panel .hrm-actions { display:none !important; }
     </style>
 
     <div class="page-header" style="margin-bottom:18px;">
@@ -101,7 +107,7 @@
                     <span class="workflow-arrow"><i class="fas fa-arrow-right"></i></span>
                     <span class="workflow-step" style="color:var(--gray-400);"><i class="fas fa-user-cog" style="font-size:.68rem;"></i> HQ Admin</span>
                 </div>
-                <div class="form-grid-3" style="align-items:end;">
+                <div class="form-grid-4" style="align-items:end;">
                     <div class="fg">
                         <label>Command</label>
                         <input type="text" name="command_name" class="ni" value="{{ $commandValue }}" readonly>
@@ -114,10 +120,6 @@
                         <label>Return Type</label>
                         <select name="return_type" class="ni ni-select" required>
                             <option value="monthly" @selected($selectedType === 'monthly')>Monthly Return</option>
-                            <option value="quarterly" @selected($selectedType === 'quarterly')>Quarterly Return</option>
-                            <option value="biannual" @selected($selectedType === 'biannual')>Bi-Annual Return</option>
-                            <option value="annual" @selected($selectedType === 'annual')>Annual Return</option>
-                            <option value="special" @selected($selectedType === 'special')>Special Report</option>
                         </select>
                     </div>
                     <div class="fg">
@@ -350,6 +352,88 @@
         /* Restore any saved draft, then let section scripts recompute totals. */
         loadDraft();
         form.dispatchEvent(new Event('input', { bubbles: true }));
+
+        /* Directorate sections nest tabs several levels deep (outer directorate
+           tab > inner entry-tab, migration's own data-m-tab panels, or
+           investigation's anchor/page steps). A required field left on a
+           hidden tab is not focusable, which makes the browser cancel
+           submission silently — no 'submit' event, no visible error. Before
+           letting the click through, walk up from the first invalid field and
+           activate every ancestor tab/panel so it becomes visible first. */
+        function revealInvalidField(invalid) {
+            var dirPanel = invalid.closest('.state-dir-panel');
+            if (dirPanel) {
+                dirPanels.forEach(function (p) { p.classList.remove('active'); });
+                dirPanel.classList.add('active');
+                dirTabs.forEach(function (t) { t.classList.remove('active'); });
+                var dirBtn = document.querySelector('.state-dir-tab[data-dir="' + dirPanel.id.replace('dir-', '') + '"]');
+                if (dirBtn) dirBtn.classList.add('active');
+            }
+            var root = dirPanel || form;
+
+            var tabPanel = invalid.closest('.tab-panel');
+            if (tabPanel) {
+                root.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+                tabPanel.classList.add('active');
+                var key = tabPanel.id.replace(/^tab-/, '');
+                root.querySelectorAll('.entry-tab').forEach(function (t) { t.classList.remove('active'); });
+                var btn = root.querySelector('.entry-tab[data-tab="' + key + '"]');
+                if (btn) btn.classList.add('active');
+            }
+
+            var mPanel = invalid.closest('.m-tab-content');
+            if (mPanel) {
+                root.querySelectorAll('.m-tab-content').forEach(function (p) { p.style.display = 'none'; p.classList.remove('active'); });
+                mPanel.style.display = 'block';
+                mPanel.classList.add('active');
+                var mKey = mPanel.id.replace('tab-migration-', '');
+                root.querySelectorAll('[data-m-tab]').forEach(function (t) { t.classList.remove('active'); });
+                var mBtn = root.querySelector('[data-m-tab="' + mKey + '"]');
+                if (mBtn) mBtn.classList.add('active');
+            }
+
+            var invStep = invalid.closest('.investigation-step');
+            if (invStep) {
+                root.querySelectorAll('.investigation-step').forEach(function (s) { s.classList.remove('active'); });
+                invStep.classList.add('active');
+            }
+
+            invalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        /* Final submit: validate manually (native validation silently cancels
+           submission when the invalid field is hidden on another tab), confirm
+           intent given the size of a combined command return, and disable the
+           button once confirmed so a double-click can't POST the return twice. */
+        var submitBtn = document.getElementById('stateSubmitBtn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                if (!form.checkValidity()) {
+                    var invalid = form.querySelector(':invalid');
+                    if (invalid) revealInvalidField(invalid);
+                    requestAnimationFrame(function () { form.reportValidity(); });
+                    return;
+                }
+
+                var consent = form.querySelector('[name="data_consent"]');
+                if (consent && !consent.checked) {
+                    var declaration = document.getElementById('stateDeclaration');
+                    if (declaration) declaration.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                if (!window.confirm('Submit this State Command return for review?\n\nPlease verify all sections before continuing — this cannot be undone.')) {
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+                if (form.requestSubmit) form.requestSubmit();
+                else form.submit();
+            });
+        }
     })();
     </script>
 

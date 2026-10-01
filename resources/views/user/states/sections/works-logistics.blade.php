@@ -94,6 +94,12 @@ $commandList = $commands ?? [
                 </div>
             </div>
             <div class="card-body">
+            @if($stateEmbedded ?? false)
+                <p style="font-size:.82rem;color:var(--gray-500);padding:8px 0;">
+                    <i class="fas fa-circle-info" style="color:var(--nis-500);margin-right:6px;"></i>
+                    Staff strength for this directorate is captured once under the <strong>HRM</strong> section of this return.
+                </p>
+            @else
                 <div class="table-responsive">
                     <table class="nis-table">
                         <thead>
@@ -121,6 +127,7 @@ $commandList = $commands ?? [
                         </tbody>
                     </table>
                 </div>
+            @endif
             </div>
         </div>
         <div class="hrm-actions">
