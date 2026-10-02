@@ -33,6 +33,12 @@ Route::get('/privacy-policy', fn () => view()->exists('legal.privacy')
     : redirect('/login'))->name('privacy');
 Route::get('/directory', [\App\Http\Controllers\Web\DirectoryController::class, 'index'])->name('directory');
 
+// Pinged periodically by long-running forms to keep the session alive and
+// avoid a 419 (session expired) error while a user is actively filling a form.
+Route::middleware(Authenticate::class)->post('/session/keep-alive', function () {
+    return response()->noContent();
+})->name('session.keep-alive');
+
 // Authentication Routes (guests only)
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {

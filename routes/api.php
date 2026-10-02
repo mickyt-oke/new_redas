@@ -11,14 +11,15 @@ use App\Http\Controllers\ApiOtpController;
 
 Route::middleware('throttle:api')->group(function () {
     // Public routes
-    Route::post('/login', [ApiAuthController::class, 'login']);
+    Route::post('/login', [ApiAuthController::class, 'login'])->middleware('throttle:10,1');
 
-    // OTP (public; no JWT required)
-    Route::post('/otp/request', [ApiOtpController::class, 'request']);
-    Route::post('/otp/verify', [ApiOtpController::class, 'verify']);
+    // OTP (public; no JWT required) — tightly throttled, a 4-digit code only
+    // has 10,000 possibilities so brute force must be rate-limited here too.
+    Route::post('/otp/request', [ApiOtpController::class, 'request'])->middleware('throttle:5,1');
+    Route::post('/otp/verify', [ApiOtpController::class, 'verify'])->middleware('throttle:10,1');
 
     // JWT auth routes
-    Route::post('/refresh', [ApiAuthController::class, 'refresh']);
+    Route::post('/refresh', [ApiAuthController::class, 'refresh'])->middleware('throttle:10,1');
 
     Route::middleware(JwtAccessTokenMiddleware::class)->group(function () {
         Route::get('/user', function (Request $request) {

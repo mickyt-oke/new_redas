@@ -282,6 +282,19 @@
         }
         document.getElementById('returnForm')?.addEventListener('input', triggerAutoSave);
 
+        /* ── Keep the session alive while this long form is open, so an idle
+           timeout doesn't surface a 419 error mid-edit ── */
+        if (document.getElementById('returnForm')) {
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            setInterval(() => {
+                if (document.hidden) return;
+                fetch('{{ route('session.keep-alive') }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfMeta?.getAttribute('content') || '' },
+                }).catch(() => {});
+            }, 5 * 60 * 1000);
+        }
+
         /* ── Save Draft button ── */
         document.getElementById('saveDraftBtn')?.addEventListener('click', () => {
             triggerAutoSave();

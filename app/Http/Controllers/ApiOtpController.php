@@ -154,11 +154,23 @@ class ApiOtpController extends Controller
                 $latest->increment('attempts');
             }
 
+            Log::warning('Invalid OTP attempt', [
+                'user_id' => $user->id,
+                'purpose' => $purpose,
+                'ip' => $request->ip(),
+            ]);
+
             return response()->json(['message' => 'OTP_INVALID'], 401);
         }
 
         $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
         if ((int) $otp->attempts >= $maxAttempts) {
+            Log::warning('OTP max attempts exceeded', [
+                'user_id' => $user->id,
+                'purpose' => $purpose,
+                'ip' => $request->ip(),
+            ]);
+
             return response()->json(['message' => 'OTP_MAX_ATTEMPTS_EXCEEDED'], 403);
         }
 
@@ -167,6 +179,15 @@ class ApiOtpController extends Controller
         $otp->save();
 
         if ($purpose === 'login') {
+            // No API password-change flow exists yet, so a pending forced
+            // change must be completed on the web portal before a mobile/API
+            // session can be issued — otherwise it would bypass the policy.
+            if ($user->must_change_password) {
+                return response()->json([
+                    'message' => 'PASSWORD_CHANGE_REQUIRED',
+                ], 403);
+            }
+
             // Issue JWTs only after 2FA OTP verification
             $jti = (string) \Illuminate\Support\Str::uuid();
 

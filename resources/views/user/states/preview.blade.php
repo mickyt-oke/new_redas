@@ -46,9 +46,7 @@
 <body>
 @php
     $data = is_array($previewData ?? null) ? $previewData : [];
-
-    // Report metadata lives in the page header.
-    $skipKeys = ['command_name', 'period', 'return_type', 'reporting_officer', 'report_period'];
+    $skipKeys = ['command_name', 'period', 'return_type', 'report_period', 'reporting_officer', 'data_consent', 'supporting_documents', 'attachments'];
 
     $directorateNames = [];
     foreach (\App\Http\Controllers\Web\DashboardController::directorates() as $slug => $meta) {
@@ -73,252 +71,35 @@
         }
     }
     $typeLabel = $typeLabels[$data['return_type'] ?? ''] ?? ucfirst((string) ($data['return_type'] ?? '—'));
+@endphp
 
-    $lowercaseWords = ['of', 'in', 'to', 'and', 'the', 'for', 'by', 'on', 'a', 'an', 'if', 'any'];
-    $specialWords = [
-        'nimcos' => 'NIMCOS', 'mou' => 'MoU', 'mous' => 'MoUs', 'midas' => 'MIDAS',
-        'evisa' => 'e-Visa', 'dfu' => 'DFU', 'dofit' => 'DOFIT', 'ecowas' => 'ECOWAS', 'cerpac' => 'CERPAC',
-        // Zone/state command codes used as array keys in the forms.
-        'lasc' => 'LASC', 'seme' => 'SEME', 'idbc' => 'IDBC', 'lspmc' => 'LSPMC', 'lapc' => 'LAPC',
-        'mmia' => 'MMIA', 'ogsc' => 'OGSC', 'kdsc' => 'KDSC', 'knsc' => 'KNSC', 'itsk' => 'ITSK',
-        'makia' => 'MAKIA', 'ktsc' => 'KTSC', 'jsbc' => 'JSBC', 'sosc' => 'SOSC', 'icsc' => 'ICSC',
-        'illela' => 'ILLELA', 'zmsc' => 'ZMSC', 'jgsc' => 'JGSC', 'basc' => 'BASC', 'ybsc' => 'YBSC',
-        'bosc' => 'BOSC', 'adsc' => 'ADSC', 'gmsc' => 'GMSC', 'plsc' => 'PLSC', 'fctc' => 'FCTC',
-        'naia' => 'NAIA', 'kwsc' => 'KWSC', 'ngsc' => 'NGSC', 'kbsc' => 'KBSC', 'absc' => 'ABSC',
-        'aksc' => 'AKSC', 'crsc' => 'CRSC', 'mfum' => 'MFUM', 'ebsc' => 'EBSC', 'imsc' => 'IMSC',
-        'nitsol' => 'NITSOL', 'rvsc' => 'RVSC', 'phia' => 'PHIA', 'nitsa' => 'NITSA', 'rvmc' => 'RVMC',
-        'oysc' => 'OYSC', 'ossc' => 'OSSC', 'odsc' => 'ODSC', 'eksc' => 'EKSC', 'ansc' => 'ANSC',
-        'bysc' => 'BYSC', 'dtsc' => 'DTSC', 'ensc' => 'ENSC', 'aiia' => 'AIIA', 'edsc' => 'EDSC',
-        'bnsc' => 'BNSC', 'kgsc' => 'KGSC', 'trsc' => 'TRSC', 'nasc' => 'NASC',
-    ];
-
-    $humanize = function ($key) use ($lowercaseWords, $specialWords) {
-        $words = preg_split('/[_\-\s]+/', (string) $key) ?: [];
-        $out = [];
-        foreach ($words as $w) {
-            $l = strtolower($w);
-            if (isset($specialWords[$l])) {
-                $out[] = $specialWords[$l];
-            } elseif (strlen($l) <= 3 && ctype_alpha($l) && ! in_array($l, $lowercaseWords, true)) {
-                $out[] = strtoupper($l); // short rank/unit codes: DCG, ACG, APU, CIS...
-            } else {
-                $out[] = ucfirst($l);
-            }
-        }
-        return implode(' ', $out);
-    };
-
-    // Recursively empty: null, '', [], or an array whose children are all empty.
-    $isEmptyValue = function ($value) use (&$isEmptyValue) {
-        if ($value === null || $value === '') {
-            return true;
-        }
-        if (is_array($value)) {
-            foreach ($value as $v) {
-                if (! $isEmptyValue($v)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    };
-
-    $isAssoc = function (array $arr) {
-        return $arr !== [] && array_keys($arr) !== range(0, count($arr) - 1);
-    };
-
-    $isFlat = function (array $arr) {
-        foreach ($arr as $v) {
-            if (is_array($v)) {
-                return false;
-            }
-        }
-        return true;
-    };
-
-    $formatValue = function ($value) {
-        if ($value === null || $value === '') {
-            return '—';
-        }
-        if (is_bool($value)) {
-            return $value ? 'Yes' : 'No';
-        }
-        return (string) $value;
-    };
-
-    // Key/value table for a flat associative set of fields (empty values skipped).
-    $kvTable = function (array $pairs) use ($humanize, $formatValue, $isEmptyValue) {
-        $out = '<table class="report-table kv-table"><tbody>';
-        foreach ($pairs as $key => $value) {
-            if ($isEmptyValue($value)) {
-                continue;
-            }
-            $out .= '<tr><td class="kv-key">' . e($humanize($key)) . '</td><td>'
-                . e($formatValue($value)) . '</td></tr>';
-        }
-        return $out . '</tbody></table>';
-    };
-
-    // Matrix table for rows of the same shape (e.g. rank => [male, female]):
-    // first column is the row label, remaining columns come from the inner keys.
-    $matrixTable = function (array $rows) use ($humanize, $formatValue, $isEmptyValue) {
-        $columns = [];
-        foreach ($rows as $row) {
-            foreach (array_keys($row) as $col) {
-                if (! in_array($col, $columns, true)) {
-                    $columns[] = $col;
-                }
-            }
-        }
-
-        $out = '<table class="report-table"><thead><tr><th style="width:32%;">Item</th>';
-        foreach ($columns as $col) {
-            $out .= '<th>' . e($humanize($col)) . '</th>';
-        }
-        $out .= '</tr></thead><tbody>';
-        foreach ($rows as $label => $row) {
-            if ($isEmptyValue($row)) {
-                continue;
-            }
-            $out .= '<tr><td class="row-head">' . e($humanize($label)) . '</td>';
-            foreach ($columns as $col) {
-                $out .= '<td>' . e($formatValue($row[$col] ?? null)) . '</td>';
-            }
-            $out .= '</tr>';
-        }
-        return $out . '</tbody></table>';
-    };
-
-    // Numbered table for repeatable rows (e.g. training entries).
-    $rowsTable = function (array $rows) use ($humanize, $formatValue, &$renderData) {
-        // Drop rows the user left completely empty.
-        $rows = array_values(array_filter($rows, function ($row) {
-            if (! is_array($row)) {
-                return $row !== null && $row !== '';
-            }
-            foreach ($row as $v) {
-                if ($v !== null && $v !== '') {
-                    return true;
-                }
-            }
-            return false;
-        }));
-
-        if ($rows === []) {
-            return '';
-        }
-
-        $columns = [];
-        foreach ($rows as $row) {
-            foreach (array_keys($row) as $col) {
-                if (! in_array($col, $columns, true)) {
-                    $columns[] = $col;
-                }
-            }
-        }
-
-        $out = '<table class="report-table"><thead><tr><th style="width:44px;">S/N</th>';
-        foreach ($columns as $col) {
-            $out .= '<th>' . e($humanize($col)) . '</th>';
-        }
-        $out .= '</tr></thead><tbody>';
-        foreach ($rows as $i => $row) {
-            $out .= '<tr><td>' . ($i + 1) . '</td>';
-            foreach ($columns as $col) {
-                $cell = is_array($row) ? ($row[$col] ?? null) : null;
-                $out .= '<td>' . (is_array($cell) ? $renderData($cell) : e($formatValue($cell))) . '</td>';
-            }
-            $out .= '</tr>';
-        }
-        return $out . '</tbody></table>';
-    };
-
-    // Recursive block renderer used inside a section: assoc arrays split into a
-    // key/value table (scalars) plus a matrix table (uniform nested rows); deeper
-    // nesting becomes sub-sections; indexed arrays become numbered tables.
-    // Empty values and empty arrays are skipped throughout.
-    $renderData = function ($value) use (&$renderData, $isAssoc, $isFlat, $isEmptyValue, $formatValue, $kvTable, $matrixTable, $rowsTable, $humanize) {
-        if (! is_array($value)) {
-            return $isEmptyValue($value) ? '' : '<span>' . e($formatValue($value)) . '</span>';
-        }
-        if ($value === [] || $isEmptyValue($value)) {
-            return '';
-        }
-
-        if (! $isAssoc($value)) {
-            $allArrays = count(array_filter($value, 'is_array')) === count($value);
-            if (! $allArrays) {
-                $filled = array_values(array_filter($value, fn ($v) => ! $isEmptyValue($v)));
-                return $filled === [] ? '' : '<span>' . e(implode(', ', array_map($formatValue, $filled))) . '</span>';
-            }
-            return $rowsTable($value);
-        }
-
-        $scalars = [];
-        $matrixRows = [];
-        $nested = [];
-        foreach ($value as $key => $item) {
-            if ($isEmptyValue($item)) {
-                continue;
-            }
-            if (! is_array($item)) {
-                $scalars[$key] = $item;
-            } elseif ($isFlat($item)) {
-                $matrixRows[$key] = $item;
-            } else {
-                $nested[$key] = $item;
-            }
-        }
-
-        $out = '';
-        if ($scalars !== []) {
-            $out .= $kvTable($scalars);
-        }
-        if ($matrixRows !== []) {
-            $out .= $matrixTable($matrixRows);
-        }
-        foreach ($nested as $key => $item) {
-            // Single-letter keys under a section are zone identifiers (A–H).
-            $label = (strlen((string) $key) === 1 && ctype_alpha((string) $key))
-                ? 'Zone ' . strtoupper((string) $key)
-                : $humanize($key);
-            $out .= '<div class="sub-section-title">' . e($label) . '</div>';
-            $out .= $renderData($item);
-        }
-
-        return $out;
-    };
-
-    // Group the submitted data into sections. A top-level key matching a
-    // directorate slug (e.g. "hrm") is a wrapper for that directorate's fields;
-    // any other top-level array is a section of its own; leftover flat fields
-    // are grouped as "Return Details".
-    $sections = [];
-    $flatFields = [];
-
-    foreach ($data as $key => $value) {
-        if (in_array($key, $skipKeys, true) || $isEmptyValue($value)) {
-            continue;
-        }
-        if (is_array($value)) {
-            $sections[] = ['label' => $directorateNames[$key] ?? $humanize($key), 'html' => $renderData($value)];
-        } else {
-            $flatFields[$key] = $value;
-        }
-    }
-
-    if ($flatFields !== []) {
-        array_unshift($sections, ['label' => 'Return Details', 'html' => $kvTable($flatFields)]);
-    }
+@php
+$sections = \App\Services\PreviewRenderer::buildSections($data, [
+    'skipKeys' => $skipKeys,
+    'directorateNames' => $directorateNames,
+]);
 @endphp
 
 <div class="preview-note">
     <i class="fas fa-eye" style="margin-right:6px;"></i>
-    Attachments are included only when you submit from the form page. This is a preview — close this tab to return to the form.
+    This is a read-only preview. Attachments are included only after submission from the form page. Close this tab to return to the form.
 </div>
 
-<div class="report-page">
+<div class="report-page" data-preview-paginator>
+    @include('partials.preview-pagination')
+
+    <div class="preview-paginator">
+        <div class="preview-paginator-top">
+            <div class="preview-paginator-title preview-counter">Section 1 of {{ count($sections) }}</div>
+            <div class="preview-paginator-controls">
+                <button type="button" class="preview-prev-btn" disabled><i class="fas fa-arrow-left"></i> Previous</button>
+                <button type="button" class="preview-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+                <button type="button" class="preview-all-btn">Show all</button>
+            </div>
+        </div>
+        <div class="preview-section-tabs"></div>
+    </div>
+
     <div class="report-header">
         <div class="report-header-flex">
             <img class="logo" src="{{ asset('nis-logo.png') }}" alt="NIS Logo">
@@ -337,12 +118,12 @@
     </div>
 
     @forelse($sections as $index => $section)
-    <section class="report-section">
+    <section class="report-section preview-section {{ $loop->first ? 'active' : '' }}" data-label="{{ $section['label'] }}">
         <h2 class="section-title"><span class="section-num">{{ $index + 1 }}</span> {{ $section['label'] }}</h2>
-        {!! $section['html'] !!}
+        {!! $section['html'] ?: '<p class="preview-section-empty">No data entered for this section.</p>' !!}
     </section>
     @empty
-    <section class="report-section">
+    <section class="report-section preview-section active" data-label="No Data">
         <p style="color:#6b7280;font-size:.88rem;margin:0 0 8px;">No data entered yet. Return to the form to fill in the sections.</p>
     </section>
     @endforelse

@@ -32,13 +32,38 @@ $armsTypes = [
 ];
 
 $ammoTypes = [
-    '5.56X45MM LIVE',
-    '7.62X39MM LIVE',
-    '7.62X51MM LIVE',
-    '9X19MM LIVE',
-    '5.56X45MM BLANK',
-    '7.62X51MM BLANK',
-    '9X19MM BLANK'
+    "9×19 mm Parabellum",
+    ".45 ACP",
+    "7.62×25 mm Tokarev",
+    "9×18 mm Makarov",
+    ".38 Special",
+    ".357 Magnum",
+    "7.62×51 mm NATO",
+    "5.56×45 mm NATO",
+    "7.62×39 mm",
+    "5.45×39 mm",
+    "5.7×28 mm",
+    "7.62×54 mmR",
+    ".308 Winchester",
+    ".300 Winchester Magnum",
+    ".338 Lapua Magnum",
+    ".50 BMG (12.7×99 mm)",
+    "12.7×108 mm",
+    "12-gauge live cartridges",
+    "40×46 mm grenade ammunition",
+    "40×53 mm grenade ammunition",
+    "Rocket-propelled munitions",
+    "Recoilless-rifle ammunition",
+    "Anti-tank guided missiles",
+    "Mortar bombs",
+    "Artillery projectiles",
+    "Approved less-lethal cartridges",
+    "9×19 mm blank",
+    "7.62×51 mm NATO blank",
+    "5.56×45 mm NATO blank",
+    "7.62×39 mm blank",
+    "7.62×54 mmR blank",
+    "12-gauge blank cartridges"
 ];
 
 $tailorItems = [
@@ -166,12 +191,12 @@ $commandList = $commands ?? [
 
     <!-- TAB 3: Ordinance & Armoury -->
     <div class="tab-panel" id="tab-works-logistics-ordinance-armoury">
-        <!-- a. ARMS/ARMOURY RETURNS BY COMMAND -->
+        <!-- a. ARMS/ARMOURY RETURNS  -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-shield-alt"></i></div>
-                    a. ARMS/ARMOURY RETURNS BY COMMAND
+                    a. ARMS/ARMOURY RETURNS
                 </div>
                 <button type="button" class="btn-nis btn-ghost btn-sm wl-add-row" data-row-target="arms-body" data-row-prefix="arms_returns">
                     <i class="fas fa-plus"></i> Add Arms Row
@@ -182,12 +207,12 @@ $commandList = $commands ?? [
                     <table class="nis-table" id="arms-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Types of Arms</th>
                                 <th style="width:120px;">No. of Serviceable</th>
                                 <th style="width:120px;">No. of Unserviceable</th>
                                 <th style="width:100px;">Total</th>
                                 <th style="width:50px;"></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="arms-body"></tbody>
@@ -205,12 +230,12 @@ $commandList = $commands ?? [
             </div>
         </div>
 
-        <!-- b. AMMUNITION BY COMMAND -->
+        <!-- b. AMMUNITION -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-bullseye"></i></div>
-                    b. AMMUNITION BY COMMAND
+                    b. AMMUNITION
                 </div>
                 <button type="button" class="btn-nis btn-ghost btn-sm wl-add-row" data-row-target="ammunition-body" data-row-prefix="ammunition_returns">
                     <i class="fas fa-plus"></i> Add Ammunition Row
@@ -221,7 +246,6 @@ $commandList = $commands ?? [
                     <table class="nis-table" id="ammunition-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Types of Ammunition</th>
                                 <th style="width:110px;">No. of Rounds</th>
                                 <th style="width:110px;">No. of Serviceable</th>
@@ -248,7 +272,7 @@ $commandList = $commands ?? [
             </div>
         </div>
 
-        <!-- c. ARMS SUMMARY -->
+        {{-- <!-- c. ARMS SUMMARY -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -287,10 +311,10 @@ $commandList = $commands ?? [
                     </table>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         <!-- d. AMMUNITION SUMMARY -->
-        <div class="redas-card" style="margin-bottom:14px;">
+        {{-- <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-list"></i></div>
@@ -337,7 +361,7 @@ $commandList = $commands ?? [
                     </table>
                 </div>
             </div>
-        </div>
+        </div> --}}
         <div class="hrm-actions">
             <button type="button" class="btn-nis btn-ghost hrm-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
             <div class="hrm-actions-center">
@@ -365,7 +389,6 @@ $commandList = $commands ?? [
                     <table class="nis-table" id="store-accessories-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Items</th>
                                 <th style="width:130px;">NO. of Qty Supplied</th>
                                 <th style="width:110px;">Qty Issues</th>
@@ -967,26 +990,100 @@ $commandList = $commands ?? [
     }
 
     /* ── Dynamic row templates, keyed by tbody id ── */
+    const AMMO_TYPE_OPTIONS = `
+        <option value="9×19 mm Parabellum">9×19 mm Parabellum</option>
+<option value=".45 ACP">.45 ACP</option>
+<option value="7.62×25 mm Tokarev">7.62×25 mm Tokarev</option>
+<option value="9×18 mm Makarov">9×18 mm Makarov</option>
+<option value=".38 Special">.38 Special</option>
+<option value=".357 Magnum">.357 Magnum</option>
+<option value="7.62×51 mm NATO">7.62×51 mm NATO</option>
+<option value="5.56×45 mm NATO">5.56×45 mm NATO</option>
+<option value="7.62×39 mm">7.62×39 mm</option>
+<option value="5.45×39 mm">5.45×39 mm</option>
+<option value="5.7×28 mm">5.7×28 mm</option>
+<option value="7.62×54 mmR">7.62×54 mmR</option>
+<option value=".308 Winchester">.308 Winchester</option>
+<option value=".300 Winchester Magnum">.300 Winchester Magnum</option>
+<option value=".338 Lapua Magnum">.338 Lapua Magnum</option>
+<option value=".50 BMG (12.7×99 mm)">.50 BMG (12.7×99 mm)</option>
+<option value="12.7×108 mm">12.7×108 mm</option>
+<option value="12-gauge live cartridges">12-gauge live cartridges</option>
+<option value="40×46 mm grenade ammunition">40×46 mm grenade ammunition</option>
+<option value="40×53 mm grenade ammunition">40×53 mm grenade ammunition</option>
+<option value="Rocket-propelled munitions">Rocket-propelled munitions</option>
+<option value="Recoilless-rifle ammunition">Recoilless-rifle ammunition</option>
+<option value="Anti-tank guided missiles">Anti-tank guided missiles</option>
+<option value="Mortar bombs">Mortar bombs</option>
+<option value="Artillery projectiles">Artillery projectiles</option>
+<option value="Approved less-lethal cartridges">Approved less-lethal cartridges</option>
+<option value="9×19 mm blank">9×19 mm blank</option>
+<option value="7.62×51 mm NATO blank">7.62×51 mm NATO blank</option>
+<option value="5.56×45 mm NATO blank">5.56×45 mm NATO blank</option>
+<option value="7.62×39 mm blank">7.62×39 mm blank</option>
+<option value="7.62×54 mmR blank">7.62×54 mmR blank</option>
+<option value="12-gauge blank cartridges">12-gauge blank cartridges</option>`;
+
+
     const ARMS_TYPE_OPTIONS = `
         <option value="G3 Rifle">G3 Rifle</option>
-        <option value="AR 70">AR 70</option>
-        <option value="AK 47">AK 47</option>
-        <option value="Galil">Galil</option>
-        <option value="LAR Rifle">LAR Rifle</option>
-        <option value="SMG Rifle">SMG Rifle</option>
-        <option value="Pistol">Pistol</option>
-        <option value="Dicon">Dicon</option>
-        <option value="Stone">Stone</option>
-        <option value="Others">Others</option>`;
-    const AMMO_TYPE_OPTIONS = `
-        <option value="5.56X45MM LIVE">5.56X45MM LIVE</option>
-        <option value="7.62X39MM LIVE">7.62X39MM LIVE</option>
-        <option value="7.62X51MM LIVE">7.62X51MM LIVE</option>
-        <option value="9X19MM LIVE">9X19MM LIVE</option>
-        <option value="5.56X45MM BLANK">5.56X45MM BLANK</option>
-        <option value="7.62X51MM BLANK">7.62X51MM BLANK</option>
-        <option value="9X19MM BLANK">9X19MM BLANK</option>
-        <option value="Others">Others</option>`;
+<option value="AR70 Rifle">AR70 Rifle</option>
+<option value="AK-47">AK-47</option>
+<option value="Galil Rifle">Galil Rifle</option>
+<option value="FN Rifle">FN Rifle</option>
+<option value="SMG Rifle">SMG Rifle</option>
+<option value="Pistol Baretta">Pistol Baretta</option>
+<option value="Beretta 92 series">Beretta 92 series</option>
+<option value="Glock 17">Glock 17</option>
+<option value="Glock 19">Glock 19</option>
+<option value="SIG Sauer P226">SIG Sauer P226</option>
+<option value="Browning Hi-Power">Browning Hi-Power</option>
+<option value="CZ 75">CZ 75</option>
+<option value="M1911-pattern pistol">M1911-pattern pistol</option>
+<option value="Tokarev TT-33">Tokarev TT-33</option>
+<option value="Makarov PM">Makarov PM</option>
+<option value="Taurus revolvers">Taurus revolvers</option>
+<option value="Smith & Wesson revolvers">Smith & Wesson revolvers</option>
+<option value="AKM">AKM</option>
+<option value="AK-103">AK-103</option>
+<option value="Type 56">Type 56</option>
+<option value="FN FAL">FN FAL</option>
+<option value="Heckler & Koch G3">Heckler & Koch G3</option>
+<option value="M16 rifle">M16 rifle</option>
+<option value="M4 carbine">M4 carbine</option>
+<option value="FN SCAR-L">FN SCAR-L</option>
+<option value="FN SCAR-H">FN SCAR-H</option>
+<option value="Heckler & Koch G36">Heckler & Koch G36</option>
+<option value="SIG SG 540">SIG SG 540</option>
+<option value="SIG SG 550">SIG SG 550</option>
+<option value="Heckler & Koch MP5">Heckler & Koch MP5</option>
+<option value="Uzi">Uzi</option>
+<option value="Mini Uzi">Mini Uzi</option>
+<option value="FN P90">FN P90</option>
+<option value="Sterling submachine gun">Sterling submachine gun</option>
+<option value="Beretta PM12">Beretta PM12</option>
+<option value="FN Minimi">FN Minimi</option>
+<option value="M249 SAW">M249 SAW</option>
+<option value="RPK">RPK</option>
+<option value="RPK-74">RPK-74</option>
+<option value="RPD">RPD</option>
+<option value="PKM">PKM</option>
+<option value="FN MAG">FN MAG</option>
+<option value="M60">M60</option>
+<option value="MG3">MG3</option>
+<option value="Dragunov SVD">Dragunov SVD</option>
+<option value="Accuracy International rifle series">Accuracy International rifle series</option>
+<option value="Barrett M82">Barrett M82</option>
+<option value="Barrett M107">Barrett M107</option>
+<option value="Remington 700 precision-rifle variants">Remington 700 precision-rifle variants</option>
+<option value="Designated-marksman rifle variants">Designated-marksman rifle variants</option>
+<option value="Remington 870">Remington 870</option>
+<option value="Mossberg 500">Mossberg 500</option>
+<option value="Mossberg 590">Mossberg 590</option>
+<option value="Benelli M3">Benelli M3</option>
+<option value="Benelli M4">Benelli M4</option>
+<option value="Others">Others</option>
+`;
     const STATUS_OPTIONS = `
         <option value="Completed">Completed</option>
         <option value="Ongoing">Ongoing</option>
@@ -1031,7 +1128,6 @@ $commandList = $commands ?? [
 
     const rowTemplates = {
         'arms-body': idx => `<tr class="arms-command-row">
-            ${commandCell(`arms_returns[${idx}][command]`, 'arms-table')}
             <td><select name="arms_returns[${idx}][type]" class="ni ni-select">${ARMS_TYPE_OPTIONS}</select></td>
             <td><input type="number" name="arms_returns[${idx}][serviceable]" class="ni calc-arms" value="0" min="0"></td>
             <td><input type="number" name="arms_returns[${idx}][unserviceable]" class="ni calc-arms" value="0" min="0"></td>
@@ -1039,14 +1135,11 @@ $commandList = $commands ?? [
             ${REMOVE_CELL}
         </tr>`,
         'ammunition-body': idx => `<tr class="ammo-item-row">
-            ${commandCell(`ammunition_returns[${idx}][command]`, 'ammunition-table')}
-            <td><select name="ammunition_returns[${idx}][type]" class="ni ni-select">${AMMO_TYPE_OPTIONS}</select></td>
             <td><input type="number" name="ammunition_returns[${idx}][rounds]" class="ni calc-ammo" value="0" min="0"></td>
             <td><input type="number" name="ammunition_returns[${idx}][serviceable]" class="ni calc-ammo" value="0" min="0"></td>
             <td><input type="number" name="ammunition_returns[${idx}][unserviceable]" class="ni calc-ammo" value="0" min="0"></td>
             <td><input type="number" name="ammunition_returns[${idx}][used]" class="ni calc-ammo" value="0" min="0"></td>
             <td><input type="number" name="ammunition_returns[${idx}][total]" class="ni ammo-tot-disp" value="0" readonly style="background:#f9fafb;"></td>
-            ${REMOVE_CELL}
         </tr>`,
         'store-accessories-body': idx => `<tr class="store-acc-row">
             ${commandCell(`store_accessories[${idx}][command]`, 'store-accessories-table')}

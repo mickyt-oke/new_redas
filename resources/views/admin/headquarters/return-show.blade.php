@@ -6,7 +6,7 @@
 
 @php
     $data = $application->return_data ?? [];
-    $skipKeys = ['directorate_slug', 'data_consent', 'report_period', 'reporting_officer', 'command_name', 'supporting_documents', 'attachments'];
+    $skipKeys = ['directorate_slug', 'cgis_unit_slug', 'data_consent', 'report_period', 'reporting_officer', 'command_name', 'period', 'return_type', 'supporting_documents', 'attachments'];
     $badge = match ($application->status) {
         'approved' => 'badge-approved',
         'returned', 'rejected' => 'badge-rejected',
@@ -16,30 +16,27 @@
     $documentRoute = $documentRoute ?? 'admin.hq.returns.document';
     $commentHistory = $application->relationLoaded('reviewComments') ? $application->reviewComments : collect();
 
-    $documentGroups = [];
-    foreach (['supporting_documents' => ['supporting', 'Supporting Documents'], 'attachments' => ['attachments', 'Attachments']] as $key => [$collection, $label]) {
-        $paths = array_values(array_filter((array) ($data[$key] ?? [])));
-        if ($paths !== []) {
-            $documentGroups[] = [$collection, $label, $paths];
-        }
+    $directorateNames = [];
+    foreach (\App\Http\Controllers\Web\DashboardController::directorates() as $s => $meta) {
+        $directorateNames[$s] = $meta['name'];
     }
-
-    // Recursively renders nested return_data arrays (e.g. directorate forms) as readable text.
-    $flattenValue = function ($value) use (&$flattenValue) {
-        if (! is_array($value)) {
-            return $value ?? '—';
-        }
-
-        $parts = [];
-        foreach ($value as $key => $item) {
-            $rendered = $flattenValue($item);
-            $label = is_string($key) ? ucwords(str_replace('_', ' ', $key)).': ' : '';
-            $parts[] = $label.$rendered;
-        }
-
-        return implode(', ', $parts);
-    };
 @endphp
+
+@php
+$sections = \App\Services\PreviewRenderer::buildSections($data, [
+    'skipKeys' => $skipKeys,
+    'directorateNames' => $directorateNames,
+]);
+@endphp
+
+<style>
+    .preview-section-title { font-size:.95rem; font-weight:700; color:var(--nis-700); margin:20px 0 8px; border-bottom:1px solid var(--gray-200); padding-bottom:4px; }
+    .preview-sub-section-title { font-size:.85rem; font-weight:700; color:var(--gray-700); margin:12px 0 6px; }
+    table.preview-report-table { width:100%; border-collapse:collapse; font-size:.82rem; margin-bottom:8px; }
+    table.preview-report-table th, table.preview-report-table td { border:1px solid var(--gray-200); padding:6px 10px; text-align:left; vertical-align:top; }
+    table.preview-report-table th { background:var(--nis-50); font-weight:700; color:var(--nis-800); }
+    table.preview-report-table td.kv-key { width:38%; font-weight:600; background:#f9fafb; }
+</style>
 
 <main class="redas-content">
     <div class="page-header">
@@ -59,7 +56,9 @@
     </div>
 
     <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:20px;align-items:start;">
-        <div>
+        <div data-preview-paginator>
+            @include('partials.preview-pagination')
+
             <div class="redas-card" style="margin-bottom:20px;">
                 <div class="card-head">
                     <div class="card-head-title">
@@ -81,7 +80,7 @@
                         </div>
                         <div style="border:1px solid var(--gray-200);border-radius:10px;padding:10px;">
                             <div style="font-size:.74rem;color:var(--gray-500);">Report Period</div>
-                            <div style="font-weight:700;color:var(--gray-900);">{{ $data['report_period'] ?? '—' }}</div>
+                            <div style="font-weight:700;color:var(--gray-900);">{{ $data['report_period'] ?? $data['period'] ?? '—' }}</div>
                         </div>
                         <div style="border:1px solid var(--gray-200);border-radius:10px;padding:10px;">
                             <div style="font-size:.74rem;color:var(--gray-500);">Category</div>
@@ -99,62 +98,47 @@
                 </div>
             </div>
 
-            <div class="redas-card" style="margin-bottom:20px;">
+            <div class="preview-paginator">
+                <div class="preview-paginator-top">
+                    <div class="preview-paginator-title preview-counter">Section 1 of {{ count($sections) }}</div>
+                    <div class="preview-paginator-controls">
+                        <button type="button" class="preview-prev-btn" disabled><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" class="preview-next-btn">Next <i class="fas fa-arrow-right"></i></button>
+                        <button type="button" class="preview-all-btn">Show all</button>
+                    </div>
+                </div>
+                <div class="preview-section-tabs"></div>
+            </div>
+
+            @forelse($sections as $index => $section)
+            <div class="redas-card preview-section {{ $loop->first ? 'active' : '' }}" style="margin-bottom:20px;" data-label="{{ $section['label'] }}">
                 <div class="card-head">
                     <div class="card-head-title">
                         <div class="card-head-icon" style="background:#ede9fe;color:#6d28d9;">
                             <i class="fas fa-table-list"></i>
                         </div>
-                        Return Data
+                        {{ $section['label'] }}
                     </div>
                 </div>
                 <div class="card-body no-pad">
-                    <div style="overflow:auto;">
-                        <table class="redas-table" style="min-width:520px;">
-                            <tbody>
-                                @forelse(collect($data)->except($skipKeys) as $field => $value)
-                                    <tr>
-                                        <td style="font-weight:600;width:40%;text-transform:capitalize;">{{ str_replace('_', ' ', $field) }}</td>
-                                        <td>{{ $flattenValue($value) }}</td>
-                                    </tr>
-                                @empty
-                                    <tr><td style="text-align:center;color:var(--gray-400);padding:24px;">No additional return data recorded.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div class="redas-card">
-                <div class="card-head">
-                    <div class="card-head-title">
-                        <div class="card-head-icon" style="background:#fef3c7;color:#b45309;">
-                            <i class="fas fa-paperclip"></i>
+                    @if($section['html'])
+                        <div style="padding:16px;">
+                            {!! $section['html'] !!}
                         </div>
-                        Documents
-                    </div>
-                </div>
-                <div class="card-body">
-                    @if($documentGroups === [])
-                        <p style="font-size:.84rem;color:var(--gray-500);margin:0;">No documents or images were uploaded with this return.</p>
                     @else
-                        @foreach($documentGroups as [$collection, $label, $paths])
-                            <div style="margin-bottom:14px;">
-                                <div style="font-size:.78rem;font-weight:700;color:var(--gray-600);margin-bottom:8px;">{{ $label }}</div>
-                                <div style="display:flex;flex-direction:column;gap:6px;">
-                                    @foreach($paths as $i => $path)
-                                        <a href="{{ route($documentRoute, [$application, $collection, $i]) }}" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--gray-200);border-radius:8px;text-decoration:none;color:var(--gray-700);font-size:.84rem;">
-                                            <i class="fas fa-file-arrow-down" style="color:var(--nis-600);"></i>
-                                            <span>{{ basename($path) }}</span>
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
+                        <p style="padding:16px;color:#64748b;">No data entered for this section.</p>
                     @endif
                 </div>
             </div>
+            @empty
+            <div class="redas-card preview-section active" style="margin-bottom:20px;" data-label="No Data">
+                <div class="card-body">
+                    <p style="padding:12px;color:#64748b;">No return data is available to preview.</p>
+                </div>
+            </div>
+            @endforelse
+
+            @include('partials.document-viewer', ['docRoute' => $documentRoute])
         </div>
 
         <div>

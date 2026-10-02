@@ -104,7 +104,7 @@ class DeskAdminSubmissionToolsTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Staff Strength');
-        $response->assertSee('Dcg');
+        $response->assertSee('DCG');
         $response->assertSee('Uploaded Documents');
         $response->assertSee('note.pdf');
         $response->assertSee(route('desk.admin.submissions.document', [$application, 'supporting', 0]), false);

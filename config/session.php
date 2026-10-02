@@ -47,7 +47,7 @@ return [
     |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', false),
+    'encrypt' => env('SESSION_ENCRYPT', true),
 
     /*
     |--------------------------------------------------------------------------
@@ -169,7 +169,12 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Defaults to secure (HTTPS-only) cookies outside local development,
+    // without needing an explicit .env entry per environment. Uses env()
+    // directly (not app()->isLocal()) — the container isn't ready yet while
+    // config files are being loaded, and app()->isLocal() would break every
+    // artisan command with "Target class [env] does not exist".
+    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV', 'production') !== 'local'),
 
     /*
     |--------------------------------------------------------------------------
