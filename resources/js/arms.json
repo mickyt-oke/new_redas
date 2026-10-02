@@ -1,0 +1,241 @@
+{
+  "title": "Land-Based Arms Reference List",
+  "scope": "Land-based firearms and weapon categories only; excludes air and sea-based weapons.",
+  "note": "This is the user's compiled reference list and does not verify current service or possession by any Nigerian agency.",
+  "arms": [
+    {
+      "name": "G3 Rifle",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "AR70 Rifle",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "AK-47",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Galil Rifle",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "FN Rifle",
+      "category": "Assault and Service Rifles",
+      "note": "Generic designation; exact model unspecified."
+    },
+    {
+      "name": "SMG Rifle",
+      "category": "Submachine Guns",
+      "note": "Generic designation; exact model unspecified."
+    },
+    {
+      "name": "Pistol Baretta",
+      "category": "Pistols and Handguns",
+      "note": "Likely refers to a Beretta pistol; exact model unspecified."
+    },
+    {
+      "name": "Beretta 92 series",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Glock 17",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Glock 19",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "SIG Sauer P226",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Browning Hi-Power",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "CZ 75",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "M1911-pattern pistol",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Tokarev TT-33",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Makarov PM",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Taurus revolvers",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Smith & Wesson revolvers",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "AKM",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "AK-103",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Type 56",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "FN FAL",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Heckler & Koch G3",
+      "category": "Assault and Service Rifles",
+      "note": "Duplicate model family of 'G3 Rifle' above."
+    },
+    {
+      "name": "M16 rifle",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "M4 carbine",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "FN SCAR-L",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "FN SCAR-H",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Heckler & Koch G36",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "SIG SG 540",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "SIG SG 550",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Heckler & Koch MP5",
+      "category": "Submachine Guns"
+    },
+    {
+      "name": "Uzi",
+      "category": "Submachine Guns"
+    },
+    {
+      "name": "Mini Uzi",
+      "category": "Submachine Guns"
+    },
+    {
+      "name": "FN P90",
+      "category": "Submachine Guns"
+    },
+    {
+      "name": "Sterling submachine gun",
+      "category": "Submachine Guns"
+    },
+    {
+      "name": "Beretta PM12",
+      "category": "Submachine Guns"
+    },
+    {
+      "name": "FN Minimi",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "M249 SAW",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "RPK",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "RPK-74",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "RPD",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "PKM",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "FN MAG",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "M60",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "MG3",
+      "category": "Light and General-Purpose Machine Guns"
+    },
+    {
+      "name": "Dragunov SVD",
+      "category": "Sniper and Precision Rifles"
+    },
+    {
+      "name": "Accuracy International rifle series",
+      "category": "Sniper and Precision Rifles"
+    },
+    {
+      "name": "Barrett M82",
+      "category": "Sniper and Precision Rifles"
+    },
+    {
+      "name": "Barrett M107",
+      "category": "Sniper and Precision Rifles"
+    },
+    {
+      "name": "Remington 700 precision-rifle variants",
+      "category": "Sniper and Precision Rifles"
+    },
+    {
+      "name": "Designated-marksman rifle variants",
+      "category": "Sniper and Precision Rifles",
+      "note": "Generic category; exact model unspecified."
+    },
+    {
+      "name": "Remington 870",
+      "category": "Shotguns"
+    },
+    {
+      "name": "Mossberg 500",
+      "category": "Shotguns"
+    },
+    {
+      "name": "Mossberg 590",
+      "category": "Shotguns"
+    },
+    {
+      "name": "Benelli M3",
+      "category": "Shotguns"
+    },
+    {
+      "name": "Benelli M4",
+      "category": "Shotguns"
+    },
+    {
+      "name": "Others",
+      "category": "Unspecified",
+      "note": "Placeholder for additional arms not yet listed."
+    }
+  ]
+}
