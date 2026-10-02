@@ -25,6 +25,30 @@
       "note": "Generic designation; exact model unspecified."
     },
     {
+        "name": "LAR Rifle",
+        "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Stone Pistol",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "DICON Pistol",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "CF98",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Walther P99",
+      "category": "Pistols and Handguns"
+    },
+    {
+      "name": "Heckler & Koch VP9",
+      "category": "Pistols and Handguns"
+    },
+    {
       "name": "SMG Rifle",
       "category": "Submachine Guns",
       "note": "Generic designation; exact model unspecified."
