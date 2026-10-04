@@ -55,6 +55,8 @@ class UserManagementController extends Controller
             'roles' => [
                 'officer' => 'Officer',
                 'state' => 'State Supervisor',
+                'zone' => 'Zonal User',
+                'zonal_commander' => 'Zonal Commander',
                 'directorate' => 'Directorate User',
                 'unit_officer' => 'CGIS Unit Officer',
                 'unit_admin' => 'CGIS Unit Desk Admin',

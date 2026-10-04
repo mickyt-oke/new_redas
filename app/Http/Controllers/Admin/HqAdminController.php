@@ -9,6 +9,7 @@ use App\Models\AuditLog;
 use App\Models\User;
 use App\Services\ExcelReportService;
 use App\Services\SubmissionWorkflow;
+use App\Services\HqAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -43,14 +44,17 @@ class HqAdminController extends Controller
 
     public function index(): View
     {
-        $base = Application::query();
+        $stats = Application::query()
+            ->selectRaw("count(*) as total")
+            ->selectRaw("count(case when workflow_stage = ? and status not in (?, ?) then 1 end) as awaiting_hq", [
+                SubmissionWorkflow::STAGE_HQ_REVIEW,
+                SubmissionWorkflow::STATUS_APPROVED,
+                SubmissionWorkflow::STATUS_REJECTED,
+            ])
+            ->selectRaw("count(case when status = ? then 1 end) as approved", [SubmissionWorkflow::STATUS_APPROVED])
+            ->selectRaw("count(case when status = ? then 1 end) as returned", [SubmissionWorkflow::STATUS_RETURNED])
+            ->first();
 
-        $stats = [
-            'total' => (clone $base)->count(),
-            'awaiting_hq' => (clone $base)->awaiting(SubmissionWorkflow::STAGE_HQ_REVIEW)->count(),
-            'approved' => (clone $base)->where('status', 'approved')->count(),
-            'returned' => (clone $base)->where('status', 'returned')->count(),
-        ];
 
         $directorateRows = Application::query()
             ->selectRaw("scope_code, status, count(*) as aggregate")
@@ -65,24 +69,23 @@ class HqAdminController extends Controller
                 'slug' => $slug,
                 'name' => $name,
                 'total' => $rows->sum('aggregate'),
-                'pending' => $rows->where('status', 'pending')->sum('aggregate'),
-                'approved' => $rows->where('status', 'approved')->sum('aggregate'),
-                'returned' => $rows->where('status', 'returned')->sum('aggregate'),
+                'pending' => $rows->where('status', SubmissionWorkflow::STATUS_PENDING)->sum('aggregate'),
+                'approved' => $rows->where('status', SubmissionWorkflow::STATUS_APPROVED)->sum('aggregate'),
+                'returned' => $rows->where('status', SubmissionWorkflow::STATUS_RETURNED)->sum('aggregate'),
             ];
         })->values();
 
         $cgisUnits = Application::query()
-            ->with('user:id,assigned_cgis_unit_code')
-            ->whereHas('user', fn ($q) => $q->whereNotNull('assigned_cgis_unit_code')->where('assigned_cgis_unit_code', '!=', ''))
-            ->get()
-            ->groupBy(fn (Application $application) => $application->user->assigned_cgis_unit_code)
-            ->map(fn (Collection $group, string $unit) => [
-                'unit' => $unit,
-                'total' => $group->count(),
-                'approved' => $group->where('status', 'approved')->count(),
-            ])
-            ->sortBy('unit')
-            ->values();
+            ->join('users', 'applications.user_id', '=', 'users.id')
+            ->select('users.assigned_cgis_unit_code as unit')
+            ->selectRaw('count(*) as total')
+            ->selectRaw("sum(case when applications.status = ? then 1 else 0 end) as approved", [SubmissionWorkflow::STATUS_APPROVED])
+            ->whereNotNull('users.assigned_cgis_unit_code')
+            ->where('users.assigned_cgis_unit_code', '!=', '')
+            ->groupBy('users.assigned_cgis_unit_code')
+            ->orderBy('users.assigned_cgis_unit_code')
+            ->get();
+
 
         $recentReturns = Application::query()
             ->with('user:id,name,service_number,assigned_cgis_unit_code')
@@ -102,48 +105,25 @@ class HqAdminController extends Controller
     {
         $filters = $request->validate([
             'formation' => ['nullable', 'string', 'max:60'],
-            'category' => ['nullable', 'in:state,directorate,cgis'],
-            'status' => ['nullable', 'in:pending,approved,returned'],
+            'category' => ['nullable', 'in:' . implode(',', [
+                SubmissionWorkflow::CATEGORY_STATE,
+                SubmissionWorkflow::CATEGORY_DIRECTORATE,
+                SubmissionWorkflow::CATEGORY_CGIS,
+            ])],
+            'status' => ['nullable', 'in:' . implode(',', [
+                SubmissionWorkflow::STATUS_PENDING,
+                SubmissionWorkflow::STATUS_APPROVED,
+                SubmissionWorkflow::STATUS_RETURNED,
+            ])],
             'stage' => ['nullable', 'string', 'max:60'],
             'period' => ['nullable', 'date_format:Y-m'],
             'search' => ['nullable', 'string', 'max:120'],
         ]);
 
-        $query = Application::query()->with('user:id,name,service_number,assigned_cgis_unit_code');
+        $query = Application::query()
+            ->with('user:id,name,service_number,assigned_cgis_unit_code');
 
-        if ($category = $filters['category'] ?? null) {
-            if ($category === 'cgis') {
-                $query->whereHas('user', fn ($q) => $q->whereNotNull('assigned_cgis_unit_code')->where('assigned_cgis_unit_code', '!=', ''));
-            } else {
-                $query->where('category', $category);
-            }
-        }
-
-        if ($formation = $filters['formation'] ?? null) {
-            $query->where('scope_code', $formation);
-        }
-
-        if ($status = $filters['status'] ?? null) {
-            $query->where('status', $status);
-        }
-
-        if ($stage = $filters['stage'] ?? null) {
-            $query->where('workflow_stage', $stage);
-        }
-
-        if ($period = $filters['period'] ?? null) {
-            $query->where('return_data->report_period', $period);
-        }
-
-        if ($search = trim((string) ($filters['search'] ?? ''))) {
-            $query->where(function ($q) use ($search) {
-                $q->where('return_data->reporting_officer', 'like', "%{$search}%")
-                    ->orWhere('return_data->command_name', 'like', "%{$search}%")
-                    ->orWhereHas('user', fn ($inner) => $inner
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('service_number', 'like', "%{$search}%"));
-            });
-        }
+        $this->filterApplications($query, $filters);
 
         $applications = $query->latest()->paginate(20)->withQueryString();
 
@@ -189,24 +169,9 @@ class HqAdminController extends Controller
 
         $query = Application::query()
             ->with('user:id,name,service_number,assigned_cgis_unit_code')
-            ->where('status', 'approved');
+            ->where('status', SubmissionWorkflow::STATUS_APPROVED);
 
-        if ($formation = $filters['formation'] ?? null) {
-            $query->where('scope_code', $formation);
-        }
-
-        if ($period = $filters['period'] ?? null) {
-            $query->where('return_data->report_period', $period);
-        }
-
-        if ($search = trim((string) ($filters['search'] ?? ''))) {
-            $query->where(function ($q) use ($search) {
-                $q->where('return_data->reporting_officer', 'like', "%{$search}%")
-                    ->orWhereHas('user', fn ($inner) => $inner
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('service_number', 'like', "%{$search}%"));
-            });
-        }
+        $this->filterApplications($query, $filters);
 
         $archived = $query->latest('updated_at')->paginate(20)->withQueryString();
 
@@ -217,73 +182,13 @@ class HqAdminController extends Controller
         ]);
     }
 
-    public function analytics(): View
+    public function analytics(HqAnalyticsService $analytics): View
     {
-        $perDirectorate = Application::query()
-            ->selectRaw('scope_code, count(*) as aggregate')
-            ->where('category', SubmissionWorkflow::CATEGORY_DIRECTORATE)
-            ->groupBy('scope_code')
-            ->pluck('aggregate', 'scope_code');
-
-        $directorateChart = [
-            'labels' => array_values(self::DIRECTORATES),
-            'data' => collect(array_keys(self::DIRECTORATES))
-                ->map(fn (string $slug) => (int) ($perDirectorate[$slug] ?? 0))
-                ->all(),
-        ];
-
-        $statusCounts = Application::query()
-            ->selectRaw('status, count(*) as aggregate')
-            ->groupBy('status')
-            ->pluck('aggregate', 'status');
-
-        $statusChart = [
-            'labels' => ['Pending', 'Approved', 'Returned'],
-            'data' => [
-                (int) ($statusCounts['pending'] ?? 0),
-                (int) ($statusCounts['approved'] ?? 0),
-                (int) ($statusCounts['returned'] ?? 0),
-            ],
-        ];
-
-        $trendLabels = [];
-        $trendData = [];
-
-        for ($i = 11; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $trendLabels[] = $month->format('M Y');
-            $trendData[] = Application::query()
-                ->whereYear('created_at', $month->year)
-                ->whereMonth('created_at', $month->month)
-                ->count();
-        }
-
-        $stageTurnaround = [];
-        foreach (Application::query()->whereNotNull('workflow_path')->cursor() as $application) {
-            $entries = collect($application->workflow_path ?? []);
-            for ($i = 1; $i < $entries->count(); $i++) {
-                $from = $entries[$i - 1]['at'] ?? null;
-                $to = $entries[$i]['at'] ?? null;
-                $stage = $entries[$i]['stage'] ?? null;
-                if ($from && $to && $stage) {
-                    $hours = (strtotime((string) $to) - strtotime((string) $from)) / 3600;
-                    if ($hours >= 0) {
-                        $stageTurnaround[$stage][] = $hours;
-                    }
-                }
-            }
-        }
-
-        $turnaround = collect($stageTurnaround)->map(fn (array $hours, string $stage) => [
-            'stage' => self::STAGE_LABELS[$stage] ?? ucwords(str_replace('_', ' ', $stage)),
-            'avg_hours' => round(array_sum($hours) / count($hours), 1),
-        ])->sortBy('stage')->values();
-
         return view('admin.headquarters.analytics', [
-            'directorateChart' => $directorateChart,
-            'statusChart' => $statusChart,
-            'trendChart' => ['labels' => $trendLabels, 'data' => $trendData],
-            'turnaround' => $turnaround,
+            'directorateChart' => $analytics->getDirectorateChart(self::DIRECTORATES),
+            'statusChart' => $analytics->getStatusChart(),
+            'trendChart' => $analytics->getTrendChart(),
+            'turnaround' => $analytics->getTurnaroundStats(self::STAGE_LABELS),
         ]);
     }
 
@@ -297,7 +202,7 @@ class HqAdminController extends Controller
     public function generateReport(Request $request, ExcelReportService $excel): BinaryFileResponse|RedirectResponse
     {
         $validated = $request->validate([
-            'report_type' => ['required', 'in:quarterly,biannual,annual'],
+            'report_type' => ['required', 'in:' . implode(',', array_keys(ExcelReportService::TEMPLATES))],
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'part' => ['nullable', 'integer', 'min:0', 'max:4'],
         ]);
@@ -364,6 +269,43 @@ class HqAdminController extends Controller
             return back()
                 ->withInput()
                 ->with('error', 'The report could not be generated. Please try again.');
+        }
+    }
+
+    protected function filterApplications(\Illuminate\Database\Eloquent\Builder $query, array $filters): void
+    {
+        if ($category = $filters['category'] ?? null) {
+            if ($category === SubmissionWorkflow::CATEGORY_CGIS) {
+                $query->whereHas('user', fn ($q) => $q->whereNotNull('assigned_cgis_unit_code')->where('assigned_cgis_unit_code', '!=', ''));
+            } else {
+                $query->where('category', $category);
+            }
+        }
+
+        if ($formation = $filters['formation'] ?? null) {
+            $query->where('scope_code', $formation);
+        }
+
+        if ($status = $filters['status'] ?? null) {
+            $query->where('status', $status);
+        }
+
+        if ($stage = $filters['stage'] ?? null) {
+            $query->where('workflow_stage', $stage);
+        }
+
+        if ($period = $filters['period'] ?? null) {
+            $query->where('return_data->report_period', $period);
+        }
+
+        if ($search = trim((string) ($filters['search'] ?? ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('return_data->reporting_officer', 'like', "%{$search}%")
+                    ->orWhere('return_data->command_name', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($inner) => $inner
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('service_number', 'like', "%{$search}%"));
+            });
         }
     }
 }

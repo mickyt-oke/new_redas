@@ -183,7 +183,7 @@ function initAuthPage() {
     /* Password toggle */
     document.querySelectorAll('.pw-toggle').forEach(btn => {
         btn.addEventListener('click', () => {
-            const input = btn.previousElementSibling;
+            const input = btn.closest('.pw-wrap')?.querySelector('input');
             if (!input) return;
             const isText = input.type === 'text';
             input.type = isText ? 'password' : 'text';

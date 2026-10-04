@@ -105,14 +105,22 @@
                     <span>Account enabled</span>
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:18px;">
+                <div class="auth-form-group pw-wrap" style="margin-bottom:18px;">
                     <label class="form-label-nis">Password</label>
-                    <input type="password" name="password" class="auth-input" required>
+                    <input type="password" name="password" id="password" class="auth-input" required>
+                     <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:24px;">
+                <div class="auth-form-group pw-wrap" style="margin-bottom:24px;">
                     <label class="form-label-nis">Confirm Password</label>
-                    <input type="password" name="password_confirmation" class="auth-input" required>
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="auth-input" required>
+                     <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
 
                 <button type="submit" class="btn-nis btn-primary-nis full-width">

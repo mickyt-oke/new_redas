@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApiNotificationController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthTokenController;
+use App\Http\Controllers\LockscreenController;
 use App\Http\Controllers\MfaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionReviewController;

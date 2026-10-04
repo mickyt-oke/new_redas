@@ -11,6 +11,53 @@
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @laravelPWA
+
+    <style>
+        .auth-form-group {
+            margin-bottom: 16px;
+        }
+
+        .pw-wrap {
+            position: relative;
+        }
+
+        .pw-wrap .pw-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray-400);
+            padding: 4px;
+        }
+
+        .pw-wrap .pw-toggle:hover {
+            color: var(--gray-600);
+        }
+
+        .pw-wrap input {
+            padding-right: 40px;
+        }
+
+        .inline-error {
+            color: var(--color-danger);
+            font-size: .78rem;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .helper-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body class="redas-dashboard">
 

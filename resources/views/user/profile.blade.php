@@ -46,9 +46,12 @@
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
                     <label class="form-label-nis">Current Password</label>
-                    <div class="auth-input-wrap">
-                        <input type="password" name="current_password" class="auth-input" placeholder="Enter your current password" required>
-                        <span class="auth-input-icon"><i class="fas fa-key"></i></span>
+                    <div class="auth-input-wrap pw-wrap">
+                        <input type="password" id="current_password" name="current_password" class="auth-input" placeholder="Enter your current password" required>
+                         <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                     </div>
                     @error('current_password')
                         <div class="inline-error"><i class="fas fa-circle-xmark"></i>{{ $message }}</div>
@@ -57,20 +60,26 @@
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
                     <label class="form-label-nis">New Password</label>
-                    <div class="auth-input-wrap">
-                        <input type="password" name="password" class="auth-input" placeholder="Enter new password" required>
-                        <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <div class="auth-input-wrap pw-wrap">
+                        <input type="password" id="new_password" name="password" class="auth-input" placeholder="Enter new password" required>
+                         <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                     </div>
                     @error('password')
                         <div class="inline-error"><i class="fas fa-circle-xmark"></i>{{ $message }}</div>
                     @enderror
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:24px;">
+                <div class="auth-form-group pw-wrap" style="margin-bottom:24px;">
                     <label class="form-label-nis">Confirm New Password</label>
-                    <div class="auth-input-wrap">
-                        <input type="password" name="password_confirmation" class="auth-input" placeholder="Confirm new password" required>
-                        <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <div class="auth-input-wrap pw-wrap">
+                        <input type="password" id="password_confirmation" name="password_confirmation" class="auth-input" placeholder="Confirm new password" required>
+                         <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                     </div>
                 </div>
 

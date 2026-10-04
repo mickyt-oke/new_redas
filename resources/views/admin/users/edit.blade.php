@@ -116,14 +116,14 @@
                     <span>Account enabled</span>
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:18px;">
+                <div class="auth-form-group pw-wrap" style="margin-bottom:18px;">
                     <label class="form-label-nis">New Password</label>
-                    <input type="password" name="password" class="auth-input" placeholder="Leave blank to keep current password">
+                    <input type="password" id="password" name="password" class="auth-input" placeholder="Leave blank to keep current password">
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:24px;">
+                <div class="auth-form-group pw-wrap" style="margin-bottom:24px;">
                     <label class="form-label-nis">Confirm New Password</label>
-                    <input type="password" name="password_confirmation" class="auth-input">
+                    <input type="password" id="password" name="password_confirmation" class="auth-input">
                 </div>
 
                 <button type="submit" class="btn-nis btn-primary-nis full-width">

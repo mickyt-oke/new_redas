@@ -351,6 +351,9 @@ class AuthController extends Controller
         if ($requestedRole === 'user' && $user->role === 'officer') {
             return true;
         }
+        if ($requestedRole === 'zone' && $user->role === 'zone') {
+            return true;
+        }
 
         if ($requestedRole === 'state' && $user->role === 'admin') {
             return true;
@@ -454,6 +457,7 @@ class AuthController extends Controller
             'directorate_user' => '/user/directorates/dashboard',
             'cgis_unit_user' => '/user/cgis-units/dashboard',
             'state_user' => '/user/dashboard',
+            'zone_user' => '/user/zones/dashboard',
             'executive' => '/executive/dashboard',
             default => '/home',
         };
@@ -484,6 +488,12 @@ class AuthController extends Controller
                 'location' => 'directorate',
                 'level' => 0,
                 'canonical_role' => 'directorate',
+            ],
+            'zone_user' => [
+                'role' => ['zone'],
+                'location' => 'zone',
+                'level' => 0,
+                'canonical_role' => 'zone',
             ],
             'directorate_admin' => [
                 'role' => ['admin'],
@@ -566,6 +576,7 @@ class AuthController extends Controller
             'unit_officer' => 'cgis_unit_user',
             'unit_admin' => 'cgis_desk_admin',
             'state' => 'desk_admin',
+            'zone' => 'zone_user',
             'zonal' => 'zonal_commander',
             'admin' => 'admin',
             'super_admin', 'superAdmin' => 'super_admin',
@@ -581,6 +592,7 @@ class AuthController extends Controller
             'unit_admin' => 'unit',
             'state' => 'state',
             'zonal' => 'zonal',
+            'zone_user' => 'zone',
             'hq_admin', 'admin', 'super_admin', 'superAdmin' => 'headquarters',
             default => 'state',
         };

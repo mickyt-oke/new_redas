@@ -42,7 +42,7 @@
             <div style="width:40px;height:3px;background:var(--gold-500);border-radius:2px;margin-top:12px;"></div>
         </div>
 
-        <div class="auth-features animate-fade-up delay-2">
+        <div class="auth-brand animate-fade-up">
             @foreach([
                 ['fas fa-save',      'Save These Codes',      'Store them in a password manager or print them. You will not see them again.'],
                 ['fas fa-lock',      'Single Use Only',     'Each code can be used once if you lose access to your authenticator app.'],

@@ -27,8 +27,14 @@ class SubmissionWorkflow
     public const STAGE_ADMIN_REVIEW = 'admin_review';
     public const STAGE_APPROVED = 'approved';
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_RETURNED = 'returned';
+    public const STATUS_REJECTED = 'rejected';
+
     /**
      * Create a new submission and place it in the correct initial review queue.
+
      */
     public static function create(User $user, array $returnData, ?string $scopeCode = null): Application
     {

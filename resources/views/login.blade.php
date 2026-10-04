@@ -170,8 +170,8 @@
 
         </div>
 
-        <h1 class="login-title">Welcome</h1>
-        <p class="login-subtitle">REDAS Portal</p>
+        <h1 class="login-title">NIS - REDAS</h1>
+        <p class="login-subtitle">Enter Your Credentials to Login</p>
 
         @if($errors->any())
         <div style="background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:var(--radius-md);padding:12px 16px;font-size:.875rem;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;">
@@ -254,7 +254,7 @@
 
             <button type="submit" class="btn-auth" id="loginBtn">
                 <i class="fas fa-sign-in-alt"></i>
-                <span class="btn-text">Secure Sign In</span>
+                <span class="btn-text">Sign In</span>
             </button>
         </form>
 
