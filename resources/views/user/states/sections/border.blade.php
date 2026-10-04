@@ -902,9 +902,9 @@ $seaportStates = [
 
     'Lagos' => [ 'Tin Can Shift', 'Tin Can Jetty', 'Apapa Shift', 'Apapa Jetty', 'Ladol Free Zone', 'Marine Jetty', 'Badagry Patrol Base', 'Snake Island Free Zone' ],
 
-    'Delta' => [ 'Sapele/Warri Jetty', 'Warri Jetty', 'Warri Marine Patrol Base', 'Koko/Sapele Seaport' ],
+    'Delta' => [ 'Sapele Seaport', 'Warri Jetty', 'Warri Marine Patrol Base', 'Koko Seaport', 'Escravos', 'Aladja Seaport', 'Forcados', ],
 
-    'Cross River' => [ 'Calabar Marine Patrol Unit' ],
+    'Cross River' => [ 'Calabar Marine Patrol Unit', 'Calabar Seaport' ],
 
     'Rivers' => ['NPA Control Post', 'Onne Seaport', 'NPA Jetty'],
     'Ondo' => ['Igbokoda'], 'Adamawa' => ['Adamawa Marine Patrol Unit'],
@@ -2816,7 +2816,7 @@ $lastSection = $category['section'];
     // =========================================
 
     var nationalityList = [
-        "Afghan",
+"Afghan",
 "Albanian",
 "Algerian",
 "American Samoan",

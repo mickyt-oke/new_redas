@@ -109,7 +109,7 @@
                                 <td><span class="status-badge {{ $badge }}">{{ ucfirst($return->status) }}</span></td>
                                 <td>{{ optional($return->created_at)->format('d M Y') }}</td>
                                 <td style="text-align:right;">
-                                    <a href="{{ route('admin.hq.returns.show', $return) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
+                                    <a href="{{ route('admin.hq.returns.show', ['applicationHash' => \App\Services\HashidService::encode($return->id)]) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
                                 </td>
                             </tr>
                         @empty

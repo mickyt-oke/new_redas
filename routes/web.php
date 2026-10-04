@@ -11,6 +11,8 @@ use App\Http\Controllers\MfaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionReviewController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\SpecialCommandController;
+use App\Http\Controllers\Web\ZonalUserController;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -62,6 +64,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/password/reset/{token}', [AuthTokenController::class, 'resetPassword'])->middleware('throttle:10,1')->name('password.reset');
 });
 
+// Lockscreen Routes
+Route::middleware([Authenticate::class])->group(function () {
+    Route::get('/lockscreen', [LockscreenController::class, 'show'])->name('lockscreen.show');
+    Route::post('/lockscreen/unlock', [LockscreenController::class, 'unlock'])->name('lockscreen.unlock');
+    Route::post('/lockscreen/lock', [LockscreenController::class, 'lock'])->name('lockscreen.lock');
+});
+
 // State user (officer) routes — restricted to state_user accounts
 Route::middleware([Authenticate::class, 'access:category=state_user,location=state,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/dashboard', [DashboardController::class, 'stateDashboard'])->name('user.dashboard');
@@ -72,12 +81,12 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
 
     Route::get('/user/submissions', [DashboardController::class, 'stateSubmissions'])->name('user.submissions');
 
-    Route::get('/user/returns/{application}', [DashboardController::class, 'showSubmission'])->name('user.returns.show');
-    Route::get('/user/returns/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.returns.print');
-    Route::get('/user/returns/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.returns.document');
-    Route::get('/user/returns/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.returns.edit');
-    Route::put('/user/returns/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.returns.update');
-    Route::delete('/user/returns/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.returns.destroy');
+    Route::get('/user/returns/{applicationHash}', [DashboardController::class, 'showSubmission'])->name('user.returns.show');
+    Route::get('/user/returns/{applicationHash}/print', [DashboardController::class, 'printSubmission'])->name('user.returns.print');
+    Route::get('/user/returns/{applicationHash}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.returns.document');
+    Route::get('/user/returns/{applicationHash}/edit', [DashboardController::class, 'editSubmission'])->name('user.returns.edit');
+    Route::put('/user/returns/{applicationHash}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.returns.update');
+    Route::delete('/user/returns/{applicationHash}', [DashboardController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('user.returns.destroy');
 
     Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
         $request->validate([
@@ -190,25 +199,57 @@ Route::middleware([Authenticate::class])->group(function () {
     Route::patch('/user/profile', [ProfileController::class, 'update'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('user.profile.update');
 
     // PDF export of a submitted return — owner or in-scope approver only (checked in controller).
-    Route::get('/user/submissions/{application}/pdf', [DashboardController::class, 'downloadSubmissionPdf'])->name('user.submissions.pdf');
+    Route::get('/user/submissions/{applicationHash}/pdf', [DashboardController::class, 'downloadSubmissionPdf'])->middleware('signed')->name('user.submissions.pdf');
+});
+
+// Zonal user (officer) routes — restricted to zonal_user accounts
+Route::middleware([Authenticate::class, 'access:category=zonal_user,location=zonal,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
+    Route::get('/user/zones/dashboard', [ZonalUserController::class, 'dashboard'])->name('user.zones.dashboard');
+    Route::get('/user/zones/returns/create', [ZonalUserController::class, 'createReturn'])->name('user.zones.returns.create');
+    Route::post('/user/zones/returns', [ZonalUserController::class, 'storeReturn'])->middleware('throttle:60,1')->name('user.zones.returns.store');
+    Route::get('/user/zones/returns', [ZonalUserController::class, 'submissions'])->name('user.zones.returns.index');
+    Route::get('/user/zones/returns/{applicationHash}', [ZonalUserController::class, 'showSubmission'])->name('user.zones.returns.show');
+    Route::get('/user/zones/returns/{applicationHash}/edit', [ZonalUserController::class, 'editSubmission'])->name('user.zones.returns.edit');
+    Route::put('/user/zones/returns/{applicationHash}', [ZonalUserController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.zones.returns.update');
+    Route::delete('/user/zones/returns/{applicationHash}', [ZonalUserController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('user.zones.returns.destroy');
+    Route::get('/user/zones/returns/{applicationHash}/documents/{collection}/{index}', [ZonalUserController::class, 'submissionDocument'])->middleware('signed')->name('user.zones.returns.document');
+});
+
+// Special command routes — restricted to state_user accounts provisioned to a special command
+Route::middleware([Authenticate::class, 'access:category=state_user,location=state,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
+    Route::middleware([\App\Http\Middleware\EnsureSpecialCommand::class])->group(function () {
+        Route::get('/special-commands/dashboard', [SpecialCommandController::class, 'dashboard'])->name('special-commands.dashboard');
+        Route::get('/special-commands/returns/create', [SpecialCommandController::class, 'createReturn'])->name('special-commands.returns.create');
+        Route::post('/special-commands/returns', [SpecialCommandController::class, 'storeReturn'])->middleware('throttle:60,1')->name('special-commands.returns.store');
+        Route::get('/special-commands/returns', [SpecialCommandController::class, 'submissions'])->name('special-commands.returns.index');
+        Route::get('/special-commands/returns/{applicationHash}', [SpecialCommandController::class, 'showSubmission'])->name('special-commands.returns.show');
+        Route::get('/special-commands/returns/{applicationHash}/edit', [SpecialCommandController::class, 'editSubmission'])->name('special-commands.returns.edit');
+        Route::put('/special-commands/returns/{applicationHash}', [SpecialCommandController::class, 'updateSubmission'])->middleware('throttle:database')->name('special-commands.returns.update');
+        Route::delete('/special-commands/returns/{applicationHash}', [SpecialCommandController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('special-commands.returns.destroy');
+        Route::get('/special-commands/returns/{applicationHash}/report', [SpecialCommandController::class, 'report'])->name('special-commands.returns.report');
+        Route::get('/special-commands/returns/{applicationHash}/report/pdf', [SpecialCommandController::class, 'downloadReport'])->middleware('signed')->name('special-commands.returns.report.pdf');
+        Route::get('/special-commands/returns/{applicationHash}/documents/{collection}/{index}', [SpecialCommandController::class, 'submissionDocument'])->middleware('signed')->name('special-commands.returns.document');
+    });
 });
 
 // Zonal commander routes — access only to zonal pages
 Route::middleware([Authenticate::class, 'access:category=zonal_commander,location=zonal,role=admin|zonal|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/zonal/dashboard', [SubmissionReviewController::class, 'index'])->name('user.zonal.home');
-    Route::patch('/zonal/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.approve');
-    Route::patch('/zonal/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
+    Route::get('/zonal/submissions/{applicationHash}', [SubmissionReviewController::class, 'show'])->name('zonal.submissions.show');
+    Route::get('/zonal/submissions/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('zonal.submissions.document');
+    Route::patch('/zonal/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.approve');
+    Route::patch('/zonal/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
 });
 
 // Desk / directorate / CGIS desk admin review routes
 Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin|cgis_desk_admin|hq_admin,location=state|directorate|unit|headquarters,role=admin|state|directorate|unit_admin|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/desk-admin/dashboard', [SubmissionReviewController::class, 'index'])->name('user.desk.home');
     Route::get('/desk-admin/reports', [SubmissionReviewController::class, 'reports'])->name('desk.admin.reports');
-    Route::patch('/desk-admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
-    Route::patch('/desk-admin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.reject');
-    Route::get('/desk-admin/submissions/{application}', [SubmissionReviewController::class, 'show'])->name('desk.admin.submissions.show');
-    Route::get('/desk-admin/submissions/{application}/download', [SubmissionReviewController::class, 'download'])->name('desk.admin.submissions.download');
-    Route::get('/desk-admin/submissions/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('desk.admin.submissions.document');
+    Route::patch('/desk-admin/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
+    Route::patch('/desk-admin/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.reject');
+    Route::get('/desk-admin/submissions/{applicationHash}', [SubmissionReviewController::class, 'show'])->name('desk.admin.submissions.show');
+    Route::get('/desk-admin/submissions/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('desk.admin.submissions.download');
+    Route::get('/desk-admin/submissions/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('desk.admin.submissions.document');
 });
 
 // CGIS unit user routes — access only to CGIS unit pages
@@ -220,12 +261,12 @@ Route::middleware([Authenticate::class, 'access:category=cgis_unit_user,location
 
     Route::get('/user/cgis-units/dashboard', [DashboardController::class, 'cgisUnitDashboard'])->name('user.cgis-units.dashboard');
 
-    Route::get('/user/cgis-units/submissions/{application}', [DashboardController::class, 'showSubmission'])->name('user.cgis-units.submissions.show');
-    Route::get('/user/cgis-units/submissions/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.cgis-units.submissions.print');
-    Route::get('/user/cgis-units/submissions/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.cgis-units.submissions.edit');
-    Route::put('/user/cgis-units/submissions/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.cgis-units.submissions.update');
-    Route::delete('/user/cgis-units/submissions/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.cgis-units.submissions.destroy');
-    Route::get('/user/cgis-units/submissions/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.cgis-units.submissions.document');
+    Route::get('/user/cgis-units/submissions/{applicationHash}', [DashboardController::class, 'showSubmission'])->name('user.cgis-units.submissions.show');
+    Route::get('/user/cgis-units/submissions/{applicationHash}/print', [DashboardController::class, 'printSubmission'])->name('user.cgis-units.submissions.print');
+    Route::get('/user/cgis-units/submissions/{applicationHash}/edit', [DashboardController::class, 'editSubmission'])->name('user.cgis-units.submissions.edit');
+    Route::put('/user/cgis-units/submissions/{applicationHash}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.cgis-units.submissions.update');
+    Route::delete('/user/cgis-units/submissions/{applicationHash}', [DashboardController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('user.cgis-units.submissions.destroy');
+    Route::get('/user/cgis-units/submissions/{applicationHash}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->middleware('signed')->name('user.cgis-units.submissions.document');
 
     Route::get('/user/cgis-units/{slug}', [DashboardController::class, 'showCgisUnit'])->name('user.cgis-units.show');
     Route::post('/user/cgis-units/{slug}', [DashboardController::class, 'storeCgisUnit'])->middleware('throttle:database')->name('user.cgis-units.store');
@@ -239,12 +280,12 @@ Route::middleware([Authenticate::class, 'access:category=directorate_user|direct
 
     Route::get('/user/directorates/dashboard', [DashboardController::class, 'directorateDashboard'])->name('user.directorates.dashboard');
 
-    Route::get('/user/directorates/submissions/{application}', [DashboardController::class, 'showSubmission'])->name('user.directorates.submissions.show');
-    Route::get('/user/directorates/submissions/{application}/print', [DashboardController::class, 'printSubmission'])->name('user.directorates.submissions.print');
-    Route::get('/user/directorates/submissions/{application}/edit', [DashboardController::class, 'editSubmission'])->name('user.directorates.submissions.edit');
-    Route::put('/user/directorates/submissions/{application}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.directorates.submissions.update');
-    Route::delete('/user/directorates/submissions/{application}', [DashboardController::class, 'destroySubmission'])->middleware('throttle:database')->name('user.directorates.submissions.destroy');
-    Route::get('/user/directorates/submissions/{application}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->name('user.directorates.submissions.document');
+    Route::get('/user/directorates/submissions/{applicationHash}', [DashboardController::class, 'showSubmission'])->name('user.directorates.submissions.show');
+    Route::get('/user/directorates/submissions/{applicationHash}/print', [DashboardController::class, 'printSubmission'])->name('user.directorates.submissions.print');
+    Route::get('/user/directorates/submissions/{applicationHash}/edit', [DashboardController::class, 'editSubmission'])->name('user.directorates.submissions.edit');
+    Route::put('/user/directorates/submissions/{applicationHash}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.directorates.submissions.update');
+    Route::delete('/user/directorates/submissions/{applicationHash}', [DashboardController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('user.directorates.submissions.destroy');
+    Route::get('/user/directorates/submissions/{applicationHash}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->middleware('signed')->name('user.directorates.submissions.document');
 
     Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
     Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
@@ -277,8 +318,8 @@ Route::middleware([Authenticate::class, 'access:category=state_user|directorate_
 Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
     Route::get('/superadmin/dashboard', [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
     Route::get('/superadmin/returns', [\App\Http\Controllers\Admin\SuperAdminController::class, 'returns'])->name('superadmin.returns');
-    Route::get('/superadmin/returns/{application}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'show'])->name('superadmin.returns.show');
-    Route::get('/superadmin/returns/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('superadmin.returns.document');
+    Route::get('/superadmin/returns/{applicationHash}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'show'])->name('superadmin.returns.show');
+    Route::get('/superadmin/returns/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('superadmin.returns.document');
 });
 
 // Supervisor dashboards (state and zonal share the same view)
@@ -306,8 +347,8 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin|admin,location
     Route::get('/admin/dashboard', [HqAdminController::class, 'index'])->name('admin.dashboard');
 
     Route::get('/admin/hq/returns', [HqAdminController::class, 'returns'])->name('admin.hq.returns');
-    Route::get('/admin/hq/returns/{application}', [HqAdminController::class, 'show'])->name('admin.hq.returns.show');
-    Route::get('/admin/hq/returns/{application}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->name('admin.hq.returns.document');
+    Route::get('/admin/hq/returns/{applicationHash}', [HqAdminController::class, 'show'])->name('admin.hq.returns.show');
+    Route::get('/admin/hq/returns/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('admin.hq.returns.document');
     Route::get('/admin/hq/archive', [HqAdminController::class, 'archive'])->name('admin.hq.archive');
     Route::get('/admin/hq/analytics', [HqAdminController::class, 'analytics'])->name('admin.hq.analytics');
     Route::get('/admin/hq/reports', [HqAdminController::class, 'reports'])->name('admin.hq.reports');
@@ -319,8 +360,8 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin|admin,location
 // HQ admin only — final review actions and platform administration
 Route::middleware([Authenticate::class, 'access:category=hq_admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
     Route::get('/admin/submissions', [SubmissionReviewController::class, 'index'])->name('admin.submissions');
-    Route::patch('/admin/submissions/{application}/approve', [SubmissionReviewController::class, 'approve'])->middleware('throttle:database')->name('admin.submissions.approve');
-    Route::patch('/admin/submissions/{application}/reject', [SubmissionReviewController::class, 'reject'])->middleware('throttle:database')->name('admin.submissions.reject');
+    Route::patch('/admin/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', 'throttle:database'])->name('admin.submissions.approve');
+    Route::patch('/admin/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', 'throttle:database'])->name('admin.submissions.reject');
 
     Route::get('/admin/settings', [AdminSettingController::class, 'index'])->name('admin.settings.index');
     Route::put('/admin/settings', [AdminSettingController::class, 'update'])->name('admin.settings.update');
@@ -330,9 +371,9 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin,location=headq
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users');
     Route::get('/admin/users/create', [UserManagementController::class, 'create'])->name('admin.users.create');
     Route::post('/admin/users', [UserManagementController::class, 'store'])->middleware('throttle:database')->name('admin.users.store');
-    Route::get('/admin/users/{user}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
-    Route::patch('/admin/users/{user}', [UserManagementController::class, 'update'])->middleware('throttle:database')->name('admin.users.update');
-    Route::patch('/admin/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->middleware('throttle:database')->name('admin.users.toggle_status');
+    Route::get('/admin/users/{userHash}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
+    Route::patch('/admin/users/{userHash}', [UserManagementController::class, 'update'])->middleware(['signed', 'throttle:database'])->name('admin.users.update');
+    Route::patch('/admin/users/{userHash}/toggle-status', [UserManagementController::class, 'toggleStatus'])->middleware(['signed', 'throttle:database'])->name('admin.users.toggle_status');
 });
 
 

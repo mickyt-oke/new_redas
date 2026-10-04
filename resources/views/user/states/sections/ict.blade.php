@@ -563,9 +563,8 @@ $incidentCategories = [
                         <thead>
                             <tr>
                                 <th style="width:50px;">S/N</th>
-                                <th>State Command</th>
-                                <th>Location</th>
-                                <th>Location</th>
+                                <th>Location 1</th>
+                                <th>Description</th>
                                 <th>Status/Remark</th>
                             </tr>
                         </thead>
@@ -573,9 +572,8 @@ $incidentCategories = [
                             @for($i = 0; $i < 3; $i++)
                             <tr>
                                 <td class="ict-sn">{{ $i + 1 }}</td>
-                                <td><input type="text" name="ict[midas][{{ $i }}][state_command]" class="ni" value="{{ old('ict.midas.'.$i.'.state_command') }}"></td>
                                 <td><input type="text" name="ict[midas][{{ $i }}][location_1]" class="ni" value="{{ old('ict.midas.'.$i.'.location_1') }}"></td>
-                                <td><input type="text" name="ict[midas][{{ $i }}][location_2]" class="ni" value="{{ old('ict.midas.'.$i.'.location_2') }}"></td>
+                                <td><input type="text" name="ict[midas][{{ $i }}][description]" class="ni" value="{{ old('ict.midas.'.$i.'.description') }}"></td>
                                 <td><input type="text" name="ict[midas][{{ $i }}][status]" class="ni" value="{{ old('ict.midas.'.$i.'.status') }}"></td>
                             </tr>
                             @endfor

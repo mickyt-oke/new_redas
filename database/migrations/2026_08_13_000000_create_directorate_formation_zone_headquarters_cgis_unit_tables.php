@@ -12,7 +12,56 @@ return new class extends Migration
      * Stored values in the database for flexibility and ease of referencing.
      */
 
+    public function up(): void
+    {
+        Schema::create('directorates', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
 
-    
+        Schema::create('formations', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('zones', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('headquarters', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('cgis_units', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('cgis_units');
+        Schema::dropIfExists('headquarters');
+        Schema::dropIfExists('zones');
+        Schema::dropIfExists('formations');
+        Schema::dropIfExists('directorates');
+    }
+
+
 };
 

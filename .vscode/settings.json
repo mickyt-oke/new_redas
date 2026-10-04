@@ -1,0 +1,5 @@
+{
+    "kimi.yoloMode": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "notebook.defaultFormatter": "shufo.vscode-blade-formatter"
+}

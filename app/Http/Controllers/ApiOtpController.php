@@ -220,10 +220,14 @@ class ApiOtpController extends Controller
                 'message' => 'OTP verified successfully.',
                 'user_id' => $user->id,
                 'access_token' => $accessJwt,
-                'refresh_token' => $refreshJwt,
                 'token_type' => 'bearer',
                 'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-            ], 200);
+            ], 200)->cookie(
+                'refresh_token',
+                $refreshJwt,
+                604800, // 7 days in minutes
+                null, null, true, true, false, 'Strict'
+            );
         }
 
         // verify_email (and other purposes) currently just consume OTP

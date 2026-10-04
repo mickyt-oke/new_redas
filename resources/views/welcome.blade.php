@@ -52,9 +52,14 @@
             <a href="#workflow" class="nav-link-item">Workflow</a>
             <a href="#roles"    class="nav-link-item">Access Levels</a>
             <a href="{{ route('directory') }}" class="nav-link-item">Directory</a>
-            <a href="{{ route('login') }}" class="nav-cta">
-                <i class="fas fa-sign-in-alt"></i> Access Portal
-            </a>
+            <!-- check login state -->
+            <!-- If the user is not logged in, show the login link -->
+            @guest
+                <a href="{{ route('login') }}" class="nav-cta">
+                    <i class="fas fa-sign-in-alt"></i> Access Portal
+                </a>
+            @endguest
+
         </div>
 
         <!-- Mobile hamburger -->
@@ -86,14 +91,14 @@
                 NIS-REDAS centralises operational data from all formations — HQ, Zonal Commands, State Commands, Area Commands, and Foreign Missions — into a single, secure, real-time digital platform.
             </p>
 
-            <div class="hero-actions">
+            {{-- <div class="hero-actions">
                 <a href="{{ route('login') }}" class="btn-nis btn-primary-nis btn-lg">
                     <i class="fas fa-rocket"></i> Access Portal
                 </a>
                 <a href="#features" class="btn-nis btn-lg" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2);">
                     <i class="fas fa-info-circle"></i> Learn More
                 </a>
-            </div>
+            </div> --}}
 
             <div class="hero-stats">
                 <div class="hero-stat">

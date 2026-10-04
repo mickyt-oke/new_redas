@@ -46,7 +46,7 @@ $sections = \App\Services\PreviewRenderer::buildSections($data, [
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <span class="status-badge {{ $badge }}">{{ ucfirst($application->status) }}</span>
-            <a href="{{ route('user.submissions.pdf', $application) }}" class="btn-nis btn-outline-nis" target="_blank">
+            <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}" class="btn-nis btn-outline-nis" target="_blank">
                 <i class="fas fa-file-pdf"></i> PDF
             </a>
             <a href="{{ route($backRoute) }}" class="btn-nis btn-ghost">

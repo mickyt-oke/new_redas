@@ -158,10 +158,10 @@
                                 </td>
                                 <td>
                                     <div style="display:flex;gap:4px;">
-                                        <a href="{{ route('user.submissions.pdf', $return) }}" class="btn-nis btn-ghost btn-sm" title="View PDF" target="_blank">
+                                        <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($return->id)]) }}" class="btn-nis btn-ghost btn-sm" title="View PDF" target="_blank">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('user.submissions.pdf', $return) }}" class="btn-nis btn-ghost btn-sm" title="Download PDF">
+                                        <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($return->id)]) }}" class="btn-nis btn-ghost btn-sm" title="Download PDF">
                                             <i class="fas fa-download"></i>
                                         </a>
                                     </div>

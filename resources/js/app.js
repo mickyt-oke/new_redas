@@ -210,7 +210,7 @@ function initAuthPage() {
             registerBtn.disabled = true;
             registerBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i>Creating account…';
         });
-    }   
+    }
 
     /* Show/hide password validation rules on focus */
     const pwInput = document.getElementById('password');
@@ -218,7 +218,7 @@ function initAuthPage() {
     if (pwInput && pwRules) {
         pwInput.addEventListener('focus', () => pwRules.classList.add('visible'));
         pwInput.addEventListener('blur', () => pwRules.classList.remove('visible'));
-    }   
+    }
 
     /* Show/hide confirm password match status */
     const confirmInput = document.getElementById('password_confirmation');
@@ -238,8 +238,8 @@ function initAuthPage() {
                 matchStatus.className = 'text-danger';
             }
         });
-    }   
-    
+    }
+
 
     /* Shake animation on error */
     if (document.querySelector('.alert-danger')) {
@@ -263,7 +263,7 @@ function initAuthPage() {
             strengthBar.style.width = `${(strength / 5) * 100}%`;
             strengthBar.style.backgroundColor = colors[strength - 1] || '#e5e7eb';
         });
-    }       
+    }
 
     /* Show/hide password rules on focus */
     const pwInputReg = document.getElementById('password');
@@ -271,7 +271,7 @@ function initAuthPage() {
     if (pwInputReg && pwRulesReg) {
         pwInputReg.addEventListener('focus', () => pwRulesReg.classList.add('visible'));
         pwInputReg.addEventListener('blur', () => pwRulesReg.classList.remove('visible'));
-    }       
+    }
 
     /* Show/hide confirm password match status */
     const confirmInputReg = document.getElementById('password_confirmation');
@@ -291,9 +291,9 @@ function initAuthPage() {
                 matchStatusReg.className = 'text-danger';
             }
         });
-    }       
+    }
 
-    
+
 }
 
 /* ════════════════════════════════════════
@@ -637,6 +637,49 @@ function showToast(message, type = 'info') {
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; setTimeout(() => toast.remove(), 300); }, 4000);
 }
+
+/* ============================
+   SCREEN LOCK JS
+============================ */
+
+// Configuration
+const LOCK_TIMEOUT = 5 * 60 * 1000; // Lock screen after 5 mins
+const WARN_TIMEOUT = 10 * 60 * 1000; // Warn session expiry after 10 mins
+const EXPIRE_TIMEOUT = 15 * 60 * 1000; // Full logout after 15 mins
+
+let lastActivity = Date.now();
+let warningTimer = null;
+
+// Reset activity on mouse/keyboard events
+const resetActivity = () => {
+    lastActivity = Date.now();
+    if (warningTimer) clearTimeout(warningTimer);
+};
+
+window.addEventListener('mousemove', resetActivity);
+window.addEventListener('keydown', resetActivity);
+
+setInterval(() => {
+    const idleTime = Date.now() - lastActivity;
+
+    // 1. Trigger Lockscreen
+    if (idleTime >= LOCK_TIMEOUT) {
+        fetch('/lockscreen/lock', { method: 'POST', headers: { 'X-CSRF-TOKEN': '...' } })
+            .then(() => window.location.reload());
+    }
+
+    // 2. Trigger Expiry Warning
+    if (idleTime >= WARN_TIMEOUT && !warningTimer) {
+        showExpiryWarning();
+    }
+}, 1000);
+
+function showExpiryWarning() {
+    // Logic to show a modal with a countdown timer (EXPIRE_TIMEOUT - idleTime)
+    // When timer hits 0: window.location.href = '/logout';
+}
+
+
 
 /* Export for inline scripts */
 window.REDAS = { showToast, animateCounter };

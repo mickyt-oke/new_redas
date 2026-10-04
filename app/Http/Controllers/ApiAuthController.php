@@ -112,12 +112,13 @@ class ApiAuthController extends Controller
 
     public function refresh(Request $request): Response
     {
-        $refreshTokenJwt = (string) $request->input('refresh_token');
+        // Read from secure cookie instead of request body for silent refresh
+        $refreshTokenJwt = $request->cookie('refresh_token');
 
         if (! $refreshTokenJwt) {
             return response()->json([
-                'message' => 'refresh_token is required',
-            ], 422);
+                'message' => 'SESSION_EXPIRED',
+            ], 401);
         }
 
         try {
@@ -149,9 +150,28 @@ class ApiAuthController extends Controller
             ->where('user_id', $userId)
             ->first();
 
-        if (! $rt || $rt->revoked_at || $rt->expires_at->isPast()) {
+        if (! $rt) {
             return response()->json([
-                'message' => 'TOKEN_REVOKED',
+                'message' => 'TOKEN_INVALID',
+            ], 401);
+        }
+
+        // SECURED ROTATION: Reuse Detection
+        // If the token is already revoked, it's a sign of a stolen token being reused.
+        // Revoke all refresh tokens for this user immediately.
+        if ($rt->revoked_at) {
+            RefreshToken::query()
+                ->where('user_id', $userId)
+                ->update(['revoked_at' => now()]);
+
+            return response()->json([
+                'message' => 'SECURITY_BREACH_DETECTED',
+            ], 401);
+        }
+
+        if ($rt->expires_at->isPast()) {
+            return response()->json([
+                'message' => 'TOKEN_EXPIRED',
             ], 401);
         }
 
@@ -171,7 +191,7 @@ class ApiAuthController extends Controller
             'user_id' => $userId,
             'jti' => $newJti,
             'token_hash' => hash('sha256', $newRefreshJwt),
-            'expires_at' => now()->addSeconds(env('JWT_REFRESH_TTL', 2592000)),
+            'expires_at' => now()->addSeconds((int) env('JWT_REFRESH_TTL', 604800)),
             'revoked_at' => null,
             'created_ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
@@ -188,12 +208,17 @@ class ApiAuthController extends Controller
             jti: (string) Str::uuid()
         );
 
+        // Set the new refresh token in a Secure, HttpOnly cookie
         return response()->json([
             'access_token' => $accessJwt,
-            'refresh_token' => $newRefreshJwt,
             'token_type' => 'bearer',
             'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-        ]);
+        ])->cookie(
+            'refresh_token', 
+            $newRefreshJwt, 
+            604800, // 7 days in minutes (Laravel cookie expects minutes)
+            null, null, true, true, false, 'Strict'
+        );
     }
 
     public function logout(Request $request): Response

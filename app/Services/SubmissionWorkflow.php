@@ -9,12 +9,14 @@ use App\Models\Application;
 use App\Models\ApplicationComment;
 use App\Models\User;
 use App\Models\UserNotification;
+use Illuminate\Support\Facades\URL;
 
 class SubmissionWorkflow
 {
     public const CATEGORY_STATE = 'state';
     public const CATEGORY_DIRECTORATE = 'directorate';
     public const CATEGORY_CGIS = 'cgis';
+    public const CATEGORY_ZONAL = 'zonal';
 
     public const STAGE_SUBMITTED = 'submitted';
     public const STAGE_DESK_REVIEW = 'desk_review';
@@ -28,10 +30,10 @@ class SubmissionWorkflow
     /**
      * Create a new submission and place it in the correct initial review queue.
      */
-    public static function create(User $user, array $returnData): Application
+    public static function create(User $user, array $returnData, ?string $scopeCode = null): Application
     {
         $category = self::categoryForUser($user);
-        $scopeCode = self::scopeCodeForUser($user);
+        $scopeCode = $scopeCode ?? self::scopeCodeForUser($user);
 
         $application = Application::create([
             'user_id' => $user->id,
@@ -64,6 +66,7 @@ class SubmissionWorkflow
         return match (self::categoryForUser($user)) {
             self::CATEGORY_DIRECTORATE => self::STAGE_DIRECTORATE_REVIEW,
             self::CATEGORY_CGIS => self::STAGE_CGIS_DESK_REVIEW,
+            self::CATEGORY_ZONAL => self::STAGE_ZONAL_REVIEW,
             default => self::STAGE_DESK_REVIEW,
         };
     }
@@ -76,6 +79,7 @@ class SubmissionWorkflow
         return match ($user->user_category) {
             'directorate_user' => self::CATEGORY_DIRECTORATE,
             'cgis_unit_user' => self::CATEGORY_CGIS,
+            'zonal_user' => self::CATEGORY_ZONAL,
             default => self::CATEGORY_STATE,
         };
     }
@@ -93,6 +97,10 @@ class SubmissionWorkflow
 
         if ($user->user_category === 'cgis_unit_user') {
             return $user->cgisUnitSlug();
+        }
+
+        if ($user->user_category === 'zonal_user') {
+            return $user->primary_location_code ?: $user->assigned_zonal_command_code ?: null;
         }
 
         return $user->primary_location_code ?: $user->assigned_state_code ?: null;
@@ -294,7 +302,7 @@ class SubmissionWorkflow
                         ->orWhere('assigned_state_code', $application->scope_code));
                 break;
             case self::STAGE_ZONAL_REVIEW:
-                $zone = $application->zonal_code ?: null;
+                $zone = $application->zonal_code ?: $application->scope_code ?: null;
                 if ($zone === null) {
                     return;
                 }
@@ -362,8 +370,10 @@ class SubmissionWorkflow
     private static function reviewUrlForApprover(User $approver, Application $application): ?string
     {
         try {
+            $hash = HashidService::encode($application->id);
+
             return match ($approver->user_category) {
-                'desk_admin', 'directorate_admin', 'cgis_desk_admin' => route('desk.admin.submissions.show', $application),
+                'desk_admin', 'directorate_admin', 'cgis_desk_admin' => route('desk.admin.submissions.show', ['applicationHash' => $hash]),
                 'hq_admin' => route('admin.submissions'),
                 'zonal_commander' => route('user.zonal.home'),
                 default => null,
@@ -379,10 +389,13 @@ class SubmissionWorkflow
     private static function submitterUrl(User $owner, Application $application): ?string
     {
         try {
+            $hash = HashidService::encode($application->id);
+
             return match ($owner->user_category) {
-                'directorate_user' => route('user.directorates.submissions.show', $application),
-                'cgis_unit_user' => route('user.cgis-units.submissions.show', $application),
-                default => route('user.returns.show', $application),
+                'directorate_user' => route('user.directorates.submissions.show', ['applicationHash' => $hash]),
+                'cgis_unit_user' => route('user.cgis-units.submissions.show', ['applicationHash' => $hash]),
+                'zonal_user' => route('user.zones.returns.show', ['applicationHash' => $hash]),
+                default => route('user.returns.show', ['applicationHash' => $hash]),
             };
         } catch (\Throwable) {
             return null;

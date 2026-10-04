@@ -5,6 +5,8 @@
      report metadata, shared attachments[] input and scoped tab switching. --}}
 
 @php
+use Illuminate\Support\Arr;
+
 $cadres = [
     'Deputy Comptroller - General',
     'Assistant Comptroller - General',
@@ -20,65 +22,7 @@ $cadres = [
     'Assistant Inspector of Immigration',
     'Immigration Assistant I',
     'Immigration Assistant II',
-    'Immigration Assistant III'
-];
-
-$armsTypes = [
-    'GPMG', 'AR70 RIFLE', 'AK 47', 'AK 103', 'GALIL RIFLE', 'TAVOR',
-    'SCOPION EVO3', 'LAR RIFLE', 'G3 RIFLE', 'SMG RIFLE', 'PISTOL BARETTA',
-    'DICON PISTOL', 'PISTOL CF98', 'PISTOL CZ-09', 'PISTOL HS-09', 'STONE PISTOL',
-    'CEREMONIAL SWORD', 'HAND CUFF', 'TEAR GAS', 'LASER MAKING MACHINE',
-    'SERVICING OIL', 'TRUNCHEON KXL'
-];
-
-$ammoTypes = [
-    "9×19 mm Parabellum",
-    ".45 ACP",
-    "7.62×25 mm Tokarev",
-    "9×18 mm Makarov",
-    ".38 Special",
-    ".357 Magnum",
-    "7.62×51 mm NATO",
-    "5.56×45 mm NATO",
-    "7.62×39 mm",
-    "5.45×39 mm",
-    "5.7×28 mm",
-    "7.62×54 mmR",
-    ".308 Winchester",
-    ".300 Winchester Magnum",
-    ".338 Lapua Magnum",
-    ".50 BMG (12.7×99 mm)",
-    "12.7×108 mm",
-    "12-gauge live cartridges",
-    "40×46 mm grenade ammunition",
-    "40×53 mm grenade ammunition",
-    "Rocket-propelled munitions",
-    "Recoilless-rifle ammunition",
-    "Anti-tank guided missiles",
-    "Mortar bombs",
-    "Artillery projectiles",
-    "Approved less-lethal cartridges",
-    "9×19 mm blank",
-    "7.62×51 mm NATO blank",
-    "5.56×45 mm NATO blank",
-    "7.62×39 mm blank",
-    "7.62×54 mmR blank",
-    "12-gauge blank cartridges"
-];
-
-$tailorItems = [
-    'Officer Uniform Set', 'Recruit Uniform Set', 'Thread rolls',
-    'Buttons packs', 'Zippers packs', 'Tailoring Scissors'
-];
-
-/* The show route passes $commands; the edit route does not, so keep a local
-   fallback to guarantee the command dropdowns are always populated. */
-$commandList = $commands ?? [
-    'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
-    'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT', 'Gombe',
-    'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara',
-    'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau',
-    'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'
+    'Immigration Assistant III',
 ];
 
 $armsJson = json_decode(file_get_contents(resource_path('js/arms.json')) ?: '{}', true);
@@ -92,6 +36,70 @@ $ammoList = $ammoJson['ammunition'] ?? [];
 
 $storeItemsJson = json_decode(file_get_contents(resource_path('js/store_items.json')) ?: '{}', true);
 $storeItemList = $storeItemsJson['items'] ?? [];
+
+/* Pre-build option HTML once in PHP so PHP-rendered rows and JS row templates
+   stay consistent without duplicating markup logic. */
+$armsOptionsHtml = '<option value="">-- Select Type of Arms --</option>';
+foreach ($armsByCategory as $category => $names) {
+    $armsOptionsHtml .= '<optgroup label="' . e($category) . '">';
+    foreach ($names as $name) {
+        $armsOptionsHtml .= '<option value="' . e($name) . '">' . e($name) . '</option>';
+    }
+    $armsOptionsHtml .= '</optgroup>';
+}
+
+$ammoOptionsHtml = '<option value="">-- Select Ammunition Type --</option>'
+    . collect($ammoList)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('')
+    . '<option value="Others">Others</option>';
+
+$storeOptionsHtml = '<option value="">-- Select Stationery Item --</option>'
+    . collect($storeItemList)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('')
+    . '<option value="Others">Others</option>';
+
+$vehicleOptions = ['Toyota Hilux', 'Toyota Coaster', 'Ford Ranger', 'Mercedes Benz Sprinter'];
+$vehicleOptionsHtml = '<option value="">Select Make &amp; Model</option>'
+    . collect($vehicleOptions)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('');
+
+/* Editing/validation repopulation helpers. */
+$worksOld = old('works', $editing->return_data['works'] ?? []);
+$armsReturns = old('arms_returns', $editing->return_data['arms_returns'] ?? []);
+$missingArms = old('missing_arms_returns', $editing->return_data['missing_arms_returns'] ?? []);
+$ammunitionReturns = old('ammunition_returns', $editing->return_data['ammunition_returns'] ?? []);
+$storeAccessories = old('store_accessories', $editing->return_data['store_accessories'] ?? []);
+$storeStationery = old('store_stationery', $editing->return_data['store_stationery'] ?? []);
+$storeUniforms = old('store_uniforms', $editing->return_data['store_uniforms'] ?? []);
+$storeOilGas = old('store_oil_gas', $editing->return_data['store_oil_gas'] ?? []);
+$tailoring = old('store_tailoring', $editing->return_data['store_tailoring'] ?? []);
+$transportFleet = old('transport_fleet', $editing->return_data['transport_fleet'] ?? []);
+$transportProcurement = old('transport_procurement', $editing->return_data['transport_procurement'] ?? []);
+$infraProjects = old('works_infra_projects', $editing->return_data['works_infra_projects'] ?? []);
+$interventionProjects = old('works_intervention_projects', $editing->return_data['works_intervention_projects'] ?? []);
+$notableActivities = old('works_notable_activities', $editing->return_data['works_notable_activities'] ?? []);
+$maintenanceLog = old('maintenance_log', $editing->return_data['maintenance_log'] ?? []);
+$energyUtilities = old('energy_utilities', $editing->return_data['energy_utilities'] ?? []);
+
+$tailorItems = [
+    'Officer Uniform Set', 'Recruit Uniform Set', 'Thread rolls',
+    'Buttons packs', 'Zippers packs', 'Tailoring Scissors',
+];
+
+$energyUnits = [
+    ['renewable', '6. a. RENEWABLE ENERGY UNIT', 'TOTAL RENEWABLE ENERGY LOGS', 'Add Renewable Log', 'fas fa-solar-panel'],
+    ['electrical', '6. b. ELECTRICAL UNIT', 'TOTAL ELECTRICAL UNIT LOGS', 'Add Electrical Log', 'fas fa-bolt'],
+    ['generator', '6. c. GENERATOR UNIT', 'TOTAL GENERATOR UNIT LOGS', 'Add Generator Log', 'fas fa-charging-station'],
+    ['welding', '6. d. WELDING UNIT', 'TOTAL WELDING UNIT LOGS', 'Add Welding Log', 'fas fa-fire'],
+    ['fuel', '6. e. RECORD OF FUEL DISTRIBUTION', 'TOTAL FUEL DISTRIBUTION LOGS', 'Add Fuel Log', 'fas fa-gas-pump'],
+    ['ac', '6. f. REFRIGERATION AND AIR CONDITIONING', 'TOTAL HVAC UNIT LOGS', 'Add HVAC Log', 'fas fa-wind'],
+];
+
+$energyUnitMap = [
+    'renewable' => 'Renewable Energy Unit',
+    'electrical' => 'Electrical Unit',
+    'generator' => 'Generator Unit',
+    'welding' => 'Welding Unit',
+    'fuel' => 'Record of Fuel Distribution',
+    'ac' => 'Refrigeration and Air Conditioning',
+];
 @endphp
 
 {{-- The shared layout provides the <form>; do not nest another one here. --}}
@@ -121,7 +129,7 @@ $storeItemList = $storeItemsJson['items'] ?? [];
 
 <div class="tab-content">
 
-    <!-- TAB 1: Reporting Officer & Staff Strength by Cadre -->
+    <!-- TAB 1: Staff Strength by Cadre -->
     <div class="tab-panel active" id="tab-works-logistics-cadre">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
@@ -138,7 +146,7 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                 </p>
             @else
                 <div class="table-responsive">
-                    <table class="nis-table">
+                    <table class="nis-table" id="staff-strength-table">
                         <thead>
                             <tr><th>CADRES</th><th style="width:130px;">MALE</th><th style="width:130px;">FEMALE</th><th style="width:130px;">TOTAL</th></tr>
                         </thead>
@@ -150,9 +158,9 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                     {{ $c }}
                                     <input type="hidden" name="works[staff_strength][{{ $c_slug }}][cadre]" value="{{ $c }}">
                                 </td>
-                                <td><input type="number" name="works[staff_strength][{{ $c_slug }}][male]" class="ni staff-male calc-staff-total" value="0" min="0"></td>
-                                <td><input type="number" name="works[staff_strength][{{ $c_slug }}][female]" class="ni staff-female calc-staff-total" value="0" min="0"></td>
-                                <td><input type="number" name="works[staff_strength][{{ $c_slug }}][total]" class="ni staff-total" value="0" readonly style="background:#f9fafb;"></td>
+                                <td><input type="number" name="works[staff_strength][{{ $c_slug }}][male]" class="ni staff-male calc-staff-total" value="{{ Arr::get($worksOld, 'staff_strength.' . $c_slug . '.male', 0) }}" min="0" step="1"></td>
+                                <td><input type="number" name="works[staff_strength][{{ $c_slug }}][female]" class="ni staff-female calc-staff-total" value="{{ Arr::get($worksOld, 'staff_strength.' . $c_slug . '.female', 0) }}" min="0" step="1"></td>
+                                <td><input type="number" name="works[staff_strength][{{ $c_slug }}][total]" class="ni staff-total" value="{{ Arr::get($worksOld, 'staff_strength.' . $c_slug . '.total', 0) }}" readonly style="background:#f9fafb;"></td>
                             </tr>
                             @endforeach
                             <tr class="total-row">
@@ -164,6 +172,9 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tbody>
                     </table>
                 </div>
+                <input type="hidden" name="works[staff_strength][totals][male]" id="staff-grand-male-input" value="0">
+                <input type="hidden" name="works[staff_strength][totals][female]" id="staff-grand-female-input" value="0">
+                <input type="hidden" name="works[staff_strength][totals][total]" id="staff-grand-total-input" value="0">
             @endif
             </div>
         </div>
@@ -226,7 +237,30 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="arms-body"></tbody>
+                        <tbody id="arms-body">
+                            @forelse($armsReturns as $idx => $row)
+                            @php $selectedType = $row['type'] ?? ''; @endphp
+                            <tr class="arms-command-row">
+                                <td>
+                                    <select name="arms_returns[{{ $idx }}][type]" class="ni ni-select">
+                                        <option value="">-- Select Type of Arms --</option>
+                                        @foreach($armsByCategory as $category => $names)
+                                        <optgroup label="{{ $category }}">
+                                            @foreach($names as $name)
+                                            <option value="{{ $name }}" @selected($selectedType === $name)>{{ $name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="number" name="arms_returns[{{ $idx }}][serviceable]" class="ni calc-arms" value="{{ $row['serviceable'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="arms_returns[{{ $idx }}][unserviceable]" class="ni calc-arms" value="{{ $row['unserviceable'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="arms_returns[{{ $idx }}][total]" class="ni arms-tot-disp" value="{{ $row['total'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td><strong>TOTAL</strong></td>
@@ -238,15 +272,75 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][arms][serviceable]" id="arms-grand-serviceable-input" value="0">
+                <input type="hidden" name="works[totals][arms][unserviceable]" id="arms-grand-unserviceable-input" value="0">
+                <input type="hidden" name="works[totals][arms][total]" id="arms-grand-total-input" value="0">
             </div>
         </div>
 
-        <!-- b. AMMUNITION -->
+        <!-- b. MISSING ARMS/ARMOURY RETURNS  -->
+        <div class="redas-card" style="margin-bottom:14px;">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="card-head-title">
+                    <div class="card-head-icon" style="background:#fef2f2;color:#991b1b;"><i class="fas fa-exclamation-triangle"></i></div>
+                    b. MISSING ARMS/ARMOURY RETURNS
+                </div>
+                <button type="button" class="btn-nis btn-ghost btn-sm wl-add-row" data-row-target="missing-arms-body" data-row-prefix="missing_arms_returns">
+                    <i class="fas fa-plus"></i> Add Missing Arms Row
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="nis-table" id="missing-arms-table">
+                        <thead>
+                            <tr>
+                                <th>Types of Arms</th>
+                                <th>Reason for Missing</th>
+                                <th style="width:350px;">Serial No.</th>
+                                <th style="width:50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="missing-arms-body">
+                            @forelse($missingArms as $idx => $row)
+                            @php $selectedType = $row['type'] ?? ''; @endphp
+                            <tr class="missing-arms-row">
+                                <td>
+                                    <select name="missing_arms_returns[{{ $idx }}][type]" class="ni ni-select">
+                                        <option value="">-- Select Type of Arms --</option>
+                                        @foreach($armsByCategory as $category => $names)
+                                        <optgroup label="{{ $category }}">
+                                            @foreach($names as $name)
+                                            <option value="{{ $name }}" @selected($selectedType === $name)>{{ $name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="text" name="missing_arms_returns[{{ $idx }}][reason]" class="ni" placeholder="e.g. Lost in transit" value="{{ $row['reason'] ?? '' }}"></td>
+                                <td><input type="text" name="missing_arms_returns[{{ $idx }}][serial]" class="ni" placeholder="e.g. NIS-AR-001234" value="{{ $row['serial'] ?? '' }}"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td colspan="3"><strong>TOTAL MISSING ARMS:</strong> <span id="missing-arms-grand-total">0</span></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <input type="hidden" name="works[totals][missing_arms]" id="missing-arms-grand-total-input" value="0">
+            </div>
+        </div>
+
+        <!-- c. AMMUNITION -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-bullseye"></i></div>
-                    b. AMMUNITION
+                    c. AMMUNITION
                 </div>
                 <button type="button" class="btn-nis btn-ghost btn-sm wl-add-row" data-row-target="ammunition-body" data-row-prefix="ammunition_returns">
                     <i class="fas fa-plus"></i> Add Ammunition Row
@@ -266,7 +360,29 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="ammunition-body"></tbody>
+                        <tbody id="ammunition-body">
+                            @forelse($ammunitionReturns as $idx => $row)
+                            @php $selectedType = $row['type'] ?? ''; @endphp
+                            <tr class="ammo-item-row">
+                                <td>
+                                    <select name="ammunition_returns[{{ $idx }}][type]" class="ni ni-select">
+                                        <option value="">-- Select Ammunition Type --</option>
+                                        @foreach($ammoList as $ammoType)
+                                        <option value="{{ $ammoType }}" @selected($selectedType === $ammoType)>{{ $ammoType }}</option>
+                                        @endforeach
+                                        <option value="Others" @selected($selectedType === 'Others')>Others</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" name="ammunition_returns[{{ $idx }}][rounds]" class="ni calc-ammo" value="{{ $row['rounds'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="ammunition_returns[{{ $idx }}][serviceable]" class="ni calc-ammo" value="{{ $row['serviceable'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="ammunition_returns[{{ $idx }}][unserviceable]" class="ni calc-ammo" value="{{ $row['unserviceable'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="ammunition_returns[{{ $idx }}][used]" class="ni calc-ammo" value="{{ $row['used'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="ammunition_returns[{{ $idx }}][total]" class="ni ammo-tot-disp" value="{{ $row['total'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td><strong>TOTAL</strong></td>
@@ -280,99 +396,14 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][ammunition][rounds]" id="ammo-grand-rounds-input" value="0">
+                <input type="hidden" name="works[totals][ammunition][serviceable]" id="ammo-grand-serviceable-input" value="0">
+                <input type="hidden" name="works[totals][ammunition][unserviceable]" id="ammo-grand-unserviceable-input" value="0">
+                <input type="hidden" name="works[totals][ammunition][used]" id="ammo-grand-used-input" value="0">
+                <input type="hidden" name="works[totals][ammunition][total]" id="ammo-grand-total-input" value="0">
             </div>
         </div>
 
-        {{-- <!-- c. ARMS SUMMARY -->
-        <div class="redas-card" style="margin-bottom:14px;">
-            <div class="card-head">
-                <div class="card-head-title">
-                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-list"></i></div>
-                    c. ARMS SUMMARY
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="nis-table">
-                        <thead>
-                            <tr><th style="width:50px;">S/N</th><th>Types</th><th style="width:130px;">Serviceable</th><th style="width:130px;">Unserviceable</th><th style="width:110px;">Total</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach($armsTypes as $index => $type)
-                            <tr class="summary-arms-row">
-                                <td>{{ $index + 1 }}</td>
-                                <td style="font-weight:600;">
-                                    {{ $type }}
-                                    <input type="hidden" name="arms_summary[{{ $index }}][type]" value="{{ $type }}">
-                                </td>
-                                <td><input type="number" name="arms_summary[{{ $index }}][serviceable]" class="ni sum-arms-s calc-sum-arms" value="0" min="0"></td>
-                                <td><input type="number" name="arms_summary[{{ $index }}][unserviceable]" class="ni sum-arms-u calc-sum-arms" value="0" min="0"></td>
-                                <td><input type="number" name="arms_summary[{{ $index }}][total]" class="ni sum-arms-total" value="0" readonly style="background:#f9fafb;"></td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr class="total-row">
-                                <td colspan="2"><strong>TOTAL</strong></td>
-                                <td><strong><span id="arms-sum-grand-serviceable">0</span></strong></td>
-                                <td><strong><span id="arms-sum-grand-unserviceable">0</span></strong></td>
-                                <td><strong><span id="arms-sum-grand-total">0</span></strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div> --}}
-
-        <!-- d. AMMUNITION SUMMARY -->
-        {{-- <div class="redas-card" style="margin-bottom:14px;">
-            <div class="card-head">
-                <div class="card-head-title">
-                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-list"></i></div>
-                    d. AMMUNITION SUMMARY
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="nis-table">
-                        <thead>
-                            <tr>
-                                <th style="width:50px;">S/N</th>
-                                <th>Types of Ammunition</th>
-                                <th style="width:120px;">No. of Rounds</th>
-                                <th style="width:110px;">Total</th>
-                                <th style="width:150px;">No. of Rounds of Ammunition</th>
-                                <th style="width:110px;">Bal C/F</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($ammoTypes as $index => $type)
-                            <tr class="summary-ammo-row">
-                                <td>{{ $index + 1 }}</td>
-                                <td style="font-weight:600;">
-                                    {{ $type }}
-                                    <input type="hidden" name="ammunition_summary[{{ $index }}][type]" value="{{ $type }}">
-                                </td>
-                                <td><input type="number" name="ammunition_summary[{{ $index }}][rounds]" class="ni calc-sum-ammo-rounds" value="0" min="0"></td>
-                                <td><input type="number" name="ammunition_summary[{{ $index }}][total]" class="ni calc-sum-ammo-total" value="0" min="0"></td>
-                                <td><input type="number" name="ammunition_summary[{{ $index }}][rounds_ammo]" class="ni calc-sum-ammo-rounds-ammo" value="0" min="0"></td>
-                                <td><input type="number" name="ammunition_summary[{{ $index }}][bal_cf]" class="ni calc-sum-ammo-bal-cf" value="0" min="0"></td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr class="total-row">
-                                <td colspan="2"><strong>TOTAL</strong></td>
-                                <td><strong><span id="ammo-sum-grand-rounds">0</span></strong></td>
-                                <td><strong><span id="ammo-sum-grand-total">0</span></strong></td>
-                                <td><strong><span id="ammo-sum-grand-rounds-ammo">0</span></strong></td>
-                                <td><strong><span id="ammo-sum-grand-bal-cf">0</span></strong></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div> --}}
         <div class="hrm-actions">
             <button type="button" class="btn-nis btn-ghost hrm-prev-btn"><i class="fas fa-arrow-left"></i> Previous</button>
             <div class="hrm-actions-center">
@@ -407,10 +438,21 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="store-accessories-body"></tbody>
+                        <tbody id="store-accessories-body">
+                            @forelse($storeAccessories as $idx => $row)
+                            <tr class="store-acc-row">
+                                <td><input type="text" name="store_accessories[{{ $idx }}][item]" class="ni" placeholder="e.g. Keyboard, Fuel pump" value="{{ $row['item'] ?? '' }}"></td>
+                                <td><input type="number" name="store_accessories[{{ $idx }}][qty_supplied]" class="ni calc-store-acc" value="{{ $row['qty_supplied'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_accessories[{{ $idx }}][qty_issues]" class="ni calc-store-acc" value="{{ $row['qty_issues'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_accessories[{{ $idx }}][total_bal]" class="ni store-acc-tot" value="{{ $row['total_bal'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
-                                <td colspan="2"><strong>TOTAL</strong></td>
+                                <td><strong>TOTAL</strong></td>
                                 <td><strong><span id="store-acc-grand-supplied">0</span></strong></td>
                                 <td><strong><span id="store-acc-grand-issued">0</span></strong></td>
                                 <td><strong><span id="store-acc-grand-total">0</span></strong></td>
@@ -419,6 +461,9 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][store_accessories][supplied]" id="store-acc-grand-supplied-input" value="0">
+                <input type="hidden" name="works[totals][store_accessories][issued]" id="store-acc-grand-issued-input" value="0">
+                <input type="hidden" name="works[totals][store_accessories][total]" id="store-acc-grand-total-input" value="0">
             </div>
         </div>
 
@@ -438,7 +483,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                     <table class="nis-table" id="store-stationery-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Items</th>
                                 <th style="width:130px;">NO. of Qty Supplied</th>
                                 <th style="width:110px;">Qty Issues</th>
@@ -446,10 +490,30 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="store-stationery-body"></tbody>
+                        <tbody id="store-stationery-body">
+                            @forelse($storeStationery as $idx => $row)
+                            @php $selectedItem = $row['item'] ?? ''; @endphp
+                            <tr class="store-stat-row">
+                                <td>
+                                    <select name="store_stationery[{{ $idx }}][item]" class="ni ni-select">
+                                        <option value="">-- Select Stationery Item --</option>
+                                        @foreach($storeItemList as $storeItem)
+                                        <option value="{{ $storeItem }}" @selected($selectedItem === $storeItem)>{{ $storeItem }}</option>
+                                        @endforeach
+                                        <option value="Others" @selected($selectedItem === 'Others')>Others</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" name="store_stationery[{{ $idx }}][qty_received]" class="ni calc-store-stat" value="{{ $row['qty_received'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_stationery[{{ $idx }}][qty_issues]" class="ni calc-store-stat" value="{{ $row['qty_issues'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_stationery[{{ $idx }}][total_bal]" class="ni store-stat-tot" value="{{ $row['total_bal'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
-                                <td colspan="2"><strong>TOTAL</strong></td>
+                                <td><strong>TOTAL</strong></td>
                                 <td><strong><span id="store-stat-grand-supplied">0</span></strong></td>
                                 <td><strong><span id="store-stat-grand-issued">0</span></strong></td>
                                 <td><strong><span id="store-stat-grand-total">0</span></strong></td>
@@ -458,6 +522,9 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][store_stationery][supplied]" id="store-stat-grand-supplied-input" value="0">
+                <input type="hidden" name="works[totals][store_stationery][issued]" id="store-stat-grand-issued-input" value="0">
+                <input type="hidden" name="works[totals][store_stationery][total]" id="store-stat-grand-total-input" value="0">
             </div>
         </div>
 
@@ -477,7 +544,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                     <table class="nis-table" id="store-uniforms-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Items</th>
                                 <th style="width:130px;">New Qty Supplied</th>
                                 <th style="width:110px;">Qty Issues</th>
@@ -486,10 +552,22 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="store-uniforms-body"></tbody>
+                        <tbody id="store-uniforms-body">
+                            @forelse($storeUniforms as $idx => $row)
+                            <tr class="store-uni-row">
+                                <td><input type="text" name="store_uniforms[{{ $idx }}][item]" class="ni" placeholder="e.g. Beret, Uniform Set" value="{{ $row['item'] ?? '' }}"></td>
+                                <td><input type="number" name="store_uniforms[{{ $idx }}][qty_supplied]" class="ni calc-store-uni" value="{{ $row['qty_supplied'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_uniforms[{{ $idx }}][qty_issues]" class="ni calc-store-uni" value="{{ $row['qty_issues'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_uniforms[{{ $idx }}][bal_cf]" class="ni store-uni-bal-cf" value="{{ $row['bal_cf'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td><input type="number" name="store_uniforms[{{ $idx }}][total]" class="ni store-uni-tot" value="{{ $row['total'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
-                                <td colspan="2"><strong>TOTAL</strong></td>
+                                <td><strong>TOTAL</strong></td>
                                 <td><strong><span id="store-uni-grand-supplied">0</span></strong></td>
                                 <td><strong><span id="store-uni-grand-issued">0</span></strong></td>
                                 <td><strong><span id="store-uni-grand-bal-cf">0</span></strong></td>
@@ -499,6 +577,10 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][store_uniforms][supplied]" id="store-uni-grand-supplied-input" value="0">
+                <input type="hidden" name="works[totals][store_uniforms][issued]" id="store-uni-grand-issued-input" value="0">
+                <input type="hidden" name="works[totals][store_uniforms][bal_cf]" id="store-uni-grand-bal-cf-input" value="0">
+                <input type="hidden" name="works[totals][store_uniforms][total]" id="store-uni-grand-total-input" value="0">
             </div>
         </div>
 
@@ -518,7 +600,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                     <table class="nis-table" id="store-oil-gas-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Items</th>
                                 <th style="width:130px;">New Qty Supplied</th>
                                 <th style="width:110px;">Qty Issues</th>
@@ -527,10 +608,22 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="store-oil-gas-body"></tbody>
+                        <tbody id="store-oil-gas-body">
+                            @forelse($storeOilGas as $idx => $row)
+                            <tr class="store-oil-row">
+                                <td><input type="text" name="store_oil_gas[{{ $idx }}][item]" class="ni" placeholder="e.g. PMS, AGO" value="{{ $row['item'] ?? '' }}"></td>
+                                <td><input type="number" name="store_oil_gas[{{ $idx }}][qty_supplied]" class="ni calc-store-oil" value="{{ $row['qty_supplied'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_oil_gas[{{ $idx }}][qty_issues]" class="ni calc-store-oil" value="{{ $row['qty_issues'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_oil_gas[{{ $idx }}][bal_cf]" class="ni store-oil-bal-cf" value="{{ $row['bal_cf'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td><input type="number" name="store_oil_gas[{{ $idx }}][total]" class="ni store-oil-tot" value="{{ $row['total'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
-                                <td colspan="2"><strong>TOTAL</strong></td>
+                                <td><strong>TOTAL</strong></td>
                                 <td><strong><span id="store-oil-grand-supplied">0</span></strong></td>
                                 <td><strong><span id="store-oil-grand-issued">0</span></strong></td>
                                 <td><strong><span id="store-oil-grand-bal-cf">0</span></strong></td>
@@ -540,10 +633,14 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][store_oil_gas][supplied]" id="store-oil-grand-supplied-input" value="0">
+                <input type="hidden" name="works[totals][store_oil_gas][issued]" id="store-oil-grand-issued-input" value="0">
+                <input type="hidden" name="works[totals][store_oil_gas][bal_cf]" id="store-oil-grand-bal-cf-input" value="0">
+                <input type="hidden" name="works[totals][store_oil_gas][total]" id="store-oil-grand-total-input" value="0">
             </div>
         </div>
 
-        <!-- e. TAILORING SUMMARY -->
+        <!-- e. TAILORING -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -553,7 +650,7 @@ $storeItemList = $storeItemsJson['items'] ?? [];
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="nis-table">
+                    <table class="nis-table" id="tailoring-table">
                         <thead>
                             <tr>
                                 <th style="width:50px;">S/N</th>
@@ -567,17 +664,20 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </thead>
                         <tbody>
                             @foreach($tailorItems as $index => $item)
+                            @php
+                                $row = $tailoring[$index] ?? [];
+                            @endphp
                             <tr class="tailor-row">
                                 <td>{{ $index + 1 }}</td>
                                 <td style="font-weight:600;">
                                     {{ $item }}
                                     <input type="hidden" name="store_tailoring[{{ $index }}][item]" value="{{ $item }}">
                                 </td>
-                                <td><input type="number" name="store_tailoring[{{ $index }}][bal_bf]" class="ni tailor-bf calc-tailor" value="0" min="0"></td>
-                                <td><input type="number" name="store_tailoring[{{ $index }}][new_qty]" class="ni tailor-new calc-tailor" value="0" min="0"></td>
-                                <td><input type="number" name="store_tailoring[{{ $index }}][qty_issued]" class="ni tailor-issued calc-tailor" value="0" min="0"></td>
-                                <td><input type="number" name="store_tailoring[{{ $index }}][bal_cf]" class="ni tailor-bal-cf" value="0" readonly style="background:#f9fafb;"></td>
-                                <td><input type="number" name="store_tailoring[{{ $index }}][total]" class="ni tailor-total" value="0" readonly style="background:#f9fafb;"></td>
+                                <td><input type="number" name="store_tailoring[{{ $index }}][bal_bf]" class="ni tailor-bf calc-tailor" value="{{ $row['bal_bf'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_tailoring[{{ $index }}][new_qty]" class="ni tailor-new calc-tailor" value="{{ $row['new_qty'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_tailoring[{{ $index }}][qty_issued]" class="ni tailor-issued calc-tailor" value="{{ $row['qty_issued'] ?? 0 }}" min="0" step="1"></td>
+                                <td><input type="number" name="store_tailoring[{{ $index }}][bal_cf]" class="ni tailor-bal-cf" value="{{ $row['bal_cf'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
+                                <td><input type="number" name="store_tailoring[{{ $index }}][total]" class="ni tailor-total" value="{{ $row['total'] ?? 0 }}" readonly style="background:#f9fafb;"></td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -593,6 +693,11 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][tailoring][bf]" id="tailor-grand-bf-input" value="0">
+                <input type="hidden" name="works[totals][tailoring][new]" id="tailor-grand-new-input" value="0">
+                <input type="hidden" name="works[totals][tailoring][issued]" id="tailor-grand-issued-input" value="0">
+                <input type="hidden" name="works[totals][tailoring][bal_cf]" id="tailor-grand-bal-cf-input" value="0">
+                <input type="hidden" name="works[totals][tailoring][total]" id="tailor-grand-total-input" value="0">
             </div>
         </div>
         <div class="hrm-actions">
@@ -606,12 +711,12 @@ $storeItemList = $storeItemsJson['items'] ?? [];
 
     <!-- TAB 5: Transport -->
     <div class="tab-panel" id="tab-works-logistics-transport">
-        <!-- a. VEHICLE DETAILS BY COMMAND -->
+        <!-- a. VEHICLE DETAILS  -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-truck"></i></div>
-                    a. VEHICLE DETAILS BY COMMAND
+                    a. VEHICLE DETAILS
                 </div>
                 <button type="button" class="btn-nis btn-ghost btn-sm wl-add-row" data-row-target="transport-fleet-body" data-row-prefix="transport_fleet">
                     <i class="fas fa-plus"></i> Add Vehicle Row
@@ -622,7 +727,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                     <table class="nis-table" id="transport-fleet-table">
                         <thead>
                             <tr>
-                                <th>Command</th>
                                 <th>Types (Make &amp; Model)</th>
                                 <th>Chassis Number</th>
                                 <th>Vehicle Plate Number</th>
@@ -631,16 +735,37 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="transport-fleet-body"></tbody>
+                        <tbody id="transport-fleet-body">
+                            @forelse($transportFleet as $idx => $row)
+                            @php $selectedVehicle = $row['make_model'] ?? ''; @endphp
+                            <tr class="transport-fleet-row">
+                                <td>
+                                    <select name="transport_fleet[{{ $idx }}][make_model]" class="ni">
+                                        <option value="">Select Make &amp; Model</option>
+                                        @foreach($vehicleOptions as $vehicle)
+                                        <option value="{{ $vehicle }}" @selected($selectedVehicle === $vehicle)>{{ $vehicle }}</option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td><input type="text" name="transport_fleet[{{ $idx }}][chassis]" class="ni" value="{{ $row['chassis'] ?? '' }}"></td>
+                                <td><input type="text" name="transport_fleet[{{ $idx }}][plate]" class="ni" value="{{ $row['plate'] ?? '' }}"></td>
+                                <td><input type="text" name="transport_fleet[{{ $idx }}][vin]" class="ni" value="{{ $row['vin'] ?? '' }}"></td>
+                                <td><input type="text" name="transport_fleet[{{ $idx }}][remarks]" class="ni" placeholder="e.g. Serviceable" value="{{ $row['remarks'] ?? '' }}"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
-                                <td colspan="5"><strong>TOTAL VEHICLES IN FLEET</strong></td>
+                                <td colspan="4"><strong>TOTAL VEHICLES IN FLEET</strong></td>
                                 <td><strong><span id="transport-fleet-grand-total">0</span></strong></td>
                                 <td></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][transport_fleet]" id="transport-fleet-grand-total-input" value="0">
             </div>
         </div>
 
@@ -660,7 +785,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                     <table class="nis-table" id="transport-procurement-table">
                         <thead>
                             <tr>
-                                <th>Location / Deploy Command</th>
                                 <th>File Number</th>
                                 <th>Type of Vehicle</th>
                                 <th>Chassis Number</th>
@@ -669,16 +793,29 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="transport-procurement-body"></tbody>
+                        <tbody id="transport-procurement-body">
+                            @forelse($transportProcurement as $idx => $row)
+                            <tr class="transport-procurement-row">
+                                <td><input type="text" name="transport_procurement[{{ $idx }}][file_no]" class="ni" placeholder="e.g. W&amp;L/04" value="{{ $row['file_no'] ?? '' }}"></td>
+                                <td><input type="text" name="transport_procurement[{{ $idx }}][make_model]" class="ni" placeholder="e.g. Toyota Coaster" value="{{ $row['make_model'] ?? '' }}"></td>
+                                <td><input type="text" name="transport_procurement[{{ $idx }}][chassis]" class="ni" value="{{ $row['chassis'] ?? '' }}"></td>
+                                <td><input type="text" name="transport_procurement[{{ $idx }}][remark]" class="ni" value="{{ $row['remark'] ?? '' }}"></td>
+                                <td><input type="date" name="transport_procurement[{{ $idx }}][date]" class="ni" value="{{ $row['date'] ?? '' }}"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
-                                <td colspan="5"><strong>TOTAL VEHICLES PROCURED</strong></td>
+                                <td colspan="4"><strong>TOTAL VEHICLES PROCURED</strong></td>
                                 <td><strong><span id="transport-procurement-grand-total">0</span></strong></td>
                                 <td></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][transport_procurement]" id="transport-procurement-grand-total-input" value="0">
             </div>
         </div>
         <div class="hrm-actions">
@@ -717,7 +854,26 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="infra-projects-body"></tbody>
+                        <tbody id="infra-projects-body">
+                            @forelse($infraProjects as $idx => $row)
+                            <tr class="infra-project-row">
+                                <td><input type="text" name="works_infra_projects[{{ $idx }}][description]" class="ni" value="{{ $row['description'] ?? '' }}"></td>
+                                <td><input type="date" name="works_infra_projects[{{ $idx }}][date]" class="ni" value="{{ $row['date'] ?? '' }}"></td>
+                                <td><input type="text" name="works_infra_projects[{{ $idx }}][location]" class="ni" value="{{ $row['location'] ?? '' }}"></td>
+                                <td><input type="text" name="works_infra_projects[{{ $idx }}][contractor]" class="ni" value="{{ $row['contractor'] ?? '' }}"></td>
+                                <td>
+                                    <select name="works_infra_projects[{{ $idx }}][status]" class="ni ni-select">
+                                        <option value="Completed" @selected(($row['status'] ?? '') === 'Completed')>Completed</option>
+                                        <option value="Ongoing" @selected(($row['status'] ?? '') === 'Ongoing')>Ongoing</option>
+                                        <option value="Abandoned" @selected(($row['status'] ?? '') === 'Abandoned')>Abandoned</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" name="works_infra_projects[{{ $idx }}][completion]" class="ni calc-infra" value="{{ $row['completion'] ?? 0 }}" min="0" max="100" step="1"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td colspan="4"><strong>TOTAL INFRASTRUCTURAL PROJECTS</strong></td>
@@ -756,7 +912,26 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="intervention-projects-body"></tbody>
+                        <tbody id="intervention-projects-body">
+                            @forelse($interventionProjects as $idx => $row)
+                            <tr class="intervention-project-row">
+                                <td><input type="text" name="works_intervention_projects[{{ $idx }}][description]" class="ni" value="{{ $row['description'] ?? '' }}"></td>
+                                <td><input type="number" name="works_intervention_projects[{{ $idx }}][year]" class="ni" placeholder="e.g. 2026" min="2000" max="2100" step="1" value="{{ $row['year'] ?? '' }}"></td>
+                                <td><input type="text" name="works_intervention_projects[{{ $idx }}][location]" class="ni" value="{{ $row['location'] ?? '' }}"></td>
+                                <td><input type="text" name="works_intervention_projects[{{ $idx }}][contractor]" class="ni" value="{{ $row['contractor'] ?? '' }}"></td>
+                                <td>
+                                    <select name="works_intervention_projects[{{ $idx }}][status]" class="ni ni-select">
+                                        <option value="Completed" @selected(($row['status'] ?? '') === 'Completed')>Completed</option>
+                                        <option value="Ongoing" @selected(($row['status'] ?? '') === 'Ongoing')>Ongoing</option>
+                                        <option value="Abandoned" @selected(($row['status'] ?? '') === 'Abandoned')>Abandoned</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" name="works_intervention_projects[{{ $idx }}][completion]" class="ni calc-interv" value="{{ $row['completion'] ?? 0 }}" min="0" max="100" step="1"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td colspan="4"><strong>TOTAL INTERVENTION PROJECTS</strong></td>
@@ -791,7 +966,16 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="notable-activities-body"></tbody>
+                        <tbody id="notable-activities-body">
+                            @forelse($notableActivities as $idx => $row)
+                            <tr class="notable-activity-row">
+                                <td><input type="text" name="works_notable_activities[{{ $idx }}][description]" class="ni" value="{{ $row['description'] ?? '' }}"></td>
+                                <td><input type="text" name="works_notable_activities[{{ $idx }}][remarks]" class="ni" value="{{ $row['remarks'] ?? '' }}"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td><strong>TOTAL NOTABLE ACTIVITIES</strong></td>
@@ -839,7 +1023,34 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="maintenance-body"></tbody>
+                        <tbody id="maintenance-body">
+                            @forelse($maintenanceLog as $idx => $row)
+                            <tr class="maintenance-log-row">
+                                <td>
+                                    <select name="maintenance_log[{{ $idx }}][unit]" class="ni ni-select">
+                                        <option value="Carpentry" @selected(($row['unit'] ?? '') === 'Carpentry')>Carpentry</option>
+                                        <option value="Plumbing" @selected(($row['unit'] ?? '') === 'Plumbing')>Plumbing</option>
+                                        <option value="Painting" @selected(($row['unit'] ?? '') === 'Painting')>Painting</option>
+                                        <option value="Mason" @selected(($row['unit'] ?? '') === 'Mason')>Mason</option>
+                                        <option value="Others" @selected(($row['unit'] ?? '') === 'Others')>Others</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" name="maintenance_log[{{ $idx }}][activity]" class="ni" value="{{ $row['activity'] ?? '' }}"></td>
+                                <td><input type="month" name="maintenance_log[{{ $idx }}][period]" class="ni" value="{{ $row['period'] ?? '' }}"></td>
+                                <td><input type="text" name="maintenance_log[{{ $idx }}][location]" class="ni" value="{{ $row['location'] ?? '' }}"></td>
+                                <td>
+                                    <select name="maintenance_log[{{ $idx }}][status]" class="ni ni-select">
+                                        <option value="Completed" @selected(($row['status'] ?? '') === 'Completed')>Completed</option>
+                                        <option value="Ongoing" @selected(($row['status'] ?? '') === 'Ongoing')>Ongoing</option>
+                                        <option value="Abandoned" @selected(($row['status'] ?? '') === 'Abandoned')>Abandoned</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" name="maintenance_log[{{ $idx }}][remark]" class="ni" value="{{ $row['remark'] ?? '' }}"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td colspan="5"><strong>TOTAL MAINTENANCE ACTIVITIES</strong></td>
@@ -849,21 +1060,20 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][maintenance]" id="maintenance-grand-total-input" value="0">
             </div>
         </div>
 
         <!-- 6. ENERGY SECTION -->
-        @php
-        $energyUnits = [
-            ['renewable', '6. a. RENEWABLE ENERGY UNIT', 'TOTAL RENEWABLE ENERGY LOGS', 'Add Renewable Log', 'fas fa-solar-panel'],
-            ['electrical', '6. b. ELECTRICAL UNIT', 'TOTAL ELECTRICAL UNIT LOGS', 'Add Electrical Log', 'fas fa-bolt'],
-            ['generator', '6. c. GENERATOR UNIT', 'TOTAL GENERATOR UNIT LOGS', 'Add Generator Log', 'fas fa-charging-station'],
-            ['welding', '6. d. WELDING UNIT', 'TOTAL WELDING UNIT LOGS', 'Add Welding Log', 'fas fa-fire'],
-            ['fuel', '6. e. RECORD OF FUEL DISTRIBUTION', 'TOTAL FUEL DISTRIBUTION LOGS', 'Add Fuel Log', 'fas fa-gas-pump'],
-            ['ac', '6. f. REFRIGERATION AND AIR CONDITIONING', 'TOTAL HVAC UNIT LOGS', 'Add HVAC Log', 'fas fa-wind'],
-        ];
-        @endphp
         @foreach($energyUnits as [$unitKey, $unitTitle, $unitTotal, $unitBtn, $unitIcon])
+        @php
+            $unitRows = [];
+            foreach ($energyUtilities as $eIdx => $row) {
+                if (($row['unit'] ?? '') === $energyUnitMap[$unitKey]) {
+                    $unitRows[$eIdx] = $row;
+                }
+            }
+        @endphp
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
                 <div class="card-head-title">
@@ -887,7 +1097,28 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                                 <th style="width:50px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="energy-{{ $unitKey }}-body"></tbody>
+                        <tbody id="energy-{{ $unitKey }}-body">
+                            @forelse($unitRows as $eIdx => $row)
+                            <tr class="energy-{{ $unitKey }}-row">
+                                <td>
+                                    <input type="hidden" name="energy_utilities[{{ $eIdx }}][unit]" value="{{ $energyUnitMap[$unitKey] }}">
+                                    <input type="text" name="energy_utilities[{{ $eIdx }}][description]" class="ni" value="{{ $row['description'] ?? '' }}">
+                                </td>
+                                <td><input type="date" name="energy_utilities[{{ $eIdx }}][date]" class="ni" value="{{ $row['date'] ?? '' }}"></td>
+                                <td><input type="text" name="energy_utilities[{{ $eIdx }}][location]" class="ni" value="{{ $row['location'] ?? '' }}"></td>
+                                <td>
+                                    <select name="energy_utilities[{{ $eIdx }}][status]" class="ni ni-select">
+                                        <option value="Completed" @selected(($row['status'] ?? '') === 'Completed')>Completed</option>
+                                        <option value="Ongoing" @selected(($row['status'] ?? '') === 'Ongoing')>Ongoing</option>
+                                        <option value="Abandoned" @selected(($row['status'] ?? '') === 'Abandoned')>Abandoned</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" name="energy_utilities[{{ $eIdx }}][remark]" class="ni" value="{{ $row['remark'] ?? '' }}"></td>
+                                <td style="text-align:center;"><button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                            @empty
+                            @endforelse
+                        </tbody>
                         <tfoot>
                             <tr class="total-row">
                                 <td colspan="4"><strong>{{ $unitTotal }}</strong></td>
@@ -897,6 +1128,7 @@ $storeItemList = $storeItemsJson['items'] ?? [];
                         </tfoot>
                     </table>
                 </div>
+                <input type="hidden" name="works[totals][energy_{{ $unitKey }}]" id="energy-{{ $unitKey }}-grand-total-input" value="0">
             </div>
         </div>
         @endforeach
@@ -921,11 +1153,13 @@ $storeItemList = $storeItemsJson['items'] ?? [];
             <div class="card-body">
                 <div style="margin-bottom:12px;">
                     <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Major Challenges Faced</label>
-                    <textarea name="works[general_report][challenges]" class="ni" rows="4" placeholder="Describe any logistics, armoury, or project challenges...">{{ old('works.general_report.challenges') }}</textarea>
+                    <textarea name="works[general_report][challenges]" class="ni @error('works.general_report.challenges') is-invalid @enderror" rows="4" placeholder="Describe any logistics, armoury, or project challenges...">{{ old('works.general_report.challenges', $worksOld['general_report']['challenges'] ?? '') }}</textarea>
+                    @error('works.general_report.challenges')<div style="color:var(--color-danger);font-size:.75rem;margin-top:4px;">{{ $message }}</div>@enderror
                 </div>
                 <div>
                     <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Recommendations / Way Forward</label>
-                    <textarea name="works[general_report][recommendations]" class="ni" rows="4" placeholder="Propose solutions or recommendations...">{{ old('works.general_report.recommendations') }}</textarea>
+                    <textarea name="works[general_report][recommendations]" class="ni @error('works.general_report.recommendations') is-invalid @enderror" rows="4" placeholder="Propose solutions or recommendations...">{{ old('works.general_report.recommendations', $worksOld['general_report']['recommendations'] ?? '') }}</textarea>
+                    @error('works.general_report.recommendations')<div style="color:var(--color-danger);font-size:.75rem;margin-top:4px;">{{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
@@ -953,77 +1187,28 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         || document.querySelector('form[action*="directorates"]');
     const tabContent = ROOT.querySelector('.tab-content');
 
-    /* Tab navigation (previous/next), tab switching, draft save/restore and
-       submit are wired globally in user.directorates._layout and
-       partials.footer for all directorate forms. */
+    /* Tab navigation, draft save/restore and submit are wired globally in
+       user.directorates._layout and partials.footer. */
 
     /* Helpers */
-    function val(el) { return parseInt(el?.value || 0) || 0; }
-    function setText(id, v) { const el = byId(id); if (el) el.textContent = v; }
+    function val(el) { return parseInt(el?.value || 0, 10) || 0; }
+    function setText(id, v) {
+        const el = byId(id);
+        if (el) el.textContent = v;
+        const hidden = byId(id + '-input');
+        if (hidden) hidden.value = v;
+    }
     function esc(s) {
         return String(s ?? '').replace(/[&<>"']/g, function (c) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c];
         });
     }
 
-    /* ── Command dropdowns with per-table exclusivity ── */
-    const availableCommands = @json($commandList);
-    const commandTables = [
-        'arms-table', 'ammunition-table', 'store-accessories-table', 'store-stationery-table',
-        'store-uniforms-table', 'store-oil-gas-table', 'transport-fleet-table', 'transport-procurement-table'
-    ];
-    const activeSelections = {};
-
-    function buildCommandOptions(tableId, selectedValue = '') {
-        if (!activeSelections[tableId]) activeSelections[tableId] = new Set();
-        let html = '<option value="">-- Select Command --</option>';
-        availableCommands.forEach(cmd => {
-            if (!activeSelections[tableId].has(cmd) || cmd === selectedValue) {
-                html += `<option value="${esc(cmd)}"${cmd === selectedValue ? ' selected' : ''}>${esc(cmd)}</option>`;
-            }
-        });
-        return html;
-    }
-
-    function refreshCommandDropdowns(tableId) {
-        const table = byId(tableId);
-        if (!table) return;
-        const current = new Set();
-        table.querySelectorAll('.command-selector').forEach(sel => { if (sel.value) current.add(sel.value); });
-        activeSelections[tableId] = current;
-        table.querySelectorAll('.command-selector').forEach(sel => {
-            sel.innerHTML = buildCommandOptions(tableId, sel.value);
-        });
-    }
-
-    function resyncAllCommandSelections() {
-        commandTables.forEach(refreshCommandDropdowns);
-    }
-
     /* ── Dynamic row templates, keyed by tbody id ── */
-    const armsData = @json($armsByCategory);
-    const ammoList = @json($ammoList);
-    const storeItemList = @json($storeItemList);
-
-    function buildArmsOptions() {
-        let html = '<option value="">-- Select Type of Arms --</option>';
-        Object.keys(armsData).forEach(category => {
-            html += `<optgroup label="${esc(category)}">`;
-            armsData[category].forEach(name => {
-                html += `<option value="${esc(name)}">${esc(name)}</option>`;
-            });
-            html += '</optgroup>';
-        });
-        return html;
-    }
-
-    function buildOptions(list, placeholder) {
-        placeholder = placeholder || '-- Select --';
-        let html = `<option value="">${esc(placeholder)}</option>`;
-        list.forEach(item => { html += `<option value="${esc(item)}">${esc(item)}</option>`; });
-        html += '<option value="Others">Others</option>';
-        return html;
-    }
+    const ARMS_OPTIONS_HTML = @json($armsOptionsHtml);
+    const AMMO_OPTIONS_HTML = @json($ammoOptionsHtml);
+    const STORE_OPTIONS_HTML = @json($storeOptionsHtml);
+    const VEHICLE_OPTIONS_HTML = @json($vehicleOptionsHtml);
 
     const STATUS_OPTIONS = `
         <option value="Completed">Completed</option>
@@ -1049,16 +1234,11 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         <button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button>
     </td>`;
 
-    function commandCell(name, tableId) {
-        return `<td><select name="${name}" class="ni ni-select command-selector" data-table="${tableId}">${buildCommandOptions(tableId)}</select></td>`;
-    }
-
     function energyRow(tbodyId, idx) {
         const unitKey = tbodyId.replace('energy-', '').replace('-body', '');
         const unitLabel = ENERGY_UNIT_LABELS[tbodyId];
         return `<tr class="energy-${unitKey}-row">
-            <input type="hidden" name="energy_utilities[${idx}][unit]" value="${unitLabel}">
-            <td><input type="text" name="energy_utilities[${idx}][description]" class="ni"></td>
+            <td><input type="hidden" name="energy_utilities[${idx}][unit]" value="${esc(unitLabel)}"><input type="text" name="energy_utilities[${idx}][description]" class="ni"></td>
             <td><input type="date" name="energy_utilities[${idx}][date]" class="ni"></td>
             <td><input type="text" name="energy_utilities[${idx}][location]" class="ni"></td>
             <td><select name="energy_utilities[${idx}][status]" class="ni ni-select">${STATUS_OPTIONS}</select></td>
@@ -1069,58 +1249,59 @@ $storeItemList = $storeItemsJson['items'] ?? [];
 
     const rowTemplates = {
         'arms-body': idx => `<tr class="arms-command-row">
-            <td><select name="arms_returns[${idx}][type]" class="ni ni-select">${buildArmsOptions()}</select></td>
-            <td><input type="number" name="arms_returns[${idx}][serviceable]" class="ni calc-arms" value="0" min="0"></td>
-            <td><input type="number" name="arms_returns[${idx}][unserviceable]" class="ni calc-arms" value="0" min="0"></td>
+            <td><select name="arms_returns[${idx}][type]" class="ni ni-select">${ARMS_OPTIONS_HTML}</select></td>
+            <td><input type="number" name="arms_returns[${idx}][serviceable]" class="ni calc-arms" value="0" min="0" step="1"></td>
+            <td><input type="number" name="arms_returns[${idx}][unserviceable]" class="ni calc-arms" value="0" min="0" step="1"></td>
             <td><input type="number" name="arms_returns[${idx}][total]" class="ni arms-tot-disp" value="0" readonly style="background:#f9fafb;"></td>
             ${REMOVE_CELL}
         </tr>`,
+        'missing-arms-body': idx => `<tr class="missing-arms-row">
+            <td><select name="missing_arms_returns[${idx}][type]" class="ni ni-select">${ARMS_OPTIONS_HTML}</select></td>
+            <td><input type="text" name="missing_arms_returns[${idx}][reason]" class="ni" placeholder="e.g. Lost in transit"></td>
+            <td><input type="text" name="missing_arms_returns[${idx}][serial]" class="ni" placeholder="e.g. NIS-AR-001234"></td>
+            ${REMOVE_CELL}
+        </tr>`,
         'ammunition-body': idx => `<tr class="ammo-item-row">
-            <td><select name="ammunition_returns[${idx}][type]" class="ni ni-select">${buildOptions(ammoList, '-- Select Ammunition Type --')}</select></td>
-            <td><input type="number" name="ammunition_returns[${idx}][rounds]" class="ni calc-ammo" value="0" min="0"></td>
-            <td><input type="number" name="ammunition_returns[${idx}][serviceable]" class="ni calc-ammo" value="0" min="0"></td>
-            <td><input type="number" name="ammunition_returns[${idx}][unserviceable]" class="ni calc-ammo" value="0" min="0"></td>
-            <td><input type="number" name="ammunition_returns[${idx}][used]" class="ni calc-ammo" value="0" min="0"></td>
+            <td><select name="ammunition_returns[${idx}][type]" class="ni ni-select">${AMMO_OPTIONS_HTML}</select></td>
+            <td><input type="number" name="ammunition_returns[${idx}][rounds]" class="ni calc-ammo" value="0" min="0" step="1"></td>
+            <td><input type="number" name="ammunition_returns[${idx}][serviceable]" class="ni calc-ammo" value="0" min="0" step="1"></td>
+            <td><input type="number" name="ammunition_returns[${idx}][unserviceable]" class="ni calc-ammo" value="0" min="0" step="1"></td>
+            <td><input type="number" name="ammunition_returns[${idx}][used]" class="ni calc-ammo" value="0" min="0" step="1"></td>
             <td><input type="number" name="ammunition_returns[${idx}][total]" class="ni ammo-tot-disp" value="0" readonly style="background:#f9fafb;"></td>
             ${REMOVE_CELL}
         </tr>`,
         'store-accessories-body': idx => `<tr class="store-acc-row">
-            ${commandCell(`store_accessories[${idx}][command]`, 'store-accessories-table')}
-            <td><input type="text" name="store_accessories[${idx}][item]" class="ni" placeholder="e.g. Keyboard, Fuel pump"></td>
-            <td><input type="number" name="store_accessories[${idx}][qty_supplied]" class="ni calc-store-acc" value="0" min="0"></td>
-            <td><input type="number" name="store_accessories[${idx}][qty_issues]" class="ni calc-store-acc" value="0" min="0"></td>
+            <td><select name="store_accessories[${idx}][item]" class="ni ni-select">${STORE_OPTIONS_HTML}</select></td>
+            <td><input type="number" name="store_accessories[${idx}][qty_supplied]" class="ni calc-store-acc" value="0" min="0" step="1"></td>
+            <td><input type="number" name="store_accessories[${idx}][qty_issues]" class="ni calc-store-acc" value="0" min="0" step="1"></td>
             <td><input type="number" name="store_accessories[${idx}][total_bal]" class="ni store-acc-tot" value="0" readonly style="background:#f9fafb;"></td>
             ${REMOVE_CELL}
         </tr>`,
         'store-stationery-body': idx => `<tr class="store-stat-row">
-            ${commandCell(`store_stationery[${idx}][command]`, 'store-stationery-table')}
-            <td><select name="store_stationery[${idx}][item]" class="ni ni-select">${buildOptions(storeItemList, '-- Select Stationery Item --')}</select></td>
-            <td><input type="number" name="store_stationery[${idx}][qty_received]" class="ni calc-store-stat" value="0" min="0"></td>
-            <td><input type="number" name="store_stationery[${idx}][qty_issues]" class="ni calc-store-stat" value="0" min="0"></td>
+            <td><select name="store_stationery[${idx}][item]" class="ni ni-select">${STORE_OPTIONS_HTML}</select></td>
+            <td><input type="number" name="store_stationery[${idx}][qty_received]" class="ni calc-store-stat" value="0" min="0" step="1"></td>
+            <td><input type="number" name="store_stationery[${idx}][qty_issues]" class="ni calc-store-stat" value="0" min="0" step="1"></td>
             <td><input type="number" name="store_stationery[${idx}][total_bal]" class="ni store-stat-tot" value="0" readonly style="background:#f9fafb;"></td>
             ${REMOVE_CELL}
         </tr>`,
         'store-uniforms-body': idx => `<tr class="store-uni-row">
-            ${commandCell(`store_uniforms[${idx}][command]`, 'store-uniforms-table')}
             <td><input type="text" name="store_uniforms[${idx}][item]" class="ni" placeholder="e.g. Beret, Uniform Set"></td>
-            <td><input type="number" name="store_uniforms[${idx}][qty_supplied]" class="ni calc-store-uni" value="0" min="0"></td>
-            <td><input type="number" name="store_uniforms[${idx}][qty_issues]" class="ni calc-store-uni" value="0" min="0"></td>
+            <td><input type="number" name="store_uniforms[${idx}][qty_supplied]" class="ni calc-store-uni" value="0" min="0" step="1"></td>
+            <td><input type="number" name="store_uniforms[${idx}][qty_issues]" class="ni calc-store-uni" value="0" min="0" step="1"></td>
             <td><input type="number" name="store_uniforms[${idx}][bal_cf]" class="ni store-uni-bal-cf" value="0" readonly style="background:#f9fafb;"></td>
             <td><input type="number" name="store_uniforms[${idx}][total]" class="ni store-uni-tot" value="0" readonly style="background:#f9fafb;"></td>
             ${REMOVE_CELL}
         </tr>`,
         'store-oil-gas-body': idx => `<tr class="store-oil-row">
-            ${commandCell(`store_oil_gas[${idx}][command]`, 'store-oil-gas-table')}
             <td><input type="text" name="store_oil_gas[${idx}][item]" class="ni" placeholder="e.g. PMS, AGO"></td>
-            <td><input type="number" name="store_oil_gas[${idx}][qty_supplied]" class="ni calc-store-oil" value="0" min="0"></td>
-            <td><input type="number" name="store_oil_gas[${idx}][qty_issues]" class="ni calc-store-oil" value="0" min="0"></td>
+            <td><input type="number" name="store_oil_gas[${idx}][qty_supplied]" class="ni calc-store-oil" value="0" min="0" step="1"></td>
+            <td><input type="number" name="store_oil_gas[${idx}][qty_issues]" class="ni calc-store-oil" value="0" min="0" step="1"></td>
             <td><input type="number" name="store_oil_gas[${idx}][bal_cf]" class="ni store-oil-bal-cf" value="0" readonly style="background:#f9fafb;"></td>
             <td><input type="number" name="store_oil_gas[${idx}][total]" class="ni store-oil-tot" value="0" readonly style="background:#f9fafb;"></td>
             ${REMOVE_CELL}
         </tr>`,
         'transport-fleet-body': idx => `<tr class="transport-fleet-row">
-            ${commandCell(`transport_fleet[${idx}][command]`, 'transport-fleet-table')}
-            <td><input type="text" name="transport_fleet[${idx}][make_model]" class="ni" placeholder="e.g. Toyota Hilux"></td>
+            <td><select name="transport_fleet[${idx}][make_model]" class="ni">${VEHICLE_OPTIONS_HTML}</select></td>
             <td><input type="text" name="transport_fleet[${idx}][chassis]" class="ni"></td>
             <td><input type="text" name="transport_fleet[${idx}][plate]" class="ni"></td>
             <td><input type="text" name="transport_fleet[${idx}][vin]" class="ni"></td>
@@ -1128,8 +1309,7 @@ $storeItemList = $storeItemsJson['items'] ?? [];
             ${REMOVE_CELL}
         </tr>`,
         'transport-procurement-body': idx => `<tr class="transport-procurement-row">
-            ${commandCell(`transport_procurement[${idx}][location]`, 'transport-procurement-table')}
-            <td><input type="text" name="transport_procurement[${idx}][file_no]" class="ni" placeholder="e.g. W&L/04"></td>
+            <td><input type="text" name="transport_procurement[${idx}][file_no]" class="ni" placeholder="e.g. W&amp;L/04"></td>
             <td><input type="text" name="transport_procurement[${idx}][make_model]" class="ni" placeholder="e.g. Toyota Coaster"></td>
             <td><input type="text" name="transport_procurement[${idx}][chassis]" class="ni"></td>
             <td><input type="text" name="transport_procurement[${idx}][remark]" class="ni"></td>
@@ -1142,16 +1322,16 @@ $storeItemList = $storeItemsJson['items'] ?? [];
             <td><input type="text" name="works_infra_projects[${idx}][location]" class="ni"></td>
             <td><input type="text" name="works_infra_projects[${idx}][contractor]" class="ni"></td>
             <td><select name="works_infra_projects[${idx}][status]" class="ni ni-select">${STATUS_OPTIONS}</select></td>
-            <td><input type="number" name="works_infra_projects[${idx}][completion]" class="ni calc-infra" value="0" min="0" max="100"></td>
+            <td><input type="number" name="works_infra_projects[${idx}][completion]" class="ni calc-infra" value="0" min="0" max="100" step="1"></td>
             ${REMOVE_CELL}
         </tr>`,
         'intervention-projects-body': idx => `<tr class="intervention-project-row">
             <td><input type="text" name="works_intervention_projects[${idx}][description]" class="ni"></td>
-            <td><input type="number" name="works_intervention_projects[${idx}][year]" class="ni" placeholder="e.g. 2026" min="2000" max="2100"></td>
+            <td><input type="number" name="works_intervention_projects[${idx}][year]" class="ni" placeholder="e.g. 2026" min="2000" max="2100" step="1"></td>
             <td><input type="text" name="works_intervention_projects[${idx}][location]" class="ni"></td>
             <td><input type="text" name="works_intervention_projects[${idx}][contractor]" class="ni"></td>
             <td><select name="works_intervention_projects[${idx}][status]" class="ni ni-select">${STATUS_OPTIONS}</select></td>
-            <td><input type="number" name="works_intervention_projects[${idx}][completion]" class="ni calc-interv" value="0" min="0" max="100"></td>
+            <td><input type="number" name="works_intervention_projects[${idx}][completion]" class="ni calc-interv" value="0" min="0" max="100" step="1"></td>
             ${REMOVE_CELL}
         </tr>`,
         'notable-activities-body': idx => `<tr class="notable-activity-row">
@@ -1179,9 +1359,14 @@ $storeItemList = $storeItemsJson['items'] ?? [];
     /* All six energy tables submit under the shared energy_utilities[] key, so
        their indices must stay unique across tables (PHP keeps only the last
        value for duplicate array keys). Other tables index per tbody. */
-    let energyIndex = 0;
+    function nextEnergyIndex() {
+        let idx = 0;
+        const energyTbodies = Object.keys(ENERGY_UNIT_LABELS).map(id => byId(id)).filter(Boolean);
+        while (energyTbodies.some(tbody => tbody.querySelector(`[name*="energy_utilities[${idx}]"]`))) idx++;
+        return idx;
+    }
     function nextRowIndex(tbody) {
-        if (ENERGY_UNIT_LABELS[tbody.id]) return energyIndex++;
+        if (ENERGY_UNIT_LABELS[tbody.id]) return nextEnergyIndex();
         let idx = tbody.children.length;
         while (tbody.querySelector(`[name*="[${idx}]"]`)) idx++;
         return idx;
@@ -1194,8 +1379,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         const tr = document.createElement('tr');
         tr.innerHTML = template(nextRowIndex(tbody)).replace(/^<tr[^>]*>|<\/tr>$/g, '');
         tbody.appendChild(tr);
-        const tableId = tbody.closest('table')?.id;
-        if (tableId && commandTables.includes(tableId)) refreshCommandDropdowns(tableId);
         recomputeAll();
     }
 
@@ -1203,21 +1386,14 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         btn.addEventListener('click', () => addRow(btn.dataset.rowTarget));
     });
 
-    /* Delegated remove-row and command-exclusivity handling */
+    /* Delegated remove-row handling */
     if (tabContent) {
         tabContent.addEventListener('click', e => {
             const removeBtn = e.target.closest('.wl-remove-row');
             if (removeBtn) {
-                const tr = removeBtn.closest('tr');
-                const tableId = tr?.closest('table')?.id;
-                tr?.remove();
-                if (tableId && commandTables.includes(tableId)) refreshCommandDropdowns(tableId);
+                removeBtn.closest('tr')?.remove();
                 recomputeAll();
-                return;
             }
-        });
-        tabContent.addEventListener('change', e => {
-            if (e.target.matches('.command-selector')) refreshCommandDropdowns(e.target.dataset.table);
         });
     }
 
@@ -1250,6 +1426,16 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         setText('arms-grand-total', totGrand);
     }
 
+    function calculateMissingArmsTotals() {
+        let count = 0;
+        ROOT.querySelectorAll('.missing-arms-row').forEach(row => {
+            const type = row.querySelector('[name*="[type]"]')?.value?.trim() || '';
+            const serial = row.querySelector('[name*="[serial]"]')?.value?.trim() || '';
+            if (type !== '' || serial !== '') count++;
+        });
+        setText('missing-arms-grand-total', count);
+    }
+
     function calculateAmmunitionTotals() {
         let roundsGrand = 0, sGrand = 0, uGrand = 0, usedGrand = 0, totGrand = 0;
         ROOT.querySelectorAll('.ammo-item-row').forEach(row => {
@@ -1257,7 +1443,7 @@ $storeItemList = $storeItemsJson['items'] ?? [];
             const s = val(row.querySelector('[name*="[serviceable]"]'));
             const u = val(row.querySelector('[name*="[unserviceable]"]'));
             const used = val(row.querySelector('[name*="[used]"]'));
-            const total = s + u;
+            const total = s + u + used;
             row.querySelector('.ammo-tot-disp').value = total;
             roundsGrand += rounds; sGrand += s; uGrand += u; usedGrand += used; totGrand += total;
         });
@@ -1266,34 +1452,6 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         setText('ammo-grand-unserviceable', uGrand);
         setText('ammo-grand-used', usedGrand);
         setText('ammo-grand-total', totGrand);
-    }
-
-    function calculateArmsSummaryTotals() {
-        let sGrand = 0, uGrand = 0, totGrand = 0;
-        ROOT.querySelectorAll('.summary-arms-row').forEach(row => {
-            const s = val(row.querySelector('.sum-arms-s'));
-            const u = val(row.querySelector('.sum-arms-u'));
-            const total = s + u;
-            row.querySelector('.sum-arms-total').value = total;
-            sGrand += s; uGrand += u; totGrand += total;
-        });
-        setText('arms-sum-grand-serviceable', sGrand);
-        setText('arms-sum-grand-unserviceable', uGrand);
-        setText('arms-sum-grand-total', totGrand);
-    }
-
-    function calculateAmmunitionSummaryTotals() {
-        let roundsGrand = 0, totGrand = 0, roundsAmmoGrand = 0, balCfGrand = 0;
-        ROOT.querySelectorAll('.summary-ammo-row').forEach(row => {
-            roundsGrand += val(row.querySelector('.calc-sum-ammo-rounds'));
-            totGrand += val(row.querySelector('.calc-sum-ammo-total'));
-            roundsAmmoGrand += val(row.querySelector('.calc-sum-ammo-rounds-ammo'));
-            balCfGrand += val(row.querySelector('.calc-sum-ammo-bal-cf'));
-        });
-        setText('ammo-sum-grand-rounds', roundsGrand);
-        setText('ammo-sum-grand-total', totGrand);
-        setText('ammo-sum-grand-rounds-ammo', roundsAmmoGrand);
-        setText('ammo-sum-grand-bal-cf', balCfGrand);
     }
 
     function calculateStoreAccessoryTotals() {
@@ -1407,9 +1565,8 @@ $storeItemList = $storeItemsJson['items'] ?? [];
     function recomputeAll() {
         calculateStaffTotals();
         calculateArmsTotals();
+        calculateMissingArmsTotals();
         calculateAmmunitionTotals();
-        calculateArmsSummaryTotals();
-        calculateAmmunitionSummaryTotals();
         calculateStoreAccessoryTotals();
         calculateStoreStationeryTotals();
         calculateStoreUniformTotals();
@@ -1428,22 +1585,19 @@ $storeItemList = $storeItemsJson['items'] ?? [];
        dispatches on the form after draft/edit restore targets the form itself,
        so the listener lives on the form (events bubble up, not down). */
     if (form) {
-        form.addEventListener('input', e => {
-            if (e.target === form) resyncAllCommandSelections();
-            recomputeAll();
-        });
+        form.addEventListener('input', () => recomputeAll());
         form.addEventListener('change', () => recomputeAll());
     }
 
     /* ── Preview ── */
     function previewSectionTitle(num, title) {
-        return `<div class="hrm-preview-section-title">${num}. ${title}</div>`;
+        return `<div class="hrm-preview-section-title">${num}. ${esc(title)}</div>`;
     }
     function previewSubTitle(label) {
-        return `<div style="font-size:.84rem;font-weight:700;margin:10px 0 6px;">${label}</div>`;
+        return `<div style="font-size:.84rem;font-weight:700;margin:10px 0 6px;">${esc(label)}</div>`;
     }
     function previewTable(rows, headers = ['Item', 'Value']) {
-        const thead = headers.map(h => `<th style="padding:6px 8px;border:1px solid var(--gray-200);background:#f8fafc;">${h}</th>`).join('');
+        const thead = headers.map(h => `<th style="padding:6px 8px;border:1px solid var(--gray-200);background:#f8fafc;">${esc(h)}</th>`).join('');
         const tbody = rows.length
             ? rows.map(r => `<tr>${r.map(c => `<td style="padding:6px 8px;border:1px solid var(--gray-200);">${c}</td>`).join('')}</tr>`).join('')
             : `<tr><td colspan="${headers.length}" style="padding:6px 8px;border:1px solid var(--gray-200);color:var(--gray-500);">No entries.</td></tr>`;
@@ -1497,65 +1651,42 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         html += previewSectionTitle(2, 'Staff Strength by Cadre');
         html += previewTable(staffRows, ['Cadre', 'Male', 'Female', 'Total']);
 
-        /* 3. Arms/Armoury Returns*/
+        /* 3. Arms/Armoury Returns */
         let rows = tableRows('arms-body');
         if (rows.length) rows.push(strongRow(['Total', getText('arms-grand-serviceable'), getText('arms-grand-unserviceable'), getText('arms-grand-total')]));
         html += previewSectionTitle(3, 'Arms/Armoury Returns');
         html += previewTable(rows, ['Types of Arms', 'Serviceable', 'Unserviceable', 'Total']);
 
-        /* 4. Ammunition */
+        /* 4. Missing Arms/Armoury Returns */
+        rows = tableRows('missing-arms-body');
+        if (rows.length) rows.push(strongRow(['Total Missing Arms', getText('missing-arms-grand-total'), '', '']));
+        html += previewSectionTitle(4, 'Missing Arms/Armoury Returns');
+        html += previewTable(rows, ['Types of Arms', 'Reason for Missing', 'Serial No.']);
+
+        /* 5. Ammunition */
         rows = tableRows('ammunition-body');
         if (rows.length) rows.push(strongRow(['Total', getText('ammo-grand-rounds'), getText('ammo-grand-serviceable'), getText('ammo-grand-unserviceable'), getText('ammo-grand-used'), getText('ammo-grand-total')]));
-        html += previewSectionTitle(4, 'Ammunition');
+        html += previewSectionTitle(5, 'Ammunition');
         html += previewTable(rows, ['Types of Ammunition', 'Rounds', 'Serviceable', 'Unserviceable', 'Used', 'Total']);
 
-        /* 5. Arms Summary */
-        const armsSumRows = [];
-        ROOT.querySelectorAll('.summary-arms-row').forEach(row => {
-            armsSumRows.push([
-                esc(row.querySelector('td:nth-child(2)').textContent.trim()),
-                row.querySelector('.sum-arms-s').value || '0',
-                row.querySelector('.sum-arms-u').value || '0',
-                row.querySelector('.sum-arms-total').value || '0'
-            ]);
-        });
-        armsSumRows.push(strongRow(['TOTAL', getText('arms-sum-grand-serviceable'), getText('arms-sum-grand-unserviceable'), getText('arms-sum-grand-total')]));
-        html += previewSectionTitle(5, 'Arms Summary (Entire Directorate)');
-        html += previewTable(armsSumRows, ['Type', 'Serviceable', 'Unserviceable', 'Total']);
-
-        /* 6. Ammunition Summary */
-        const ammoSumRows = [];
-        ROOT.querySelectorAll('.summary-ammo-row').forEach(row => {
-            ammoSumRows.push([
-                esc(row.querySelector('td:nth-child(2)').textContent.trim()),
-                row.querySelector('.calc-sum-ammo-rounds').value || '0',
-                row.querySelector('.calc-sum-ammo-total').value || '0',
-                row.querySelector('.calc-sum-ammo-rounds-ammo').value || '0',
-                row.querySelector('.calc-sum-ammo-bal-cf').value || '0'
-            ]);
-        });
-        ammoSumRows.push(strongRow(['TOTAL', getText('ammo-sum-grand-rounds'), getText('ammo-sum-grand-total'), getText('ammo-sum-grand-rounds-ammo'), getText('ammo-sum-grand-bal-cf')]));
-        html += previewSectionTitle(6, 'Ammunition Summary');
-        html += previewTable(ammoSumRows, ['Type', 'No. of Rounds', 'Total', 'Rounds of Ammunition', 'Bal C/F']);
-
-        /* 7. Store & Warehouse */
-        html += previewSectionTitle(7, 'Store & Warehouse');
+        /* 6. Store & Warehouse */
+        html += previewSectionTitle(6, 'Store & Warehouse');
         rows = tableRows('store-accessories-body');
         if (rows.length) rows.push(strongRow(['Total', '', getText('store-acc-grand-supplied'), getText('store-acc-grand-issued'), getText('store-acc-grand-total')]));
         html += previewSubTitle('a. Elect/Elect Equipments, Spares & Accessories');
-        html += previewTable(rows, ['Command', 'Items', 'Qty Supplied', 'Qty Issues', 'Total Bal']);
+        html += previewTable(rows, ['Items', 'Qty Supplied', 'Qty Issues', 'Total Bal']);
         rows = tableRows('store-stationery-body');
         if (rows.length) rows.push(strongRow(['Total', '', getText('store-stat-grand-supplied'), getText('store-stat-grand-issued'), getText('store-stat-grand-total')]));
         html += previewSubTitle('b. Stationary');
-        html += previewTable(rows, ['Command', 'Items', 'Qty Supplied', 'Qty Issues', 'Total Bal']);
+        html += previewTable(rows, ['Items', 'Qty Supplied', 'Qty Issues', 'Total Bal']);
         rows = tableRows('store-uniforms-body');
         if (rows.length) rows.push(strongRow(['Total', '', getText('store-uni-grand-supplied'), getText('store-uni-grand-issued'), getText('store-uni-grand-bal-cf'), getText('store-uni-grand-total')]));
         html += previewSubTitle('c. Uniform and Accessories');
-        html += previewTable(rows, ['Command', 'Items', 'New Qty Supplied', 'Qty Issues', 'Bal. C/F', 'Total']);
+        html += previewTable(rows, ['Items', 'New Qty Supplied', 'Qty Issues', 'Bal. C/F', 'Total']);
         rows = tableRows('store-oil-gas-body');
         if (rows.length) rows.push(strongRow(['Total', '', getText('store-oil-grand-supplied'), getText('store-oil-grand-issued'), getText('store-oil-grand-bal-cf'), getText('store-oil-grand-total')]));
         html += previewSubTitle('d. Oil and Gas');
-        html += previewTable(rows, ['Command', 'Items', 'New Qty Supplied', 'Qty Issues', 'Bal. C/F', 'Total']);
+        html += previewTable(rows, ['Items', 'New Qty Supplied', 'Qty Issues', 'Bal. C/F', 'Total']);
         const tailorRows = [];
         ROOT.querySelectorAll('.tailor-row').forEach(row => {
             tailorRows.push([
@@ -1571,19 +1702,19 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         html += previewSubTitle('e. Tailoring');
         html += previewTable(tailorRows, ['Item', 'Bal. B/F', 'New Qty Supplied', 'Qty Issued', 'Bal. C/F', 'Total']);
 
-        /* 8. Transport */
-        html += previewSectionTitle(8, 'Transport');
+        /* 7. Transport */
+        html += previewSectionTitle(7, 'Transport');
         rows = tableRows('transport-fleet-body');
-        if (rows.length) rows.push(strongRow(['Total Vehicles in Fleet', '', '', '', '', getText('transport-fleet-grand-total')]));
-        html += previewSubTitle('a. Vehicle Details by Command');
-        html += previewTable(rows, ['Command', 'Make & Model', 'Chassis Number', 'Plate Number', 'VIN', 'Remarks']);
+        if (rows.length) rows.push(strongRow(['Total Vehicles in Fleet', '', '', '', getText('transport-fleet-grand-total')]));
+        html += previewSubTitle('a. Vehicle Details');
+        html += previewTable(rows, ['Make & Model', 'Chassis Number', 'Plate Number', 'VIN', 'Remarks']);
         rows = tableRows('transport-procurement-body');
-        if (rows.length) rows.push(strongRow(['Total Vehicles Procured', '', '', '', '', getText('transport-procurement-grand-total')]));
+        if (rows.length) rows.push(strongRow(['Total Vehicles Procured', '', '', '', getText('transport-procurement-grand-total')]));
         html += previewSubTitle('b. Procurement Log');
-        html += previewTable(rows, ['Location / Deploy Command', 'File Number', 'Type of Vehicle', 'Chassis Number', 'Remark', 'Date of Procurement']);
+        html += previewTable(rows, ['File Number', 'Type of Vehicle', 'Chassis Number', 'Remark', 'Date of Procurement']);
 
-        /* 9. Works & Projects */
-        html += previewSectionTitle(9, 'Works & Projects');
+        /* 8. Works & Projects */
+        html += previewSectionTitle(8, 'Works & Projects');
         rows = tableRows('infra-projects-body');
         if (rows.length) rows.push(strongRow(['Total Infrastructural Projects', '', '', '', getText('infra-projects-count'), getText('infra-projects-avg-completion')]));
         html += previewSubTitle('a. Status of Infrastructural Projects Executed');
@@ -1597,8 +1728,8 @@ $storeItemList = $storeItemsJson['items'] ?? [];
         html += previewSubTitle('c. Other Notable Activities');
         html += previewTable(rows, ['Activity Description', 'Remarks']);
 
-        /* 10. Maintenance & Energy */
-        html += previewSectionTitle(10, 'Maintenance & Energy');
+        /* 9. Maintenance & Energy */
+        html += previewSectionTitle(9, 'Maintenance & Energy');
         rows = tableRows('maintenance-body');
         if (rows.length) rows.push(strongRow(['Total Maintenance Activities', '', '', '', '', getText('maintenance-grand-total')]));
         html += previewSubTitle('5. Maintenance Section');
@@ -1618,12 +1749,12 @@ $storeItemList = $storeItemsJson['items'] ?? [];
             html += previewTable(uRows, ['Work Description', 'Date', 'Location', 'Status', 'Remark']);
         });
 
-        /* 11. General Report */
-        html += previewSectionTitle(11, 'General Report');
+        /* 10. General Report */
+        html += previewSectionTitle(10, 'General Report');
         [['Challenges', 'works[general_report][challenges]', 'No challenges reported.'],
          ['Recommendations / Way Forward', 'works[general_report][recommendations]', 'No recommendations provided.']
         ].forEach(([label, name, emptyText]) => {
-            html += `<div style="margin-top:12px;"><strong>${label}:</strong></div>`;
+            html += `<div style="margin-top:12px;"><strong>${esc(label)}:</strong></div>`;
             const value = ROOT.querySelector(`[name="${name}"]`)?.value.trim() || '';
             html += value
                 ? `<p style="font-size:.82rem;color:var(--gray-800);margin-top:4px;white-space:pre-wrap;">${esc(value)}</p>`
@@ -1652,4 +1783,3 @@ $storeItemList = $storeItemsJson['items'] ?? [];
     recomputeAll();
 })();
 </script>
-

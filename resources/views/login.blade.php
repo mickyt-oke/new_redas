@@ -167,11 +167,11 @@
     <main class="login-card {{ $errors->any() ? 'shake' : '' }}">
         <div class="login-brand">
             <img src="{{ asset('assets/images/nis.png') }}" alt="NIS">
-            <div class="login-brand-name">NIS REDAS</div>
+
         </div>
 
-        <h1 class="login-title">Welcome Back</h1>
-        <p class="login-subtitle">Sign in to access your dashboard.</p>
+        <h1 class="login-title">Welcome</h1>
+        <p class="login-subtitle">REDAS Portal</p>
 
         @if($errors->any())
         <div style="background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:var(--radius-md);padding:12px 16px;font-size:.875rem;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;">
@@ -265,43 +265,5 @@
         </div>
     </main>
 </div>
-
-{{-- <div class="modal fade" id="forgotModal" aria-labelledby="forgotModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:var(--radius-lg);border:none;overflow:hidden;">
-            <div class="modal-header" style="background:var(--nis-700);color:white;border:none;padding:16px 20px;">
-                <h5 class="modal-title" id="forgotModalLabel" style="font-weight:700;font-size:1rem;">
-                    <i class="fas fa-key me-2"></i>Reset Your Password
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="padding:24px;">
-                <p style="font-size:.875rem;color:var(--gray-500);margin-bottom:20px;">
-                    Enter your service number and registered email address. We'll send a password reset link to your email.
-                </p>
-                <form id="forgotForm">
-                    <div class="auth-form-group">
-                        <label class="form-label-nis">Service Number</label>
-                        <div class="auth-input-wrap">
-                            <input type="text" class="auth-input" placeholder="NIS/HQ/2023/1234" required>
-                            <span class="auth-input-icon"><i class="fas fa-id-card"></i></span>
-                        </div>
-                    </div>
-                    <div class="auth-form-group">
-                        <label class="form-label-nis">Email Address</label>
-                        <div class="auth-input-wrap">
-                            <input type="email" class="auth-input" placeholder="officer@immigration.gov.ng" required>
-                            <span class="auth-input-icon"><i class="fas fa-envelope"></i></span>
-                        </div>
-                    </div>
-                    <button type="button" class="btn-nis btn-primary-nis full-width"
-                        onclick="REDAS.showToast('Password reset link sent to your email.','success');bootstrap.Modal.getInstance(document.getElementById('forgotModal')).hide();">
-                        <i class="fas fa-paper-plane"></i> Send Reset Link
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div> --}}
 </body>
 </html>

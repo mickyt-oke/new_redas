@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Models\Application;
 use App\Models\User;
 use App\Services\ReportPdfService;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SubmissionReviewController extends Controller
 {
+    use ResolvesHashedModels;
+
     /**
      * Display the review queue for the authenticated approver.
      */
@@ -46,6 +49,16 @@ class SubmissionReviewController extends Controller
             ->limit(50)
             ->get();
 
+        $rejectedSubmissions = Application::query()
+            ->with('user')
+            ->where('status', 'returned')
+            ->when($this->scopeValue($user) !== null, function ($query) use ($user) {
+                $query->where($this->scopeColumn($user), $this->scopeValue($user));
+            })
+            ->latest('updated_at')
+            ->limit(50)
+            ->get();
+
         $approvedCount = Application::query()
             ->where('status', 'approved')
             ->when($this->scopeValue($user) !== null, function ($query) use ($user) {
@@ -60,13 +73,16 @@ class SubmissionReviewController extends Controller
             })
             ->count();
 
-        return view('desk-admin.dashboard', [
+        $view = $user?->user_category === 'zonal_commander' ? 'zonal.dashboard' : 'desk-admin.dashboard';
+
+        return view($view, [
             'accessRole' => $accessRole,
             'stageName' => $stageName,
             'dashboardTitle' => $dashboardTitle,
             'nextStage' => $nextStage,
             'pendingSubmissions' => $pendingSubmissions,
             'approvedSubmissions' => $approvedSubmissions,
+            'rejectedSubmissions' => $rejectedSubmissions,
             'approvedCount' => $approvedCount,
             'rejectedCount' => $rejectedCount,
             'approveRoute' => $this->reviewRoute($user, 'approve'),
@@ -77,8 +93,10 @@ class SubmissionReviewController extends Controller
     /**
      * Show submission preview details for the authenticated approver.
      */
-    public function show(Application $application): View
+    public function show(string $applicationHash): View
     {
+        $application = $this->resolveApplication($applicationHash);
+
         $user = Auth::user();
 
         if (! $user instanceof User) {
@@ -89,7 +107,9 @@ class SubmissionReviewController extends Controller
 
         $application->load(['reviewComments.user']);
 
-        return view('desk-admin.preview', [
+        $view = $user->user_category === 'zonal_commander' ? 'zonal.preview' : 'desk-admin.preview';
+
+        return view($view, [
             'application' => $application,
             'canReview' => $this->canReview($application, $user),
             'approveRoute' => $this->reviewRoute($user, 'approve'),
@@ -138,8 +158,10 @@ class SubmissionReviewController extends Controller
     /**
      * Download a single submission's return data as CSV (default) or PDF.
      */
-    public function download(Request $request, Application $application)
+    public function download(Request $request, string $applicationHash)
     {
+        $application = $this->resolveApplication($applicationHash);
+
         $user = Auth::user();
 
         if (! $user instanceof User) {
@@ -170,8 +192,10 @@ class SubmissionReviewController extends Controller
     /**
      * Stream an uploaded supporting document / attachment for in-browser viewing.
      */
-    public function document(Request $request, Application $application, string $collection, int $index)
+    public function document(Request $request, string $applicationHash, string $collection, int $index)
     {
+        $application = $this->resolveApplication($applicationHash);
+
         $user = Auth::user();
 
         if (! $user instanceof User) {
@@ -205,8 +229,10 @@ class SubmissionReviewController extends Controller
     /**
      * Approve a submission and advance it to the next workflow stage.
      */
-    public function approve(Request $request, Application $application): RedirectResponse
+    public function approve(Request $request, string $applicationHash): RedirectResponse
     {
+        $application = $this->resolveApplication($applicationHash);
+
         $user = Auth::user();
 
         if (! $user instanceof User) {
@@ -227,8 +253,10 @@ class SubmissionReviewController extends Controller
     /**
      * Reject / return a submission to the originating officer for correction.
      */
-    public function reject(Request $request, Application $application): RedirectResponse
+    public function reject(Request $request, string $applicationHash): RedirectResponse
     {
+        $application = $this->resolveApplication($applicationHash);
+
         $user = Auth::user();
 
         if (! $user instanceof User) {

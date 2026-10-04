@@ -44,10 +44,10 @@ $sections = \App\Services\PreviewRenderer::buildSections($data, [
             <p class="page-subtitle">Review the return below before approval or return.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-            <a href="{{ route('user.submissions.pdf', $application) }}" class="btn-nis btn-outline-nis">
+            <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}" class="btn-nis btn-outline-nis">
                 <i class="fas fa-file-pdf"></i> Download PDF
             </a>
-            <a href="{{ route('desk.admin.submissions.download', $application) }}" class="btn-nis btn-outline-nis">
+            <a href="{{ URL::signedRoute('desk.admin.submissions.download', ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}" class="btn-nis btn-outline-nis">
                 <i class="fas fa-download"></i> Download CSV
             </a>
             <a href="{{ route('user.desk.home') }}" class="btn-nis btn-ghost">
@@ -167,13 +167,13 @@ $sections = \App\Services\PreviewRenderer::buildSections($data, [
     <div class="redas-card" style="padding:16px; margin-top:20px;">
         @if($canReview ?? false)
             <div style="display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;align-items:center;">
-                <form method="POST" action="{{ route($approveRoute, $application) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin:0;">
+                <form method="POST" action="{{ URL::signedRoute($approveRoute, ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin:0;">
                     @csrf
                     @method('PATCH')
                     <input type="text" name="note" maxlength="1000" placeholder="Approval note (optional)" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:.82rem;min-width:200px;">
                     <button type="submit" class="btn-nis btn-primary-nis"><i class="fas fa-check"></i> Approve</button>
                 </form>
-                <form method="POST" action="{{ route($rejectRoute, $application) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin:0;">
+                <form method="POST" action="{{ URL::signedRoute($rejectRoute, ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}" style="display:flex;gap:8px;flex-wrap:wrap;margin:0;">
                     @csrf
                     @method('PATCH')
                     <input type="text" name="comment" maxlength="1000" required placeholder="Rejection reason (required)" style="padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px;font-size:.82rem;min-width:200px;">

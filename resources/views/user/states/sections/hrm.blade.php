@@ -83,22 +83,20 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             @php $tabs = [
                 ['cadre','fas fa-users','1. Cadre'],
                 ['rank','fas fa-star','2. Rank'],
-                ['zones','fas fa-map-marker-alt','3. Zones'],
-                ['training','fas fa-chalkboard-teacher','4. Training'],
-                ['records','fas fa-folder-open','5. Records'],
-                ['registry','fas fa-envelope','6. Registry'],
-                ['apu','fas fa-user-plus','7. APU'],
-                ['recruitment','fas fa-user-check','8. Recruitment'],
-                ['career','fas fa-chart-line','9. Career'],
-                ['officer-promotion','fas fa-medal','10. Officer Promo'],
-                ['upgrading-conversion','fas fa-exchange-alt','11. Upgr/Conv'],
-                ['upgrading','fas fa-arrow-up','12. Upgrading'],
-                ['promotion-eligibility','fas fa-clipboard-check','13. Promo Elig'],
-                ['permission-study','fas fa-book-reader','14. Study'],
-                ['pension','fas fa-hand-holding-usd','15. Pension'],
-                ['discipline','fas fa-gavel','16. Discipline'],
-                ['nimcos','fas fa-credit-card','17. NIMCOS'],
-                ['general-report','fas fa-file-alt','18. General Report'],
+                ['training','fas fa-chalkboard-teacher','3. Training'],
+                ['records','fas fa-folder-open','4. Records'],
+                ['registry','fas fa-envelope','5. Registry'],
+                ['recruitment','fas fa-user-check','6. Recruitment'],
+                ['career','fas fa-chart-line','7. Career'],
+                ['officer-promotion','fas fa-medal','8. Officer Promo'],
+                ['upgrading-conversion','fas fa-exchange-alt','9. Upgr/Conv'],
+                ['upgrading','fas fa-arrow-up','10. Upgrading'],
+                ['promotion-eligibility','fas fa-clipboard-check','11. Promo Elig'],
+                ['permission-study','fas fa-book-reader','12. Study'],
+                ['pension','fas fa-hand-holding-usd','13. Pension'],
+                ['discipline','fas fa-gavel','14. Discipline'],
+                ['nimcos','fas fa-credit-card','15. NIMCOS'],
+                ['general-report','fas fa-file-alt','16. General Report'],
             ]; @endphp
             @foreach($tabs as $i => [$id,$icon,$label])
             <button type="button" class="entry-tab {{ $i === 0 ? 'active' : '' }}" data-tab="hrm-{{ $id }}">
@@ -111,7 +109,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <button type="button" class="entry-tab" data-tab="preview">
                 <span class="tab-dot"></span>
                 <i class="fas fa-eye" style="font-size:.78rem;"></i>
-                22. Preview
+                17. Preview
             </button>
             @endif
         </div>
@@ -209,7 +207,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
     </div>
 
     <!-- TAB 3: Personnel Strength by Zones and Command -->
-    <div class="tab-panel" id="tab-hrm-zones">
+    {{-- <div class="tab-panel" id="tab-hrm-zones">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -276,7 +274,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
+    </div> --}}
 
     {{-- <!-- TAB 4: Gender Distribution by Cadre -->
     <div class="tab-panel" id="tab-hrm-gender-cadre">
@@ -448,13 +446,11 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                 <div class="table-responsive">
                     <table class="nis-table">
                         <thead>
-                            <tr><th>S/N</th><th>ZONE</th><th>COMMAND</th><th>DESCRIPTION OF TRAINING</th><th>LOCATION</th><th style="width:120px;">NO. OF PARTICIPANTS</th><th>DURATION</th><th></th></tr>
+                            <tr><th>S/N</th><th>DESCRIPTION OF TRAINING</th><th>LOCATION</th><th style="width:120px;">NO. OF PARTICIPANTS</th><th>DURATION</th><th></th></tr>
                         </thead>
                         <tbody id="hrmTrainingBody">
                             <tr class="data-row">
                                 <td>1</td>
-                                <td><input type="text" name="hrm[training][0][zone]" class="ni" placeholder="Zone"></td>
-                                <td><input type="text" name="hrm[training][0][command]" class="ni" placeholder="Command"></td>
                                 <td><input type="text" name="hrm[training][0][description]" class="ni" placeholder="Description"></td>
                                 <td><input type="text" name="hrm[training][0][location]" class="ni" placeholder="Location"></td>
                                 <td><input type="number" name="hrm[training][0][participants]" class="ni hrm-training-participants" min="0" placeholder="0" value="{{ old('hrm.training.0.participants') }}"></td>
@@ -462,7 +458,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                                 <td><button type="button" class="btn-nis btn-ghost btn-sm hrm-remove-row" style="color:var(--color-danger);padding:2px 6px;"><i class="fas fa-times"></i></button></td>
                             </tr>
                             <tr class="total-row">
-                                <td colspan="5"><strong>TOTAL</strong></td>
+                                <td colspan="3"><strong>TOTAL</strong></td>
                                 <td><input type="number" id="hrm-training-grand-total" class="ni" readonly placeholder="0"></td>
                                 <td colspan="2"></td>
                             </tr>
@@ -568,7 +564,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
     </div>
 
     <!-- TAB 10: Appointment, Promotion and Upgrading (APU) -->
-    <div class="tab-panel" id="tab-hrm-apu">
+    {{-- <div class="tab-panel" id="tab-hrm-apu">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -585,7 +581,17 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                         <tbody id="hrmApuBody">
                             <tr class="data-row">
                                 <td>1</td>
-                                <td><input type="text" name="hrm[apu][0][rank]" class="ni" placeholder="Rank"></td>
+                                <td><select name="hrm[apu][0][rank]" class="ni">
+                                    <option value="">Select Rank</option>
+                                    <option value="Private">Private</option>
+                                    <option value="Corporal">Corporal</option>
+                                    <option value="Sergeant">Sergeant</option>
+                                    <option value="Lieutenant">Lieutenant</option>
+                                    <option value="Captain">Captain</option>
+                                    <option value="Major">Major</option>
+                                    <option value="Colonel">Colonel</option>
+                                    <option value="General">General</option>
+                                </select></td>
                                 <td><input type="number" name="hrm[apu][0][total]" class="ni hrm-apu-total" min="0" placeholder="0" value="{{ old('hrm.apu.0.total') }}"></td>
                                 <td><button type="button" class="btn-nis btn-ghost btn-sm hrm-remove-row" style="color:var(--color-danger);padding:2px 6px;"><i class="fas fa-times"></i></button></td>
                             </tr>
@@ -607,7 +613,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
+    </div> --}}
 
     <!-- TAB 11: Recruitment (if any) -->
     <div class="tab-panel" id="tab-hrm-recruitment">

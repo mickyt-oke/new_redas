@@ -180,7 +180,7 @@
                                 <td>{{ $return->return_data['report_period'] ?? '—' }}</td>
                                 <td>{{ optional($return->updated_at)->format('d M Y') }}</td>
                                 <td style="text-align:right;">
-                                    <a href="{{ route('superadmin.returns.show', $return) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
+                                    <a href="{{ route('superadmin.returns.show', ['applicationHash' => \App\Services\HashidService::encode($return->id)]) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
                                 </td>
                             </tr>
                         @empty

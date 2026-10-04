@@ -85,7 +85,7 @@
         $officerValue = old('reporting_officer', $editData['reporting_officer'] ?? ($stateUser?->name ?? ''));
     @endphp
 
-    <form id="stateReturnForm" method="POST" enctype="multipart/form-data" action="{{ isset($editing) ? route('user.returns.update', $editing) : route('user.returns.store') }}">
+    <form id="stateReturnForm" method="POST" enctype="multipart/form-data" action="{{ isset($editing) ? route('user.returns.update', ['applicationHash' => \App\Services\HashidService::encode($editing->id)]) : route('user.returns.store') }}">
         @csrf
         @isset($editing)
             @method('PUT')

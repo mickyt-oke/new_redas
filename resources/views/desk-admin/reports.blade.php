@@ -109,10 +109,10 @@
                                     <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->created_at)->format('d M Y, H:i') }}</td>
                                     <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
                                         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                            <a href="{{ route('desk.admin.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
+                                            <a href="{{ route('desk.admin.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
                                                 <i class="fas fa-eye"></i> View
                                             </a>
-                                            <a href="{{ route('desk.admin.submissions.download', $submission) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                            <a href="{{ URL::signedRoute('desk.admin.submissions.download', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
                                                 <i class="fas fa-download"></i> Download
                                             </a>
                                         </div>

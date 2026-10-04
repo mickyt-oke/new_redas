@@ -12,21 +12,25 @@ class JwtService
         private readonly string $secret,
         private readonly string $issuer = 'nis-redas',
         private readonly int $accessTtlSeconds = 900, // 15 minutes
-        private readonly int $refreshTtlSeconds = 2592000 // 30 days
+        private readonly int $refreshTtlSeconds = 604800 // 7 days
     ) {
     }
 
     public static function fromEnv(): self
     {
-        // In test/dev environments JWT_SECRET may be unset; provide a safe fallback
-        // to avoid php-jwt "Provided key is too short" errors.
-        $defaultSecret = 'dev-fallback-jwt-secret-dev-fallback'; // >= 32 chars
+        $secret = env('JWT_SECRET');
+        if (!$secret && app()->environment('production')) {
+            throw new \RuntimeException('JWT_SECRET must be set in production environments.');
+        }
+
+        // Fallback only for non-production environments
+        $secret = $secret ?: 'dev-fallback-jwt-secret-dev-fallback';
 
         return new self(
-            secret: (string) env('JWT_SECRET', $defaultSecret),
+            secret: (string) $secret,
             issuer: (string) env('JWT_ISSUER', 'nis-redas'),
             accessTtlSeconds: (int) env('JWT_ACCESS_TTL', 900),
-            refreshTtlSeconds: (int) env('JWT_REFRESH_TTL', 2592000),
+            refreshTtlSeconds: (int) env('JWT_REFRESH_TTL', 604800),
         );
     }
 

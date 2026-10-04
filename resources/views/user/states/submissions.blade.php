@@ -117,14 +117,14 @@
                             <td style="font-size:.78rem;color:var(--gray-500);">{{ $submission->created_at?->format('d M Y') ?? '—' }}</td>
                             <td>
                                 <div style="display:flex;gap:4px;">
-                                    <a href="{{ route('user.returns.show', $submission) }}" class="btn-nis btn-ghost btn-sm" title="View Details">
+                                    <a href="{{ route('user.returns.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-ghost btn-sm" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @if($status !== 'approved')
-                                    <a href="{{ route('user.returns.edit', $submission) }}" class="btn-nis btn-sm" style="background:var(--gold-50);border:1px solid var(--gold-300);color:var(--gold-700);padding:4px 8px;" title="Edit & Resubmit">
+                                    <a href="{{ route('user.returns.edit', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm" style="background:var(--gold-50);border:1px solid var(--gold-300);color:var(--gold-700);padding:4px 8px;" title="Edit & Resubmit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form method="POST" action="{{ route('user.returns.destroy', $submission) }}" style="display:inline;" onsubmit="return confirm('Delete this return permanently? This cannot be undone.');">
+                                    <form method="POST" action="{{ \Illuminate\Support\Facades\URL::signedRoute('user.returns.destroy', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" style="display:inline;" onsubmit="return confirm('Delete this return permanently? This cannot be undone.');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-nis btn-ghost btn-sm" style="color:#b91c1c;" title="Delete">

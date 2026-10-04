@@ -27,7 +27,7 @@
 
     <div class="redas-card">
         <div class="card-body" style="padding:24px;">
-            <form method="POST" action="{{ route('admin.users.update', $user) }}">
+            <form method="POST" action="{{ URL::signedRoute('admin.users.update', ['userHash' => \App\Services\HashidService::encode($user->id)]) }}">
                 @csrf
                 @method('PATCH')
 
@@ -73,9 +73,26 @@
                     </select>
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:18px;">
+                @php
+                    $formationCodes = array_merge(
+                        array_column($zonalOffices, 'code'),
+                        array_column($stateCommands, 'code'),
+                        array_column($specialCommands, 'code')
+                    );
+                    $currentFormation = old('formation_code', in_array($user->primary_location_code, $formationCodes, true) ? $user->primary_location_code : '');
+                @endphp
+
+                <div class="auth-form-group" id="formationGroup" style="margin-bottom:18px;">
+                    <label class="form-label-nis">Formation</label>
+                    <select name="formation_code" class="auth-input" id="formationSelect">
+                        <option value="" disabled {{ $currentFormation === '' ? 'selected' : '' }}>Select formation</option>
+                    </select>
+                    <small class="text-muted" id="formationHelp">Pick the state command, zone or special command this account belongs to.</small>
+                </div>
+
+                <div class="auth-form-group" id="locationCodeGroup" style="margin-bottom:18px;display:none;">
                     <label class="form-label-nis">Primary Location Code</label>
-                    <input type="text" name="primary_location_code" value="{{ old('primary_location_code', $user->primary_location_code) }}" class="auth-input" placeholder="e.g. LA, AB, HRM">
+                    <input type="text" name="primary_location_code" value="{{ old('primary_location_code', in_array($user->primary_location_code, $formationCodes, true) ? '' : $user->primary_location_code) }}" class="auth-input" placeholder="e.g. HRM, ACTU">
                 </div>
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
@@ -89,11 +106,7 @@
                     <small class="text-muted">Required for CGIS Unit User and CGIS Unit Desk Admin accounts.</small>
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:18px;">
-                    <label class="form-label-nis">State Override</label>
-                    <input type="text" name="geo_state" value="{{ old('geo_state', $user->geo_state) }}" class="auth-input" placeholder="Optional state code">
-                    <small class="text-muted">Set a required login state override for this user.</small>
-                </div>
+                <input type="hidden" name="geo_state" id="geoStateInput" value="{{ old('geo_state', $user->geo_state) }}">
 
                 <div class="auth-form-group" style="margin-bottom:18px;display:flex;align-items:center;gap:12px;">
                     <label class="switch">
@@ -120,5 +133,88 @@
         </div>
     </div>
 </main>
+
+<script>
+(function () {
+    var categorySelect = document.querySelector('select[name="user_category"]');
+    var locationSelect = document.querySelector('select[name="primary_location_type"]');
+    var formationGroup = document.getElementById('formationGroup');
+    var formationSelect = document.getElementById('formationSelect');
+    var locationCodeGroup = document.getElementById('locationCodeGroup');
+    var geoStateInput = document.getElementById('geoStateInput');
+
+    var zonalOffices = @json($zonalOffices);
+    var stateCommands = @json($stateCommands);
+    var specialCommands = @json($specialCommands);
+    var selectedFormation = @json($currentFormation);
+
+    function buildOptions() {
+        formationSelect.innerHTML = '<option value="" disabled>Select formation</option>';
+        var category = categorySelect ? categorySelect.value : '';
+        var location = locationSelect ? locationSelect.value : '';
+
+        if (location === 'zonal' || category === 'zonal_user' || category === 'zonal_commander') {
+            addGroup('Zonal Offices', zonalOffices);
+        }
+
+        if (location === 'state' || category === 'state_user' || category === 'desk_admin') {
+            addGroup('State Commands', stateCommands);
+            addGroup('Special Commands', specialCommands);
+        }
+
+        if (selectedFormation) {
+            var option = formationSelect.querySelector('option[value="' + CSS.escape(selectedFormation) + '"]');
+            if (option) {
+                option.selected = true;
+                if (option.dataset.geoState) {
+                    geoStateInput.value = option.dataset.geoState;
+                }
+            }
+        }
+    }
+
+    function addGroup(label, items) {
+        if (!items.length) return;
+        var optgroup = document.createElement('optgroup');
+        optgroup.label = label;
+        items.forEach(function (item) {
+            var option = document.createElement('option');
+            option.value = item.code;
+            option.textContent = item.label;
+            option.dataset.geoState = item.state || '';
+            if (item.code === selectedFormation) option.selected = true;
+            optgroup.appendChild(option);
+        });
+        formationSelect.appendChild(optgroup);
+    }
+
+    function updateForm() {
+        var location = locationSelect ? locationSelect.value : '';
+        var needsFormation = (location === 'state' || location === 'zonal');
+
+        if (needsFormation) {
+            formationGroup.style.display = '';
+            locationCodeGroup.style.display = 'none';
+            buildOptions();
+        } else {
+            formationGroup.style.display = 'none';
+            locationCodeGroup.style.display = '';
+            formationSelect.innerHTML = '<option value="" disabled>Select formation</option>';
+        }
+    }
+
+    if (categorySelect) categorySelect.addEventListener('change', updateForm);
+    if (locationSelect) locationSelect.addEventListener('change', updateForm);
+
+    formationSelect.addEventListener('change', function () {
+        var selected = formationSelect.options[formationSelect.selectedIndex];
+        if (selected && selected.dataset.geoState) {
+            geoStateInput.value = selected.dataset.geoState;
+        }
+    });
+
+    updateForm();
+})();
+</script>
 
 @include('partials.footer')

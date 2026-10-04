@@ -134,7 +134,7 @@
                                 </td>
                                 <td style="font-size:.78rem;color:var(--gray-500);">{{ $submission->created_at?->format('d M Y') ?? '—' }}</td>
                                 <td>
-                                    <a href="{{ route('user.returns.show', $submission) }}" class="btn-nis btn-ghost btn-sm" title="View Details">
+                                    <a href="{{ route('user.returns.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-ghost btn-sm" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                 </td>

@@ -148,8 +148,6 @@ $rankRows = [
                         <thead>
                             <tr>
                                 <th style="width:40px;">S/N</th>
-                                <th style="min-width:160px;">SHQ / Zones</th>
-                                <th style="min-width:100px;">Command</th>
                                 <th>Cases involving Companies</th>
                                 <th>Cases involving Expatriates</th>
                                 <th>Cases involving Officers</th>
@@ -159,63 +157,14 @@ $rankRows = [
                         </thead>
                         <tbody>
                             @php $sn = 0; @endphp
-                            {{-- SHQ row --}}
-                            <tr class="zone-row">
+                            <tr>
                                 <td>{{ ++$sn }}</td>
-                                <td><strong>SHQ</strong></td>
-                                <td></td>
-                                @foreach(['companies', 'expatriates', 'officers', 'nigerians'] as $col)
-                                    <td>
-                                        <input type="number" min="0" class="ni qty-input"
-                                               name="breach[SHQ][_shq][{{ $col }}]"
-                                               value="{{ old('breach.SHQ._shq.'.$col) }}" placeholder="0">
-                                    </td>
-                                @endforeach
-                                <td>
-                                    <input type="number" min="0" class="ni row-total" readonly tabindex="-1"
-                                           name="breach[SHQ][_shq][total]"
-                                           value="{{ old('breach.SHQ._shq.total') }}" placeholder="0">
-                                </td>
+                                <td><input type="number" class="form-control" value="0"></td>
+                                <td><input type="number" class="form-control" value="0"></td>
+                                <td><input type="number" class="form-control" value="0"></td>
+                                <td><input type="number" class="form-control" value="0"></td>
+                                <td><strong>0</strong></td>
                             </tr>
-                            @foreach($zoneMap as $zoneKey => $zone)
-                                @continue($zoneKey === 'SHQ')
-                                <tr class="zone-row">
-                                    <td>{{ ++$sn }}</td>
-                                    <td><strong>{{ $zone['label'] }}</strong></td>
-                                    <td></td>
-                                    @foreach(['companies', 'expatriates', 'officers', 'nigerians'] as $col)
-                                        <td>
-                                            <input type="number" min="0" class="ni qty-input"
-                                                   name="breach[{{ $zoneKey }}][_zone][{{ $col }}]"
-                                                   value="{{ old('breach.'.$zoneKey.'._zone.'.$col) }}" placeholder="0">
-                                        </td>
-                                    @endforeach
-                                    <td>
-                                        <input type="number" min="0" class="ni row-total" readonly tabindex="-1"
-                                               name="breach[{{ $zoneKey }}][_zone][total]"
-                                               value="{{ old('breach.'.$zoneKey.'._zone.total') }}" placeholder="0">
-                                    </td>
-                                </tr>
-                                @foreach($zone['commands'] as $cmd)
-                                    <tr>
-                                        <td>{{ ++$sn }}</td>
-                                        <td></td>
-                                        <td style="padding-left:22px;">{{ $cmd }}</td>
-                                        @foreach(['companies', 'expatriates', 'officers', 'nigerians'] as $col)
-                                            <td>
-                                                <input type="number" min="0" class="ni qty-input"
-                                                       name="breach[{{ $zoneKey }}][{{ $cmd }}][{{ $col }}]"
-                                                       value="{{ old('breach.'.$zoneKey.'.'.$cmd.'.'.$col) }}" placeholder="0">
-                                            </td>
-                                        @endforeach
-                                        <td>
-                                            <input type="number" min="0" class="ni row-total" readonly tabindex="-1"
-                                                   name="breach[{{ $zoneKey }}][{{ $cmd }}][total]"
-                                                   value="{{ old('breach.'.$zoneKey.'.'.$cmd.'.total') }}" placeholder="0">
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -225,13 +174,13 @@ $rankRows = [
         {{-- ============ 3. DFU (DOCUMENT FRAUD UNIT) ACTIVITIES ============ --}}
         @php
             $dfuCols = [
-                'dfit_team'       => 'Document Fraud Investigation Team',
-                'inv_exam'        => 'Investigation Examination',
-                'retrieval'       => 'Retrieval / Released Passport',
-                'nigerians'       => 'Cases Involving Nigerians',
-                'border_fwd'      => 'Cases Forwarded from Border Points',
+                'dfit_team'       => 'DFU Investigation Team',
+                'inv_exam'        => 'Inv. Examination',
+                'retrieval'       => 'Retrieval / Released Ppt',
+                'nigerians'       => 'Cases (Nigerians)',
+                'border_fwd'      => 'Cases Forwarded',
                 'legal_unit'      => 'Legal Unit (Passports)',
-                'attestation'     => 'Attestation / Breeder Documents',
+                'attestation'     => 'Attestation/Breeder Docs',
                 'authentication'  => 'Authentication (Passport)',
                 'cgis'            => 'CGIS (Passports)',
                 'shq_damaged'     => 'SHQ Damaged Passport',

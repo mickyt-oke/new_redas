@@ -63,7 +63,7 @@
                                 in_array($ext, ['doc', 'docx'], true) => ['#eff6ff', '#1d4ed8', 'fa-file-word'],
                                 default => ['#f8fafc', '#475569', 'fa-file'],
                             };
-                            $docUrl = route($docRoute, [$application, $collection, $i]);
+                            $docUrl = \Illuminate\Support\Facades\URL::signedRoute($docRoute, ['applicationHash' => \App\Services\HashidService::encode($application->id), 'collection' => $collection, 'index' => $i]);
                         @endphp
                         <div class="doc-card"
                              data-doc-url="{{ $docUrl }}"

@@ -69,10 +69,10 @@
                                     </span>
                                 </td>
                                 <td style="white-space:nowrap;">
-                                    <a href="{{ route('admin.users.edit', $user) }}" class="btn-nis btn-ghost btn-sm" style="margin-right:4px;">
+                                    <a href="{{ route('admin.users.edit', ['userHash' => \App\Services\HashidService::encode($user->id)]) }}" class="btn-nis btn-ghost btn-sm" style="margin-right:4px;">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('admin.users.toggle_status', $user) }}" method="POST" style="display:inline;">
+                                    <form action="{{ URL::signedRoute('admin.users.toggle_status', ['userHash' => \App\Services\HashidService::encode($user->id)]) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('PATCH')
                                         <button type="submit" class="btn-nis btn-sm" style="background:{{ $user->is_enabled ? '#fde8e8' : '#e8f8ef' }}; color:{{ $user->is_enabled ? '#b91c1c' : '#166534' }}; border:1px solid {{ $user->is_enabled ? '#fca5a5' : '#a7f3d0' }};">

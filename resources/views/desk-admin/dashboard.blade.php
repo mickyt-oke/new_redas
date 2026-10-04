@@ -13,6 +13,7 @@
         $rejectRoute = $rejectRoute ?? 'desk.admin.submissions.reject';
         $pendingSubmissions = $pendingSubmissions ?? collect();
         $approvedSubmissions = $approvedSubmissions ?? collect();
+        $rejectedSubmissions = $rejectedSubmissions ?? collect();
         $approvedCount = $approvedCount ?? 0;
         $rejectedCount = $rejectedCount ?? 0;
 
@@ -131,15 +132,17 @@
                                 <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->created_at)->format('d M Y, H:i') }}</td>
                                 <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
                                     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
-                                        <a href="{{ route('desk.admin.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">Preview</a>
-                                        <form method="POST" action="{{ route($approveRoute, $submission) }}" style="display:flex;gap:8px;flex-wrap:wrap;min-width:240px;">
+                                        <a href="{{ route('desk.admin.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </a>
+                                        <form method="POST" action="{{ \Illuminate\Support\Facades\URL::signedRoute($approveRoute, ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" style="display:flex;gap:8px;flex-wrap:wrap;min-width:240px;">
                                             @csrf
                                             @method('PATCH')
                                             <input type="text" name="comment" maxlength="1000" placeholder="Approval note (optional)" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:.75rem;flex:1;min-width:140px;">
                                             <button type="submit" class="btn-nis btn-sm btn-primary-nis">Approve</button>
                                         </form>
 
-                                        <form method="POST" action="{{ route($rejectRoute, $submission) }}" style="display:flex;gap:8px;flex-wrap:wrap;min-width:260px;">
+                                        <form method="POST" action="{{ \Illuminate\Support\Facades\URL::signedRoute($rejectRoute, ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" style="display:flex;gap:8px;flex-wrap:wrap;min-width:260px;">
                                             @csrf
                                             @method('PATCH')
                                             <input type="text" name="comment" maxlength="1000" required placeholder="Rejection reason (required)" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:.75rem;flex:1;min-width:140px;">
@@ -198,13 +201,13 @@
                                 <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->updated_at)->format('d M Y, H:i') }}</td>
                                 <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
                                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                        <a href="{{ route('desk.admin.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
-                                            <i class="fas fa-eye"></i> View
+                                        <a href="{{ route('desk.admin.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
+                                            <i class="fas fa-eye"></i> Preview
                                         </a>
-                                        <a href="{{ route('user.submissions.pdf', $submission) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                        <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
                                             <i class="fas fa-file-pdf"></i> PDF
                                         </a>
-                                        <a href="{{ route('desk.admin.submissions.download', $submission) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                        <a href="{{ URL::signedRoute('desk.admin.submissions.download', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
                                             <i class="fas fa-download"></i> Download
                                         </a>
                                     </div>
@@ -213,6 +216,68 @@
                         @empty
                             <tr>
                                 <td colspan="6" style="padding:16px;text-align:center;color:#64748b;">No approved submissions in your provisioned scope yet.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="redas-card" style="margin-top:20px;">
+        <div class="card-head">
+            <div class="card-head-title">
+                <div class="card-head-icon" style="background:#fee2e2;color:#991b1b;">
+                    <i class="fas fa-circle-xmark"></i>
+                </div>
+                Rejected Submissions
+            </div>
+            <a href="{{ route('desk.admin.reports', ['status' => 'returned']) }}" class="btn-nis btn-ghost btn-sm">
+                <i class="fas fa-file-export"></i> Export Report
+            </a>
+        </div>
+        <div class="card-body no-pad">
+            <div style="overflow:auto;">
+                <table style="width:100%;border-collapse:collapse;min-width:720px;">
+                    <thead>
+                        <tr style="background:#f8fafc;">
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">ID</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Officer</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Report Period</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Status</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Returned</th>
+                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($rejectedSubmissions as $submission)
+                            <tr>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">#{{ $submission->id }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->user)->name ?? 'N/A' }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ $submission->return_data['report_period'] ?? '—' }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
+                                    <span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:#fee2e2;color:#991b1b;font-size:.72rem;font-weight:700;">
+                                        {{ ucfirst($submission->status) }}
+                                    </span>
+                                </td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->updated_at)->format('d M Y, H:i') }}</td>
+                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
+                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                        <a href="{{ route('desk.admin.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
+                                            <i class="fas fa-eye"></i> Preview
+                                        </a>
+                                        <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                            <i class="fas fa-file-pdf"></i> PDF
+                                        </a>
+                                        <a href="{{ URL::signedRoute('desk.admin.submissions.download', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="padding:16px;text-align:center;color:#64748b;">No rejected submissions in your provisioned scope yet.</td>
                             </tr>
                         @endforelse
                     </tbody>

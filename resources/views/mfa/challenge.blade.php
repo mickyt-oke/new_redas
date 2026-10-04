@@ -26,8 +26,8 @@
 
     <!-- ─── Left Panel: Branding ─── -->
     <aside class="auth-left">
-        <div class="auth-deco-circle" style="width:280px;height:280px;bottom:-80px;left:-80px;background:rgba(197,146,42,0.06);"></div>
-        <div class="auth-deco-circle" style="width:160px;height:160px;top:60px;right:-40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"></div>
+        {{-- <div class="auth-deco-circle" style="width:280px;height:280px;bottom:-80px;left:-80px;background:rgba(197,146,42,0.06);"></div>
+        <div class="auth-deco-circle" style="width:160px;height:160px;top:60px;right:-40px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);"></div> --}}
 
         <div class="auth-brand animate-fade-up">
             <img src="{{ asset('assets/images/nis.png') }}" alt="NIS" class="auth-brand-logo">

@@ -9,7 +9,7 @@
 
 {{-- Supporting documents upload. Kept out of the shared section partial: the
      combined state form provides a single shared attachments[] input instead. --}}
-<div class="redas-card" style="margin-bottom:14px;">
+{{-- <div class="redas-card" style="margin-bottom:14px;">
     <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
         <div class="card-head-title">
             <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-paperclip"></i></div>
@@ -27,7 +27,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 <script>
 (function () {

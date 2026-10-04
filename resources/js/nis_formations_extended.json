@@ -1,0 +1,858 @@
+{
+  "organization": {
+    "name": "Nigeria Immigration Service",
+    "short_name": "NIS",
+    "country": "Nigeria",
+    "headquarters": {
+      "formation_type": "Service Headquarters",
+      "name": "Nigeria Immigration Service Headquarters",
+      "location": "Abuja",
+      "state": "Federal Capital Territory",
+      "state_code": "FCT",
+      "address": "Umar Musa Yar Adu'a Express Way, Airport Road, Sauka, Abuja, FCT, Nigeria"
+    }
+  },
+
+  "formation_categories": [
+    "Service Headquarters",
+    "Zonal Offices",
+    "State Commands",
+    "Special Commands",
+    "Passport Commands",
+    "Passport Offices",
+    "Passport Front Offices",
+    "Airport Commands",
+    "Seaport Commands",
+    "Marine Commands",
+    "Land Border Commands",
+    "Border Control Posts",
+    "Border Patrol Bases",
+    "Area Offices",
+    "Local Government Immigration Offices",
+    "Training Institutions",
+    "CERPAC Centres",
+    "Air Border Patrol Bases",
+    "Marine Patrol Bases",
+    "Immigration Command and Staff College",
+    "Foreign Missions / Immigration Desks"
+  ],
+
+  "zonal_offices": [
+    {
+      "zone": "Zone A",
+      "headquarters_city": "Ikeja",
+      "state": "Lagos"
+    },
+    {
+      "zone": "Zone B",
+      "headquarters_city": "Kaduna",
+      "state": "Kaduna"
+    },
+    {
+      "zone": "Zone C",
+      "headquarters_city": "Bauchi",
+      "state": "Bauchi"
+    },
+    {
+      "zone": "Zone D",
+      "headquarters_city": "Minna",
+      "state": "Niger"
+    },
+    {
+      "zone": "Zone E",
+      "headquarters_city": "Owerri",
+      "state": "Imo"
+    },
+    {
+      "zone": "Zone F",
+      "headquarters_city": "Ibadan",
+      "state": "Oyo"
+    },
+    {
+      "zone": "Zone G",
+      "headquarters_city": "Benin City",
+      "state": "Edo"
+    },
+    {
+      "zone": "Zone H",
+      "headquarters_city": "Makurdi",
+      "state": "Benue"
+    }
+  ],
+
+  "state_commands": [
+    {
+      "state": "Abia",
+      "command": "Abia State Command",
+      "headquarters": "Umuahia"
+    },
+    {
+      "state": "Adamawa",
+      "command": "Adamawa State Command",
+      "headquarters": "Yola"
+    },
+    {
+      "state": "Akwa Ibom",
+      "command": "Akwa Ibom State Command",
+      "headquarters": "Uyo"
+    },
+    {
+      "state": "Anambra",
+      "command": "Anambra State Command",
+      "headquarters": "Awka"
+    },
+    {
+      "state": "Bauchi",
+      "command": "Bauchi State Command",
+      "headquarters": "Bauchi"
+    },
+    {
+      "state": "Bayelsa",
+      "command": "Bayelsa State Command",
+      "headquarters": "Yenagoa"
+    },
+    {
+      "state": "Benue",
+      "command": "Benue State Command",
+      "headquarters": "Makurdi"
+    },
+    {
+      "state": "Borno",
+      "command": "Borno State Command",
+      "headquarters": "Maiduguri"
+    },
+    {
+      "state": "Cross River",
+      "command": "Cross River State Command",
+      "headquarters": "Calabar"
+    },
+    {
+      "state": "Delta",
+      "command": "Delta State Command",
+      "headquarters": "Asaba"
+    },
+    {
+      "state": "Ebonyi",
+      "command": "Ebonyi State Command",
+      "headquarters": "Abakaliki"
+    },
+    {
+      "state": "Edo",
+      "command": "Edo State Command",
+      "headquarters": "Benin City"
+    },
+    {
+      "state": "Ekiti",
+      "command": "Ekiti State Command",
+      "headquarters": "Ado-Ekiti"
+    },
+    {
+      "state": "Enugu",
+      "command": "Enugu State Command",
+      "headquarters": "Enugu"
+    },
+    {
+      "state": "Gombe",
+      "command": "Gombe State Command",
+      "headquarters": "Gombe"
+    },
+    {
+      "state": "Imo",
+      "command": "Imo State Command",
+      "headquarters": "Owerri"
+    },
+    {
+      "state": "Jigawa",
+      "command": "Jigawa State Command",
+      "headquarters": "Dutse"
+    },
+    {
+      "state": "Kaduna",
+      "command": "Kaduna State Command",
+      "headquarters": "Kaduna"
+    },
+    {
+      "state": "Kano",
+      "command": "Kano State Command",
+      "headquarters": "Kano"
+    },
+    {
+      "state": "Katsina",
+      "command": "Katsina State Command",
+      "headquarters": "Katsina"
+    },
+    {
+      "state": "Kebbi",
+      "command": "Kebbi State Command",
+      "headquarters": "Birnin Kebbi"
+    },
+    {
+      "state": "Kogi",
+      "command": "Kogi State Command",
+      "headquarters": "Lokoja"
+    },
+    {
+      "state": "Kwara",
+      "command": "Kwara State Command",
+      "headquarters": "Ilorin"
+    },
+    {
+      "state": "Lagos",
+      "command": "Lagos State Command",
+      "headquarters": "Ikoyi, Lagos"
+    },
+    {
+      "state": "Nasarawa",
+      "command": "Nasarawa State Command",
+      "headquarters": "Lafia"
+    },
+    {
+      "state": "Niger",
+      "command": "Niger State Command",
+      "headquarters": "Minna"
+    },
+    {
+      "state": "Ogun",
+      "command": "Ogun State Command",
+      "headquarters": "Abeokuta"
+    },
+    {
+      "state": "Ondo",
+      "command": "Ondo State Command",
+      "headquarters": "Akure"
+    },
+    {
+      "state": "Osun",
+      "command": "Osun State Command",
+      "headquarters": "Osogbo"
+    },
+    {
+      "state": "Oyo",
+      "command": "Oyo State Command",
+      "headquarters": "Ibadan"
+    },
+    {
+      "state": "Plateau",
+      "command": "Plateau State Command",
+      "headquarters": "Jos"
+    },
+    {
+      "state": "Rivers",
+      "command": "Rivers State Command",
+      "headquarters": "Port Harcourt"
+    },
+    {
+      "state": "Sokoto",
+      "command": "Sokoto State Command",
+      "headquarters": "Sokoto"
+    },
+    {
+      "state": "Taraba",
+      "command": "Taraba State Command",
+      "headquarters": "Jalingo"
+    },
+    {
+      "state": "Yobe",
+      "command": "Yobe State Command",
+      "headquarters": "Damaturu"
+    },
+    {
+      "state": "Zamfara",
+      "command": "Zamfara State Command",
+      "headquarters": "Gusau"
+    },
+    {
+      "state": "Federal Capital Territory",
+      "command": "FCT Command",
+      "headquarters": "Abuja"
+    }
+  ],
+
+  "passport_offices": [
+    {
+      "state": "Abia",
+      "offices": ["Umuahia Passport Office"]
+    },
+    {
+      "state": "Adamawa",
+      "offices": ["Yola Passport Office"]
+    },
+    {
+      "state": "Akwa Ibom",
+      "offices": ["Uyo Passport Office"]
+    },
+    {
+      "state": "Anambra",
+      "offices": ["Awka Passport Office"]
+    },
+    {
+      "state": "Bauchi",
+      "offices": ["Bauchi Passport Office"]
+    },
+    {
+      "state": "Bayelsa",
+      "offices": ["Yenagoa Passport Office"]
+    },
+    {
+      "state": "Benue",
+      "offices": ["Makurdi Passport Office"]
+    },
+    {
+      "state": "Borno",
+      "offices": ["Maiduguri Passport Office"]
+    },
+    {
+      "state": "Cross River",
+      "offices": ["Calabar Passport Office"]
+    },
+    {
+      "state": "Delta",
+      "offices": [
+        "Asaba Passport Office",
+        "Warri Passport Office"
+      ]
+    },
+    {
+      "state": "Ebonyi",
+      "offices": ["Abakaliki Passport Office"]
+    },
+    {
+      "state": "Edo",
+      "offices": ["Benin City Passport Office"]
+    },
+    {
+      "state": "Ekiti",
+      "offices": ["Ado-Ekiti Passport Office"]
+    },
+    {
+      "state": "Enugu",
+      "offices": ["Enugu Passport Office"]
+    },
+    {
+      "state": "Gombe",
+      "offices": ["Gombe Passport Office"]
+    },
+    {
+      "state": "Imo",
+      "offices": ["Owerri Passport Office"]
+    },
+    {
+      "state": "Jigawa",
+      "offices": ["Dutse Passport Office"]
+    },
+    {
+      "state": "Kaduna",
+      "offices": ["Kaduna Passport Office"]
+    },
+    {
+      "state": "Kano",
+      "offices": ["Kano Passport Office"]
+    },
+    {
+      "state": "Katsina",
+      "offices": ["Katsina Passport Office"]
+    },
+    {
+      "state": "Kebbi",
+      "offices": ["Birnin Kebbi Passport Office"]
+    },
+    {
+      "state": "Kogi",
+      "offices": ["Lokoja Passport Office"]
+    },
+    {
+      "state": "Kwara",
+      "offices": [
+        "Ilorin Passport Office",
+        "Offa Passport Office"
+      ]
+    },
+    {
+      "state": "Lagos",
+      "offices": [
+        "Alausa Passport Office",
+        "Ikoyi Passport Office",
+        "Festac Passport Office"
+      ]
+    },
+    {
+      "state": "Nasarawa",
+      "offices": ["Lafia Passport Office"]
+    },
+    {
+      "state": "Niger",
+      "offices": ["Minna Passport Office"]
+    },
+    {
+      "state": "Ogun",
+      "offices": ["Sango-Ota Passport Office"]
+    },
+    {
+      "state": "Ondo",
+      "offices": [
+        "Akure Passport Office",
+        "Ile-Oluji Passport Office"
+      ]
+    },
+    {
+      "state": "Osun",
+      "offices": ["Osogbo Passport Office"]
+    },
+    {
+      "state": "Oyo",
+      "offices": ["Ibadan Passport Office"]
+    },
+    {
+      "state": "Plateau",
+      "offices": ["Jos Passport Office"]
+    },
+    {
+      "state": "Rivers",
+      "offices": ["Port Harcourt Passport Office"]
+    },
+    {
+      "state": "Sokoto",
+      "offices": ["Sokoto Passport Office"]
+    },
+    {
+      "state": "Taraba",
+      "offices": ["Jalingo Passport Office"]
+    },
+    {
+      "state": "Yobe",
+      "offices": ["Damaturu Passport Office"]
+    },
+    {
+      "state": "Zamfara",
+      "offices": ["Gusau Passport Office"]
+    },
+    {
+      "state": "Federal Capital Territory",
+      "offices": ["Abuja Passport Office"]
+    }
+  ],
+
+  "passport_front_offices": [
+    {
+      "state": "Federal Capital Territory",
+      "location": "State House",
+      "type": "Passport Front-end Desk"
+    },
+    {
+      "state": "Federal Capital Territory",
+      "location": "National Assembly",
+      "type": "Passport Front-end Desk"
+    },
+    {
+      "state": "Federal Capital Territory",
+      "location": "Ministry of Foreign Affairs",
+      "type": "Passport Front-end Desk"
+    }
+  ],
+
+  "lagos_passport_front_offices": [
+    {
+      "state": "Lagos",
+      "location": "Alimosho",
+      "type": "Passport Front Office"
+    }
+  ],
+
+  "special_commands": [
+    {
+      "name": "Seme Command",
+      "location": "Seme",
+      "state": "Lagos",
+      "country_border": "Benin Republic",
+      "command_type": "Land Border Special Command"
+    },
+    {
+      "name": "Idi-Iroko Command",
+      "location": "Idi-Iroko",
+      "state": "Ogun",
+      "country_border": "Benin Republic",
+      "command_type": "Land Border Special Command"
+    },
+    {
+      "name": "Mfum Command",
+      "location": "Mfum",
+      "state": "Cross River",
+      "country_border": "Cameroon",
+      "command_type": "Land Border Special Command"
+    },
+    {
+      "name": "Jibia Command",
+      "location": "Jibia",
+      "state": "Katsina",
+      "country_border": "Niger Republic",
+      "command_type": "Land Border Special Command"
+    },
+    {
+      "name": "Illela Command",
+      "location": "Illela",
+      "state": "Sokoto",
+      "country_border": "Niger Republic",
+      "command_type": "Land Border Special Command"
+    },
+    {
+      "name": "Lagos Seaport Command",
+      "location": "Apapa",
+      "state": "Lagos",
+      "command_type": "Seaport Special Command"
+    },
+    {
+      "name": "Onne Marine Command",
+      "location": "Onne",
+      "state": "Rivers",
+      "command_type": "Marine Special Command"
+    },
+    {
+      "name": "Lagos Passport Command",
+      "location": "Lagos",
+      "state": "Lagos",
+      "command_type": "Passport Command"
+    }
+  ],
+
+  "airport_commands": [
+    {
+      "name": "Nnamdi Azikiwe International Airport Command",
+      "airport": "Nnamdi Azikiwe International Airport",
+      "location": "Abuja",
+      "state": "Federal Capital Territory"
+    },
+    {
+      "name": "Murtala Muhammed International Airport Command",
+      "airport": "Murtala Muhammed International Airport",
+      "location": "Lagos",
+      "state": "Lagos"
+    },
+    {
+      "name": "Akanu Ibiam International Airport Command",
+      "airport": "Akanu Ibiam International Airport",
+      "location": "Enugu",
+      "state": "Enugu"
+    },
+    {
+      "name": "Mallam Aminu Kano International Airport Command",
+      "airport": "Mallam Aminu Kano International Airport",
+      "location": "Kano",
+      "state": "Kano"
+    },
+    {
+      "name": "Port Harcourt International Airport Command",
+      "airport": "Port Harcourt International Airport",
+      "location": "Port Harcourt",
+      "state": "Rivers"
+    }
+  ],
+
+  "seaport_commands": [
+    {
+      "name": "Calabar Seaport Command",
+      "location": "Calabar",
+      "state": "Cross River"
+    },
+    {
+      "name": "Oron Seaport Command",
+      "location": "Oron",
+      "state": "Akwa Ibom"
+    },
+    {
+      "name": "Apapa Seaport Command",
+      "location": "Apapa",
+      "state": "Lagos"
+    },
+    {
+      "name": "Tin Can Island Seaport Command",
+      "location": "Tin Can Island",
+      "state": "Lagos"
+    },
+    {
+      "name": "Onne Seaport / Marine Command",
+      "location": "Onne",
+      "state": "Rivers"
+    },
+    {
+      "name": "Port Harcourt Seaport Command",
+      "location": "Port Harcourt",
+      "state": "Rivers"
+    },
+    {
+      "name": "Sapele / Warri Seaport Command",
+      "location": "Sapele / Warri",
+      "state": "Delta"
+    }
+  ],
+
+  "marine_commands": [
+    {
+      "location": "Calabar",
+      "state": "Cross River"
+    },
+    {
+      "location": "Oron",
+      "state": "Akwa Ibom"
+    },
+    {
+      "location": "Lagos",
+      "state": "Lagos"
+    },
+    {
+      "location": "Onne",
+      "state": "Rivers"
+    },
+    {
+      "location": "Port Harcourt",
+      "state": "Rivers"
+    },
+    {
+      "location": "Sapele / Warri",
+      "state": "Delta"
+    }
+  ],
+
+  "known_land_border_control_posts": [
+    {
+      "name": "Seme",
+      "state": "Lagos",
+      "neighbouring_country": "Benin Republic"
+    },
+    {
+      "name": "Idi-Iroko",
+      "state": "Ogun",
+      "neighbouring_country": "Benin Republic"
+    },
+    {
+      "name": "Mfum",
+      "state": "Cross River",
+      "neighbouring_country": "Cameroon"
+    },
+    {
+      "name": "Jibia",
+      "state": "Katsina",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Illela",
+      "state": "Sokoto",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Kamba",
+      "state": "Kebbi",
+      "neighbouring_country": "Benin Republic"
+    },
+    {
+      "name": "Kangiwa",
+      "state": "Kebbi",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Dole Kaina",
+      "state": "Kebbi",
+      "neighbouring_country": "Benin Republic"
+    },
+    {
+      "name": "Gada",
+      "state": "Sokoto",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Sabon Birni",
+      "state": "Sokoto",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Gurbin-Baure",
+      "state": "Zamfara",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Mai-Adua",
+      "state": "Katsina",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Kongolam",
+      "state": "Katsina",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Maigatari",
+      "state": "Jigawa",
+      "neighbouring_country": "Niger Republic"
+    },
+    {
+      "name": "Chikanda",
+      "state": "Kwara",
+      "neighbouring_country": "Benin Republic"
+    },
+    {
+      "name": "Mfum",
+      "state": "Cross River",
+      "neighbouring_country": "Cameroon"
+    }
+  ],
+
+  "border_control_summary": {
+    "approved_operational_land_border_control_posts": 84,
+    "additional_approved_but_not_yet_established_in_strategy_period": 30,
+    "border_patrol_bases": 111,
+    "border_states": [
+      "Adamawa",
+      "Akwa Ibom",
+      "Borno",
+      "Cross River",
+      "Jigawa",
+      "Katsina",
+      "Kebbi",
+      "Kwara",
+      "Lagos",
+      "Niger",
+      "Ogun",
+      "Ondo",
+      "Oyo",
+      "Sokoto",
+      "Taraba",
+      "Yobe",
+      "Zamfara"
+    ]
+  },
+
+  "border_patrol_and_forward_operating_bases": [
+    {
+      "location": "Abuja",
+      "state": "Federal Capital Territory"
+    },
+    {
+      "location": "Calabar",
+      "state": "Cross River"
+    },
+    {
+      "location": "Ibadan",
+      "state": "Oyo"
+    },
+    {
+      "location": "Kaduna",
+      "state": "Kaduna"
+    },
+    {
+      "location": "Maiduguri",
+      "state": "Borno"
+    },
+    {
+      "location": "Sokoto",
+      "state": "Sokoto"
+    },
+    {
+      "location": "Yola",
+      "state": "Adamawa"
+    }
+  ],
+
+  "documented_forward_operating_bases": [
+    {
+      "location": "Illela",
+      "state": "Sokoto"
+    },
+    {
+      "location": "Kamba / Kingakwai",
+      "state": "Kebbi"
+    },
+    {
+      "location": "Chikanda",
+      "state": "Kwara"
+    },
+    {
+      "location": "Mfum",
+      "state": "Cross River"
+    },
+    {
+      "location": "Oron",
+      "state": "Akwa Ibom"
+    },
+    {
+      "location": "Owode",
+      "state": "Oyo"
+    },
+    {
+      "location": "Belel",
+      "state": "Adamawa"
+    },
+    {
+      "location": "Kongolam",
+      "state": "Katsina"
+    },
+    {
+      "location": "Mazanya",
+      "state": "Katsina"
+    },
+    {
+      "location": "Maigatari",
+      "state": "Jigawa"
+    },
+    {
+      "location": "Shaki",
+      "state": "Oyo"
+    },
+    {
+      "location": "Oja-Odan",
+      "state": "Ogun"
+    }
+  ],
+
+  "training_institutions": [
+    {
+      "name": "Nigeria Immigration Training School Kano",
+      "location": "Kano",
+      "state": "Kano"
+    },
+    {
+      "name": "Nigeria Immigration Command & Staff College Sokoto",
+      "location": "Sokoto",
+      "state": "Sokoto"
+    },
+    {
+      "name": "Nigeria Immigration Training School Orlu",
+      "location": "Owerri",
+      "state": "Imo"
+    },
+    {
+      "name": "Nigeria Immigration Training Ahoada",
+      "location": "Port Harcourt",
+      "state": "Rivers"
+    }
+  ],
+
+  "cerpac_centres": {
+    "historical_publicly_documented_count": 36,
+    "coverage": "States and FCT",
+    "note": "Individual centre names and current operating locations should be verified against the NIS CERPAC directory before operational deployment."
+  },
+
+  "area_offices": {
+    "definition": "Administrative unit under a State Command comprising at least three Local Government Areas",
+    "coverage": "Under State Commands",
+    "current_complete_public_name_list": false
+  },
+
+  "local_government_immigration_offices": {
+    "historical_publicly_documented_count": 774,
+    "coverage": "All States and six FCT Area Councils",
+    "current_complete_public_name_list": false
+  },
+
+  "foreign_presence": {
+    "type": "Nigerian Missions / Immigration Desks / Immigration Attachés",
+    "historical_documented_desk_officers": 65,
+    "note": "Foreign mission deployment changes over time and should be maintained separately from domestic formations."
+  },
+
+  "source_notes": {
+    "current_nis_organogram": "NIS Organogram publicly identifies Zonal Offices, State Commands, Passport/OTD, Airport Commands, Seaport/Marine Commands, Land Border Commands, Area Offices and Local Government Immigration Offices.",
+    "national_border_management_strategy": "The NIS National Border Management Strategy 2019-2023 documented 1 Service Headquarters, 8 Zonal Commands, 45 Commands, 774 Local Government Immigration Offices, 42 Passport Offices, 36 CERPAC Centres, 84 operational Land Border Control Posts, 111 Border Patrol Bases, 5 Airport Border Control locations, 7 Seaport Control locations, 9 Marine Patrol Bases, 7 Air Main/Forward Operating Bases and 3 Passport Front-end Desks.",
+    "verification_status": "Counts in the strategy are historical and should not automatically be treated as the definitive 2026 establishment strength.",
+    "recommended_system_field": "Each formation should have a status field such as ACTIVE, INACTIVE, PROPOSED, UNDER_CONSTRUCTION or VERIFY."
+  }
+}

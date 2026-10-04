@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
  */
 class SuperAdminController extends Controller
 {
+    use ResolvesHashedModels;
     private const DIRECTORATES = [
         'hrm' => 'HRM',
         'prs' => 'PRS',
@@ -206,8 +208,9 @@ class SuperAdminController extends Controller
         ]);
     }
 
-    public function show(Application $application): View
+    public function show(string $applicationHash): View
     {
+        $application = $this->resolveApplication($applicationHash);
         $application->load(['user:id,name,service_number,email,assigned_cgis_unit_code', 'reviewComments.user']);
 
         $actorIds = collect($application->workflow_path ?? [])->pluck('by')->filter()->unique();

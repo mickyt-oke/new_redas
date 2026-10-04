@@ -1,0 +1,205 @@
+{
+  "organisation": "Nigeria Immigration Service (NIS)",
+  "description": "Formations of the Nigeria Immigration Service as documented in official NIS sources (NIS National Border Management Strategy 2019-2023, NIS Organogram, and official NIS/press publications).",
+  "service_headquarters": {
+    "name": "NIS Service Headquarters",
+    "location": "Umar Musa Yar'Adua Express Way, Airport Road, Sauka, Abuja",
+    "state": "Federal Capital Territory (FCT)"
+  },
+  "zonal_commands": [
+    { "zone": "Zone A", "headquarters": "Ikeja", "state": "Lagos" },
+    { "zone": "Zone B", "headquarters": "Kaduna", "state": "Kaduna" },
+    { "zone": "Zone C", "headquarters": "Bauchi", "state": "Bauchi" },
+    { "zone": "Zone D", "headquarters": "Minna", "state": "Niger" },
+    { "zone": "Zone E", "headquarters": "Owerri", "state": "Imo" },
+    { "zone": "Zone F", "headquarters": "Ibadan", "state": "Oyo" },
+    { "zone": "Zone G", "headquarters": "Benin City", "state": "Edo" },
+    { "zone": "Zone H", "headquarters": "Makurdi", "state": "Benue" }
+  ],
+  "state_commands": [
+    { "command": "Abia State Command", "state": "Abia", "headquarters": "Umuahia" },
+    { "command": "Adamawa State Command", "state": "Adamawa", "headquarters": "Yola" },
+    { "command": "Akwa Ibom State Command", "state": "Akwa Ibom", "headquarters": "Uyo" },
+    { "command": "Anambra State Command", "state": "Anambra", "headquarters": "Awka" },
+    { "command": "Bauchi State Command", "state": "Bauchi", "headquarters": "Bauchi" },
+    { "command": "Bayelsa State Command", "state": "Bayelsa", "headquarters": "Yenagoa" },
+    { "command": "Benue State Command", "state": "Benue", "headquarters": "Makurdi" },
+    { "command": "Borno State Command", "state": "Borno", "headquarters": "Maiduguri" },
+    { "command": "Cross River State Command", "state": "Cross River", "headquarters": "Calabar" },
+    { "command": "Delta State Command", "state": "Delta", "headquarters": "Asaba" },
+    { "command": "Ebonyi State Command", "state": "Ebonyi", "headquarters": "Abakaliki" },
+    { "command": "Edo State Command", "state": "Edo", "headquarters": "Benin City" },
+    { "command": "Ekiti State Command", "state": "Ekiti", "headquarters": "Ado-Ekiti" },
+    { "command": "Enugu State Command", "state": "Enugu", "headquarters": "Enugu" },
+    { "command": "FCT Command", "state": "Federal Capital Territory (FCT)", "headquarters": "Abuja" },
+    { "command": "Gombe State Command", "state": "Gombe", "headquarters": "Gombe" },
+    { "command": "Imo State Command", "state": "Imo", "headquarters": "Owerri" },
+    { "command": "Jigawa State Command", "state": "Jigawa", "headquarters": "Dutse" },
+    { "command": "Kaduna State Command", "state": "Kaduna", "headquarters": "Kaduna" },
+    { "command": "Kano State Command", "state": "Kano", "headquarters": "Kano" },
+    { "command": "Katsina State Command", "state": "Katsina", "headquarters": "Katsina" },
+    { "command": "Kebbi State Command", "state": "Kebbi", "headquarters": "Birnin Kebbi" },
+    { "command": "Kogi State Command", "state": "Kogi", "headquarters": "Lokoja" },
+    { "command": "Kwara State Command", "state": "Kwara", "headquarters": "Ilorin" },
+    { "command": "Lagos State Command", "state": "Lagos", "headquarters": "Ikeja" },
+    { "command": "Nasarawa State Command", "state": "Nasarawa", "headquarters": "Lafia" },
+    { "command": "Niger State Command", "state": "Niger", "headquarters": "Minna" },
+    { "command": "Ogun State Command", "state": "Ogun", "headquarters": "Abeokuta" },
+    { "command": "Ondo State Command", "state": "Ondo", "headquarters": "Akure" },
+    { "command": "Osun State Command", "state": "Osun", "headquarters": "Osogbo" },
+    { "command": "Oyo State Command", "state": "Oyo", "headquarters": "Ibadan" },
+    { "command": "Plateau State Command", "state": "Plateau", "headquarters": "Jos" },
+    { "command": "Rivers State Command", "state": "Rivers", "headquarters": "Port Harcourt" },
+    { "command": "Sokoto State Command", "state": "Sokoto", "headquarters": "Sokoto" },
+    { "command": "Taraba State Command", "state": "Taraba", "headquarters": "Jalingo" },
+    { "command": "Yobe State Command", "state": "Yobe", "headquarters": "Damaturu" },
+    { "command": "Zamfara State Command", "state": "Zamfara", "headquarters": "Gusau" }
+  ],
+  "special_commands": {
+    "special_border_commands": [
+      { "command": "Seme Border Command", "location": "Seme-Krake, Badagry", "state": "Lagos", "note": "Original special border command (Nigeria-Benin border)" },
+      { "command": "Idiroko Border Command", "location": "Idi-Iroko", "state": "Ogun", "note": "Upgraded to command status in 2021 (Nigeria-Benin border)" },
+      { "command": "Mfum Border Command", "location": "Mfum, Ikom", "state": "Cross River", "note": "Upgraded to command status in 2021 (Nigeria-Cameroon border)" },
+      { "command": "Jibiya Border Command", "location": "Jibiya", "state": "Katsina", "note": "Upgraded to command status in 2021 (Nigeria-Niger border)" },
+      { "command": "Illela Border Command", "location": "Illela", "state": "Sokoto", "note": "Upgraded to command status in 2021 (Nigeria-Niger border)" }
+    ],
+    "seaport_marine_special_commands": [
+      { "command": "Lagos Seaports and Marine Command", "state": "Lagos", "coverage": "Apapa Port, Tin Can Island Port and Lagos waterways/jetties" },
+      { "command": "Onne Marine Command", "location": "Onne", "state": "Rivers", "coverage": "Onne Marine Port and Rivers State waterways" }
+    ],
+    "passport_special_command": [
+      { "command": "Lagos Passport Command", "state": "Lagos" }
+    ]
+  },
+  "airport_commands": [
+    { "command": "Murtala Muhammed International Airport Command", "airport": "Murtala Muhammed International Airport, Ikeja", "state": "Lagos" },
+    { "command": "Nnamdi Azikiwe International Airport Command", "airport": "Nnamdi Azikiwe International Airport", "state": "Federal Capital Territory (FCT)" },
+    { "command": "Mallam Aminu Kano International Airport Command", "airport": "Mallam Aminu Kano International Airport", "state": "Kano" },
+    { "command": "Port Harcourt International Airport Command", "airport": "Port Harcourt International Airport, Omagwa", "state": "Rivers" },
+    { "command": "Akanu Ibiam International Airport Command", "airport": "Akanu Ibiam International Airport", "state": "Enugu" }
+  ],
+  "seaport_control_posts": [
+    { "seaport": "Apapa Port", "state": "Lagos" },
+    { "seaport": "Tin Can Island Port", "state": "Lagos" },
+    { "seaport": "Calabar Port", "state": "Cross River" },
+    { "seaport": "Oron", "state": "Akwa Ibom" },
+    { "seaport": "Onne Marine Port", "state": "Rivers" },
+    { "seaport": "Port Harcourt Port", "state": "Rivers" },
+    { "seaport": "Warri Port", "state": "Delta" },
+    { "seaport": "Sapele Port", "state": "Delta" }
+  ],
+  "marine_patrol_states": [
+    "Adamawa", "Akwa Ibom", "Bayelsa", "Borno", "Cross River", "Delta", "Kebbi", "Lagos", "Ogun", "Ondo", "Rivers"
+  ],
+  "land_border_control_posts": {
+    "note": "Nigeria has 84 approved and operational land Border Control Posts (BCPs) per the NIS National Border Management Strategy 2019-2023. Listed below are the major and publicly documented posts by state; the complete 84-post list is published as a map annex in the Strategy document.",
+    "mega_border_control_posts": [
+      { "post": "Seme-Krake", "state": "Lagos" },
+      { "post": "Idiroko", "state": "Ogun" },
+      { "post": "Illela", "state": "Sokoto" },
+      { "post": "Jibiya", "state": "Katsina" },
+      { "post": "Mfum", "state": "Cross River" },
+      { "post": "Kamba", "state": "Kebbi" }
+    ],
+    "other_documented_control_posts": [
+      { "post": "Oja-Odan", "state": "Ogun" },
+      { "post": "Shaki (Saki)", "state": "Oyo" },
+      { "post": "Owode", "state": "Oyo" },
+      { "post": "Chikanda", "state": "Kwara" },
+      { "post": "Babanna (Babana)", "state": "Niger" },
+      { "post": "Kingakwai", "state": "Kebbi" },
+      { "post": "Kangiwa (Kaingiwa)", "state": "Kebbi" },
+      { "post": "Gada", "state": "Sokoto" },
+      { "post": "Sabon Birni", "state": "Sokoto" },
+      { "post": "Gurbin Baure", "state": "Zamfara" },
+      { "post": "Babanmutum", "state": "Katsina" },
+      { "post": "Kongolam", "state": "Katsina" },
+      { "post": "Mai'Adua", "state": "Katsina" },
+      { "post": "Zangon Daura", "state": "Katsina" },
+      { "post": "Maigatari", "state": "Jigawa" },
+      { "post": "Gamboru-Ngala", "state": "Borno" },
+      { "post": "Banki", "state": "Borno" },
+      { "post": "Belel", "state": "Adamawa" },
+      { "post": "Ekok", "state": "Cross River" },
+      { "post": "Oron", "state": "Akwa Ibom" }
+    ],
+    "border_states": [
+      "Adamawa", "Akwa Ibom", "Benue", "Borno", "Cross River", "Jigawa", "Katsina", "Kebbi", "Kwara", "Lagos", "Niger", "Ogun", "Oyo", "Sokoto", "Taraba", "Yobe", "Zamfara"
+    ]
+  },
+  "passport_offices": {
+    "note": "NIS operates 42 passport offices across all states and the FCT (per the NIS National Border Management Strategy 2019-2023), plus the Lagos Passport Command and passport front offices. Passport offices are domiciled in the State Commands and selected cities.",
+    "passport_front_offices": [
+      { "office": "Passport Front Desk - State House", "location": "Abuja", "state": "Federal Capital Territory (FCT)" },
+      { "office": "Passport Front Desk - National Assembly (NASS)", "location": "Abuja", "state": "Federal Capital Territory (FCT)" },
+      { "office": "Passport Front Desk - Ministry of Foreign Affairs (MFA)", "location": "Abuja", "state": "Federal Capital Territory (FCT)" },
+      { "office": "Passport Front Office for Senior Public Officials", "location": "Abuja", "state": "Federal Capital Territory (FCT)", "note": "Commissioned July 2025" },
+      { "office": "Passport Front Office, Offa", "location": "Offa", "state": "Kwara", "note": "Opened December 2023" },
+      { "office": "Passport Front Desk Office", "location": "Lagos", "state": "Lagos" }
+      { "office": "Passport Front Office, Ilesha", "location": "Osun"}
+    ]
+  },
+  "training_institutions": [
+    { "institution": "Nigeria Immigration Command and Staff College (ICSC)", "state": "Sokoto" },
+    { "institution": "Nigeria Immigration Training School, Kano (NITSK)", "state": "Kano" },
+    { "institution": "Nigeria Immigration Training School, Ahoada (NITSA)", "state": "Rivers" },
+    { "institution": "Nigeria Immigration Training School, Orlu (NITSOL)", "state": "Imo" }
+  ],
+  "forward_operating_bases": {
+    "land_border": [
+      { "base": "Mazanya (near Jibiya)", "state": "Katsina" },
+      { "base": "Maigatari", "state": "Jigawa" },
+      { "base": "Saki (Shaki)", "state": "Oyo" },
+      { "base": "Oja-Odan", "state": "Ogun" }
+    ],
+    "air_main_and_forward_operating_bases": [
+      { "base": "Abuja", "state": "Federal Capital Territory (FCT)" },
+      { "base": "Calabar", "state": "Cross River" },
+      { "base": "Ibadan", "state": "Oyo" },
+      { "base": "Kaduna", "state": "Kaduna" },
+      { "base": "Maiduguri", "state": "Borno" },
+      { "base": "Sokoto", "state": "Sokoto" },
+      { "base": "Yola", "state": "Adamawa" }
+    ]
+  },
+  "migrant_screening_centres": [
+    { "centre": "NIS Service Headquarters Migrant Screening Centre", "state": "Federal Capital Territory (FCT)" },
+    { "centre": "Lagos State Command Migrant Screening Centre", "state": "Lagos" },
+    { "centre": "Seme Command Migrant Screening Centre", "state": "Lagos" },
+    { "centre": "Sokoto Migrant Screening Centre (Immigration Command and Staff College)", "state": "Sokoto" }
+  ],
+  "formations_at_a_glance": [
+    { "formation": "Service Headquarters", "count": 1, "locations": "Abuja" },
+    { "formation": "Zonal Commands", "count": 8, "locations": "Bauchi, Benin City, Ibadan, Kaduna, Lagos, Makurdi, Minna, Owerri" },
+    { "formation": "Commands (State, FCT and Special)", "count": 45, "locations": "All States and FCT" },
+    { "formation": "Local Government Immigration Offices", "count": 774, "locations": "All States and six FCT Area Councils" },
+    { "formation": "Training Institutions", "count": 4, "locations": "Imo, Kano, Rivers and Sokoto States" },
+    { "formation": "Passport Offices", "count": 42, "locations": "All States and FCT" },
+    { "formation": "CERPAC Centers", "count": 36, "locations": "All States and FCT" },
+    { "formation": "Land Border Control Posts", "count": 84, "locations": "All Border States" },
+    { "formation": "Border Patrol Bases", "count": 111, "locations": "All Border States" },
+    { "formation": "Airport Border Control", "count": 5, "locations": "Abuja, Enugu, Kano, Lagos, Port Harcourt" },
+    { "formation": "Seaport Control", "count": 7, "locations": "Akwa Ibom, Cross River, Delta (2), Lagos (2), Rivers" },
+    { "formation": "Marine Patrol Bases", "count": 9, "locations": "Adamawa, Akwa Ibom, Bayelsa, Borno, Cross River, Kebbi, Lagos, Ondo, Rivers" },
+    { "formation": "Main and Forward Operating Bases (Air)", "count": 7, "locations": "Abuja, Calabar, Ibadan, Kaduna, Maiduguri, Sokoto, Yola" },
+    { "formation": "Passport Front-end Desks", "count": 3, "locations": "Abuja: State House, NASS, MFA" }
+  ],
+  "headquarters_directorates": [
+    "Human Resources Management",
+    "Finance and Accounts",
+    "Planning, Research and Statistics",
+    "Passport and Other Travel Documents",
+    "Investigation and Compliance",
+    "Border Management",
+    "Migration",
+    "Visa and Residency",
+    "ICT and Cyber Security",
+    "Works and Logistics"
+  ],
+  "sources": [
+    "NIS National Border Management Strategy 2019-2023 (immigration.gov.ng)",
+    "NIS Organogram (immigration.gov.ng)",
+    "NIS official website - NIS Structure page (immigration.gov.ng/nis-structure)",
+    "The Guardian Nigeria - 'NIS upgrades 4 border formations to command status' (March 2021)"
+  ]
+}

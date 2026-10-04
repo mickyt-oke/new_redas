@@ -43,7 +43,7 @@
 
 </div>
 
-<form method="POST" action="{{ isset($editing) ? route('user.cgis-units.submissions.update', $editing) : route('user.cgis-units.store', 'pro-media') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ isset($editing) ? route('user.cgis-units.submissions.update', ['applicationHash' => \App\Services\HashidService::encode($editing->id)]) : route('user.cgis-units.store', 'pro-media') }}" enctype="multipart/form-data">
 
     @csrf
     @isset($editing)

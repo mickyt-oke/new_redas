@@ -147,17 +147,17 @@
                                     <td style="font-size:.78rem;color:var(--gray-500);">{{ $submission->created_at?->format('d M Y') ?? '—' }}</td>
                                     <td>
                                         <div style="display:flex;gap:6px;">
-                                            <a href="{{ route('user.directorates.submissions.show', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Preview">
+                                            <a href="{{ route('user.directorates.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Preview">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('user.directorates.submissions.print', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Print" target="_blank">
+                                            <a href="{{ route('user.directorates.submissions.print', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Print" target="_blank">
                                                 <i class="fas fa-print"></i>
                                             </a>
                                             @if($status !== 'approved')
-                                                <a href="{{ route('user.directorates.submissions.edit', $submission) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Update">
+                                                <a href="{{ route('user.directorates.submissions.edit', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;" title="Update">
                                                     <i class="fas fa-pen"></i>
                                                 </a>
-                                                <form method="POST" action="{{ route('user.directorates.submissions.destroy', $submission) }}" style="display:inline;" onsubmit="return confirm('Delete this submission permanently? This cannot be undone.');">
+                                                <form method="POST" action="{{ URL::signedRoute('user.directorates.submissions.destroy', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" style="display:inline;" onsubmit="return confirm('Delete this submission permanently? This cannot be undone.');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;color:#b91c1c;" title="Delete">

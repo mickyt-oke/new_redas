@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\AuditLog;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class HqAdminController extends Controller
 {
+    use ResolvesHashedModels;
     private const DIRECTORATES = [
         'hrm' => 'Human Resources Management (HRM)',
         'prs' => 'Planning, Research and Statistics (PRS)',
@@ -153,8 +155,9 @@ class HqAdminController extends Controller
         ]);
     }
 
-    public function show(Application $application): View
+    public function show(string $applicationHash): View
     {
+        $application = $this->resolveApplication($applicationHash);
         $application->load(['user:id,name,service_number,email,assigned_cgis_unit_code', 'reviewComments.user']);
 
         $actorIds = collect($application->workflow_path ?? [])->pluck('by')->filter()->unique();

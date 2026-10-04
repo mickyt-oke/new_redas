@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\ApplicationComment;
@@ -20,6 +21,7 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
+    use ResolvesHashedModels;
     /**
      * Metadata for directorate return views. Fields are now defined explicitly in
      * resources/views/user/directorates/{slug}.blade.php for easier reference and design.
@@ -609,8 +611,9 @@ class DashboardController extends Controller
     /**
      * Display a previously submitted return for preview (screen).
      */
-    public function showSubmission(Request $request, Application $application): View
+    public function showSubmission(Request $request, string $applicationHash): View
     {
+        $application = $this->resolveApplication($applicationHash);
         abort_unless($application->user_id === $request->user()->id, 403);
 
         $application->load('reviewComments.user');
@@ -621,8 +624,9 @@ class DashboardController extends Controller
     /**
      * Display a previously submitted return in print mode (auto-prints).
      */
-    public function printSubmission(Request $request, Application $application): View
+    public function printSubmission(Request $request, string $applicationHash): View
     {
+        $application = $this->resolveApplication($applicationHash);
         abort_unless($application->user_id === $request->user()->id, 403);
 
         return view('user.directorates.submission', $this->submissionViewData($application, true));
@@ -632,8 +636,9 @@ class DashboardController extends Controller
      * Stream one of a submission's uploaded documents to its owner
      * (inline for preview, or as a download with ?download=1).
      */
-    public function submissionDocument(Request $request, Application $application, string $collection, int $index)
+    public function submissionDocument(Request $request, string $applicationHash, string $collection, int $index)
     {
+        $application = $this->resolveApplication($applicationHash);
         abort_unless($application->user_id === $request->user()->id, 403);
         abort_unless(in_array($collection, ['supporting', 'attachments'], true), 404);
 
@@ -660,8 +665,9 @@ class DashboardController extends Controller
     /**
      * Show the directorate form prefilled with an existing submission for editing.
      */
-    public function editSubmission(Request $request, Application $application): View|RedirectResponse
+    public function editSubmission(Request $request, string $applicationHash): View|RedirectResponse
     {
+        $application = $this->resolveApplication($applicationHash);
         abort_unless($application->user_id === $request->user()->id, 403);
 
         $user = Auth::user();
@@ -752,8 +758,9 @@ class DashboardController extends Controller
     /**
      * Update an existing submission and re-enter it into the review workflow.
      */
-    public function updateSubmission(Request $request, Application $application): RedirectResponse
+    public function updateSubmission(Request $request, string $applicationHash): RedirectResponse
     {
+        $application = $this->resolveApplication($applicationHash);
         abort_unless($application->user_id === $request->user()->id, 403);
         abort_if(strtolower((string) $application->status) === 'approved', 403, 'Approved submissions cannot be edited.');
 
@@ -848,8 +855,9 @@ class DashboardController extends Controller
      * Delete a submission owned by the user, together with its uploaded files.
      * Only allowed while the return has not been finally approved.
      */
-    public function destroySubmission(Application $application): RedirectResponse
+    public function destroySubmission(string $applicationHash): RedirectResponse
     {
+        $application = $this->resolveApplication($applicationHash);
         $user = Auth::user();
 
         abort_unless($user !== null && SubmissionWorkflow::deletableBy($application, $user), 403);
@@ -889,8 +897,9 @@ class DashboardController extends Controller
     /**
      * Download a submission's return as a PDF report (owner or in-scope approver).
      */
-    public function downloadSubmissionPdf(Request $request, Application $application)
+    public function downloadSubmissionPdf(Request $request, string $applicationHash)
     {
+        $application = $this->resolveApplication($applicationHash);
         $user = Auth::user();
 
         $isOwner = $user !== null && $application->user_id === $user->id;

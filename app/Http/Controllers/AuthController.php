@@ -163,8 +163,26 @@ class AuthController extends Controller
 
         $user = $query->first();
 
+        if ($user && $user->lockout_until && now()->lessThan($user->lockout_until)) {
+            $seconds = now()->diffInSeconds($user->lockout_until);
+
+            throw ValidationException::withMessages([
+                'login' => ["This account is temporarily locked. Please try again in {$seconds} seconds."],
+            ]);
+        }
+
         if (! $user || ! Hash::check($request->input('password'), $user->password)) {
             RateLimiter::hit($throttleKey, self::LOCKOUT_SECONDS);
+
+            if ($user) {
+                $user->increment('failed_attempts');
+                if ($user->failed_attempts >= self::MAX_LOGIN_ATTEMPTS) {
+                    $user->update([
+                        'lockout_until' => now()->addMinutes(15),
+                        'failed_attempts' => 0,
+                    ]);
+                }
+            }
 
             AuditLogger::logAuthAttempt(
                 user: $user,
@@ -268,6 +286,18 @@ class AuthController extends Controller
     }
 
     /**
+     * Handle login button at welcome page
+     * If user is logged in already, prevent login button from being used and redirect to dashboard
+     */
+    public function handleWelcomeLogin(Request $request): RedirectResponse
+    {
+        if (Auth::check()) {
+            return redirect()->route('/dashboard');
+        }
+
+        return redirect()->route('login');
+    }
+    /**
      * Complete the login flow after MFA has been verified.
      *
      * @param array{country:string,state:string,state_code:string,provider:string} $location
@@ -340,6 +370,7 @@ class AuthController extends Controller
 
         return false;
     }
+
 
     /**
      * Check ABAC geolocation policy for a user attempting to log in.

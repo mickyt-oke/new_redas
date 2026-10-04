@@ -99,7 +99,7 @@ $sections = \App\Services\PreviewRenderer::buildSections($data, [
     <a href="{{ route($dashboardRoute) }}">
         <i class="fas fa-arrow-left"></i> Back to Dashboard
     </a>
-    <a href="{{ route('user.submissions.pdf', $application) }}">
+    <a href="{{ \Illuminate\Support\Facades\URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}">
         <i class="fas fa-file-pdf"></i> Download PDF
     </a>
     <button type="button" class="print-btn" onclick="window.print()">
