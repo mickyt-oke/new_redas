@@ -95,7 +95,7 @@ class HqAdminDashboardTest extends TestCase
             ],
         ]);
 
-        $response = $this->actingAs($admin)->get(route('admin.hq.returns.show', $application));
+        $response = $this->actingAs($admin)->get($this->applicationRoute('admin.hq.returns.show', $application));
 
         $response->assertOk();
         $response->assertViewIs('admin.headquarters.return-show');

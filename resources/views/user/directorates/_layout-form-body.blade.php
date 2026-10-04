@@ -13,7 +13,7 @@
     <div class="card-body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;">
         <div>
             <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Report Period</label>
-            <input type="month" class="ni" name="report_period" required value="{{ old('report_period', $editing->return_data['report_period'] ?? now()->format('Y-m')) }}">
+            <input type="month" class="ni" name="report_period" required value="{{ old('report_period', $editing->return_data['report_period'] ?? now()->format('F-Y')) }}">
         </div>
         <div>
             <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Reporting Officer</label>
@@ -22,6 +22,10 @@
         <div>
             <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">{{ isset($unitName) ? 'Unit' : 'Directorate' }}</label>
             <input type="text" class="ni" value="{{ $unitName ?? $directorateName ?? 'Directorate' }}" readonly>
+        </div>
+        <div>
+            <label style="display:block;font-size:.8rem;font-weight:700;margin-bottom:6px;">Submission Date</label>
+            <input type="date" class="ni" name="submission_date" required value="{{ old('submission_date', $editing->return_data['submission_date'] ?? now()->format('l, d F Y')) }}">
         </div>
     </div>
 </div>

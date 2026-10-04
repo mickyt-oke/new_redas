@@ -120,7 +120,7 @@ class ZonalUserTest extends TestCase
             'return_data' => array_merge($this->validReturnData(), ['report_period' => '2026-07']),
         ]);
 
-        $response = $this->actingAs($user)->put(route('user.zones.returns.update', $application), array_merge($this->validReturnData(), [
+        $response = $this->actingAs($user)->put($this->applicationRoute('user.zones.returns.update', $application), array_merge($this->validReturnData(), [
             'period' => '2026-09',
         ]));
 
@@ -129,7 +129,7 @@ class ZonalUserTest extends TestCase
         $this->assertSame('2026-09', $application->return_data['report_period']);
         $this->assertSame('pending', $application->status);
 
-        $response = $this->actingAs($user)->delete(route('user.zones.returns.destroy', $application));
+        $response = $this->actingAs($user)->delete($this->signedApplicationRoute('user.zones.returns.destroy', $application));
         $response->assertRedirect(route('user.zones.returns.index'));
         $this->assertNull(Application::find($application->id));
     }
@@ -151,7 +151,7 @@ class ZonalUserTest extends TestCase
         $response->assertOk();
         $response->assertSee('#' . $application->id);
 
-        $response = $this->actingAs($commander)->patch(route('zonal.submissions.approve', $application), [
+        $response = $this->actingAs($commander)->patch($this->signedApplicationRoute('zonal.submissions.approve', $application), [
             'note' => 'Approved for onward processing',
         ]);
 

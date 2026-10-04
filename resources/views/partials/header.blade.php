@@ -155,7 +155,7 @@
                     <div style="padding:12px 16px;font-size:.82rem;font-weight:700;border-bottom:1px solid var(--gray-100);">Notifications</div>
                     <div class="notif-item unread">
                         <div class="notif-icon" style="background:#fef9c3;color:#a16207;"><i class="fas fa-clock"></i></div>
-                        <div class="notif-content"><div class="notif-title">Deadline Reminder</div><div class="notif-desc">May return due in 5 days.</div></div>
+                        <div class="notif-content"><div class="notif-title">Deadline Reminder</div><div class="notif-desc"></div></div>
                         <div class="notif-time">1d ago</div>
                     </div>
                     <div style="padding:10px;text-align:center;border-top:1px solid var(--gray-100);">

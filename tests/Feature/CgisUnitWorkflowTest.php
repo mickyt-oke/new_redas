@@ -119,19 +119,19 @@ class CgisUnitWorkflowTest extends TestCase
         $this->actingAs($deskAdmin)->get(route('user.desk.home'))->assertOk();
 
         // CGIS desk admin approves -> hq review
-        $this->actingAs($deskAdmin)->patch(route('desk.admin.submissions.approve', $application));
+        $this->actingAs($deskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
         $this->assertSame('pending', $application->status);
 
         // HQ admin approval is final -> approved
-        $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
+        $this->actingAs($hqAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);
 
         // General admin and super admin are view-only: no review routes for them
-        $this->actingAs($generalAdmin)->patch(route('admin.submissions.approve', $application))
+        $this->actingAs($generalAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application))
             ->assertForbidden();
     }
 
@@ -144,7 +144,7 @@ class CgisUnitWorkflowTest extends TestCase
 
         $application = SubmissionWorkflow::create($user, ['report_period' => '2025-05']);
 
-        $this->actingAs($otherDeskAdmin)->patch(route('desk.admin.submissions.approve', $application))
+        $this->actingAs($otherDeskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application))
             ->assertForbidden();
     }
 
@@ -158,7 +158,7 @@ class CgisUnitWorkflowTest extends TestCase
         $application = SubmissionWorkflow::create($user, ['report_period' => '2025-05']);
 
         // Desk admin rejects with a mandatory comment
-        $this->actingAs($deskAdmin)->patch(route('desk.admin.submissions.reject', $application), [
+        $this->actingAs($deskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.reject', $application), [
             'comment' => 'Please complete the appraisal section.',
         ]);
         $application->refresh();
@@ -166,7 +166,7 @@ class CgisUnitWorkflowTest extends TestCase
         $this->assertSame('submitted', $application->workflow_stage);
 
         // Owner edits and resubmits -> back to cgis desk review
-        $this->actingAs($user)->put(route('user.cgis-units.submissions.update', $application), [
+        $this->actingAs($user)->put($this->applicationRoute('user.cgis-units.submissions.update', $application), [
             'report_period' => '2025-06',
             'reporting_officer' => $user->name,
             'data_consent' => '1',

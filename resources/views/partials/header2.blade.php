@@ -55,7 +55,7 @@
         <a href="{{ url('/supervisor/notifications') }}" class="sidebar-link">
             <span class="link-icon"><i class="fas fa-bell"></i></span>
             <span class="link-text">Notifications</span>
-            <span class="link-badge">3</span>
+            <span class="link-badge"></span>
         </a>
 
         <hr class="sidebar-divider">

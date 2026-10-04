@@ -64,9 +64,11 @@
                                 default => ['#f8fafc', '#475569', 'fa-file'],
                             };
                             $docUrl = \Illuminate\Support\Facades\URL::signedRoute($docRoute, ['applicationHash' => \App\Services\HashidService::encode($application->id), 'collection' => $collection, 'index' => $i]);
+                            $downloadUrl = \Illuminate\Support\Facades\URL::signedRoute($docRoute, ['applicationHash' => \App\Services\HashidService::encode($application->id), 'collection' => $collection, 'index' => $i, 'download' => 1]);
                         @endphp
                         <div class="doc-card"
                              data-doc-url="{{ $docUrl }}"
+                             data-download-url="{{ $downloadUrl }}"
                              data-doc-name="{{ $name }}"
                              data-doc-ext="{{ $ext }}">
                             <div class="doc-icon" style="background:{{ $iconBg }};color:{{ $iconColor }};"><i class="fas {{ $icon }}"></i></div>
@@ -117,7 +119,7 @@
             var ext = card.dataset.docExt;
 
             title.textContent = name;
-            downloadLink.href = url + '?download=1';
+            downloadLink.href = card.dataset.downloadUrl;
             body.innerHTML = '';
 
             if (imageExts.indexOf(ext) !== -1) {

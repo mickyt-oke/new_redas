@@ -125,18 +125,18 @@ class WorkflowTest extends TestCase
         $this->assertSame('desk_review', $application->workflow_stage);
 
         // Desk admin approves -> zonal review, zonal code stamped
-        $this->actingAs($deskAdmin)->patch(route('desk.admin.submissions.approve', $application));
+        $this->actingAs($deskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('zonal_review', $application->workflow_stage);
         $this->assertSame('ZONE-A', $application->zonal_code);
 
         // Zonal commander approves -> HQ review
-        $this->actingAs($zonal)->patch(route('zonal.submissions.approve', $application));
+        $this->actingAs($zonal)->patch($this->signedApplicationRoute('zonal.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
 
         // HQ admin approval is final
-        $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
+        $this->actingAs($hqAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);
@@ -154,11 +154,11 @@ class WorkflowTest extends TestCase
         $this->assertSame('directorate_review', $application->workflow_stage);
         $this->assertSame('directorate', $application->category);
 
-        $this->actingAs($directorateAdmin)->patch(route('desk.admin.submissions.approve', $application));
+        $this->actingAs($directorateAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
 
-        $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
+        $this->actingAs($hqAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->status);
     }
@@ -200,11 +200,11 @@ class WorkflowTest extends TestCase
 
         // Comment is mandatory
         $this->actingAs($directorateAdmin)
-            ->patch(route('desk.admin.submissions.reject', $application), [])
+            ->patch($this->signedApplicationRoute('desk.admin.submissions.reject', $application), [])
             ->assertSessionHasErrors('comment');
 
         $this->actingAs($directorateAdmin)
-            ->patch(route('desk.admin.submissions.reject', $application), ['comment' => 'Incomplete figures.']);
+            ->patch($this->signedApplicationRoute('desk.admin.submissions.reject', $application), ['comment' => 'Incomplete figures.']);
 
         $application->refresh();
         $this->assertSame('returned', $application->status);
@@ -232,7 +232,7 @@ class WorkflowTest extends TestCase
         $application = SubmissionWorkflow::create($user, ['report_period' => '2025-05']);
 
         $this->actingAs($directorateAdmin)
-            ->patch(route('desk.admin.submissions.approve', $application), ['note' => 'Verified against source records.']);
+            ->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application), ['note' => 'Verified against source records.']);
 
         $this->assertDatabaseHas('application_comments', [
             'application_id' => $application->id,
@@ -253,12 +253,12 @@ class WorkflowTest extends TestCase
 
         // Non-owner cannot delete
         $this->actingAs($otherUser)
-            ->delete(route('user.directorates.submissions.destroy', $application))
+            ->delete($this->signedApplicationRoute('user.directorates.submissions.destroy', $application))
             ->assertForbidden();
 
         // Owner can delete while pending
         $this->actingAs($user)
-            ->delete(route('user.directorates.submissions.destroy', $application));
+            ->delete($this->signedApplicationRoute('user.directorates.submissions.destroy', $application));
         $this->assertDatabaseMissing('applications', ['id' => $application->id]);
 
         // Approved returns are locked
@@ -266,7 +266,7 @@ class WorkflowTest extends TestCase
         $locked->update(['status' => 'approved', 'workflow_stage' => 'approved']);
 
         $this->actingAs($user)
-            ->delete(route('user.directorates.submissions.destroy', $locked))
+            ->delete($this->signedApplicationRoute('user.directorates.submissions.destroy', $locked))
             ->assertForbidden();
         $this->assertDatabaseHas('applications', ['id' => $locked->id]);
     }
@@ -285,20 +285,20 @@ class WorkflowTest extends TestCase
         $kanoDesk = $this->deskAdmin('KN', 'ZONE-B');
 
         // Desk admin cannot approve another state's return
-        $this->actingAs($lagosDesk)->patch(route('desk.admin.submissions.approve', $kanoReturn))
+        $this->actingAs($lagosDesk)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $kanoReturn))
             ->assertForbidden();
-        $this->actingAs($kanoDesk)->patch(route('desk.admin.submissions.approve', $lagosReturn))
+        $this->actingAs($kanoDesk)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $lagosReturn))
             ->assertForbidden();
 
         // Push both to zonal review with their respective zones
-        $this->actingAs($lagosDesk)->patch(route('desk.admin.submissions.approve', $lagosReturn));
-        $this->actingAs($kanoDesk)->patch(route('desk.admin.submissions.approve', $kanoReturn));
+        $this->actingAs($lagosDesk)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $lagosReturn));
+        $this->actingAs($kanoDesk)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $kanoReturn));
 
         // Zonal commander of ZONE-A cannot act on ZONE-B's return
         $zoneACommander = $this->zonalCommander('ZONE-A');
-        $this->actingAs($zoneACommander)->patch(route('zonal.submissions.approve', $kanoReturn->fresh()))
+        $this->actingAs($zoneACommander)->patch($this->signedApplicationRoute('zonal.submissions.approve', $kanoReturn->fresh()))
             ->assertForbidden();
-        $this->actingAs($zoneACommander)->patch(route('zonal.submissions.approve', $lagosReturn->fresh()));
+        $this->actingAs($zoneACommander)->patch($this->signedApplicationRoute('zonal.submissions.approve', $lagosReturn->fresh()));
         $this->assertSame('hq_review', $lagosReturn->fresh()->workflow_stage);
     }
 
@@ -319,7 +319,7 @@ class WorkflowTest extends TestCase
 
         // Submitter notified on rejection
         $this->actingAs($directorateAdmin)
-            ->patch(route('desk.admin.submissions.reject', $application), ['comment' => 'Fix the totals.']);
+            ->patch($this->signedApplicationRoute('desk.admin.submissions.reject', $application), ['comment' => 'Fix the totals.']);
 
         $this->assertDatabaseHas('user_notifications', [
             'user_id' => $user->id,

@@ -37,14 +37,14 @@
             <span class="link-icon"><i class="fas fa-file-export"></i></span>
             <span class="link-text">Report Generation</span>
         </a>
-        <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
+        {{-- <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-archive"></i></span>
             <span class="link-text">Archived Documents</span>
         </a>
         <a href="{{ route('user.submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-inbox"></i></span>
             <span class="link-text">Officer Submissions</span>
-        </a>
+        </a> --}}
         <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-bell"></i></span>
             <span class="link-text">Notifications</span>
@@ -68,7 +68,7 @@
                     <div class="notif-item unread">
                         <div class="notif-icon" style="background:#fef9c3;color:#a16207;"><i class="fas fa-clock"></i></div>
                         <div class="notif-content"><div class="notif-title">Review reminder</div><div class="notif-desc">New return ready for action.</div></div>
-                        <div class="notif-time">1h ago</div>
+                        <div class="notif-time"></div>
                     </div>
                     <div style="padding:10px;text-align:center;border-top:1px solid var(--gray-100);">
                         <a href="{{ route('user.notifications') }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all</a>

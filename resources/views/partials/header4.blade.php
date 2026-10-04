@@ -154,13 +154,13 @@
                     <a href="{{ route('user.submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
                         <span class="link-icon"><i class="fas fa-inbox"></i></span>
                         <span class="link-text">My Submissions</span>
-                        <span class="link-badge">3</span>
+                        <span class="link-badge"></span>
                     </a>
 
                     <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
                         <span class="link-icon"><i class="fas fa-bell"></i></span>
                         <span class="link-text">Notifications</span>
-                        <span class="link-badge danger">2</span>
+                        <span class="link-badge danger"></span>
                     </a>
 
                     <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">

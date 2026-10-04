@@ -41,7 +41,7 @@ $sections = \App\Services\PreviewRenderer::buildSections($data, [
     <div class="page-header">
         <div>
             <h1 class="page-title">Submission #{{ $application->id }}</h1>
-            <p class="page-subtitle">Review the return below before approval or return.</p>
+            <p class="page-subtitle">Review the return below before approval or query.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <a href="{{ URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($application->id)]) }}" class="btn-nis btn-outline-nis">

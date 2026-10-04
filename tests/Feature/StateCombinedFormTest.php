@@ -135,13 +135,13 @@ class StateCombinedFormTest extends TestCase
             'hrm' => ['general_report' => ['challenges' => 'Prefill marker']],
         ]);
 
-        $response = $this->actingAs($user)->get(route('user.returns.edit', $application));
+        $response = $this->actingAs($user)->get($this->applicationRoute('user.returns.edit', $application));
 
         $response->assertOk();
         $response->assertSee('REDAS_PREFILL', false);
         $response->assertSee('Prefill marker');
 
         $otherUser = $this->stateUser();
-        $this->actingAs($otherUser)->get(route('user.returns.edit', $application))->assertForbidden();
+        $this->actingAs($otherUser)->get($this->applicationRoute('user.returns.edit', $application))->assertForbidden();
     }
 }

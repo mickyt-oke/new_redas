@@ -64,18 +64,18 @@ class SubmissionWorkflowTest extends TestCase
         $this->assertSame('state', $application->category);
 
         // Desk admin approves -> zonal review
-        $this->actingAs($deskAdmin)->patch(route('desk.admin.submissions.approve', $application));
+        $this->actingAs($deskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('zonal_review', $application->workflow_stage);
         $this->assertSame('ZONE-A', $application->zonal_code);
 
         // Zonal commander approves -> hq review
-        $this->actingAs($zonalCommander)->patch(route('zonal.submissions.approve', $application));
+        $this->actingAs($zonalCommander)->patch($this->signedApplicationRoute('zonal.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
 
         // HQ admin approval is final -> approved
-        $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
+        $this->actingAs($hqAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);
@@ -120,12 +120,12 @@ class SubmissionWorkflowTest extends TestCase
         // Only the matching directorate admin can see it
         $this->actingAs($directorateAdmin)->get(route('user.desk.home'))->assertOk();
 
-        $this->actingAs($directorateAdmin)->patch(route('desk.admin.submissions.approve', $application));
+        $this->actingAs($directorateAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
 
         // HQ admin approval is final -> approved
-        $this->actingAs($hqAdmin)->patch(route('admin.submissions.approve', $application));
+        $this->actingAs($hqAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application));
         $application->refresh();
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);
@@ -153,7 +153,7 @@ class SubmissionWorkflowTest extends TestCase
 
         $application = SubmissionWorkflow::create($stateUser, ['command_name' => 'Abuja State']);
 
-        $this->actingAs($deskAdmin)->patch(route('desk.admin.submissions.approve', $application))
+        $this->actingAs($deskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application))
             ->assertForbidden();
     }
 }

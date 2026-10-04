@@ -151,6 +151,7 @@ class DatabaseSeeder extends Seeder
             PrimaryLocationCodeSeeder::class,
             SettingSeeder::class,
             NisDirectorySeeder::class,
+            LockscreenPasscodeSeeder::class,
         ]);
     }
 

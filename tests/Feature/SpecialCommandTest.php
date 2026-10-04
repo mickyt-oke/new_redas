@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Application;
 use App\Models\User;
-use App\Services\HashidService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -108,9 +107,7 @@ class SpecialCommandTest extends TestCase
             'return_data' => $this->validReturnData(),
         ]);
 
-        $hash = app(HashidService::class)->encode($application->id);
-
-        $response = $this->actingAs($user)->get(route('special-commands.returns.report', $hash));
+        $response = $this->actingAs($user)->get($this->applicationRoute('special-commands.returns.report', $application));
 
         $response->assertOk();
         $response->assertSee('Seme Command');

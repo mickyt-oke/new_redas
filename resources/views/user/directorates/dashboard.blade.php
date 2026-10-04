@@ -121,9 +121,9 @@
                     <table class="redas-table searchable-table">
                         <thead>
                             <tr>
-                                <th>Period</th>
+                                <th>Return Period</th>
                                 <th>Status</th>
-                                <th>Date</th>
+                                <th>Date Submitted</th>
                                 <th>Action</th>
                             </tr>
                         </thead>

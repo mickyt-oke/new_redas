@@ -86,6 +86,7 @@
 <div class="forgot-card">
     <div class="page-header">
         <div>
+             <img src="{{ asset('assets/images/nis.png') }}" alt="NIS">
             <h1 class="page-title">Forgot Password</h1>
             <p class="page-subtitle">Enter your registered email address to receive a password reset link.</p>
         </div>

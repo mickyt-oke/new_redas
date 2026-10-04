@@ -81,7 +81,7 @@ class DeskAdminSubmissionToolsTest extends TestCase
         $response->assertOk();
         $response->assertSee('Approved Submissions');
         $response->assertSee('#' . $approved->id);
-        $response->assertSee(route('desk.admin.submissions.download', $approved), false);
+        $response->assertSee($this->signedApplicationRoute('desk.admin.submissions.download', $approved), false);
     }
 
     public function test_preview_renders_sectional_content_and_document_cards(): void
@@ -100,14 +100,18 @@ class DeskAdminSubmissionToolsTest extends TestCase
             ],
         ]);
 
-        $response = $this->actingAs($admin)->get(route('desk.admin.submissions.show', $application));
+        $response = $this->actingAs($admin)->get($this->applicationRoute('desk.admin.submissions.show', $application));
 
         $response->assertOk();
         $response->assertSee('Staff Strength');
         $response->assertSee('DCG');
         $response->assertSee('Uploaded Documents');
         $response->assertSee('note.pdf');
-        $response->assertSee(route('desk.admin.submissions.document', [$application, 'supporting', 0]), false);
+        $response->assertSee(\Illuminate\Support\Facades\URL::signedRoute('desk.admin.submissions.document', [
+            'applicationHash' => \App\Services\HashidService::encode($application->id),
+            'collection' => 'supporting',
+            'index' => 0,
+        ]), false);
     }
 
     public function test_document_is_streamed_inline_and_downloadable(): void
@@ -122,12 +126,21 @@ class DeskAdminSubmissionToolsTest extends TestCase
         ]);
 
         $viewResponse = $this->actingAs($admin)
-            ->get(route('desk.admin.submissions.document', [$application, 'supporting', 0]));
+            ->get(\Illuminate\Support\Facades\URL::signedRoute('desk.admin.submissions.document', [
+                'applicationHash' => \App\Services\HashidService::encode($application->id),
+                'collection' => 'supporting',
+                'index' => 0,
+            ]));
         $viewResponse->assertOk();
         $this->assertStringContainsString('inline', $viewResponse->headers->get('content-disposition'));
 
         $downloadResponse = $this->actingAs($admin)
-            ->get(route('desk.admin.submissions.document', [$application, 'supporting', 0]) . '?download=1');
+            ->get(\Illuminate\Support\Facades\URL::signedRoute('desk.admin.submissions.document', [
+                'applicationHash' => \App\Services\HashidService::encode($application->id),
+                'collection' => 'supporting',
+                'index' => 0,
+                'download' => 1,
+            ]));
         $downloadResponse->assertOk();
         $this->assertStringContainsString('attachment', $downloadResponse->headers->get('content-disposition'));
     }
@@ -144,11 +157,19 @@ class DeskAdminSubmissionToolsTest extends TestCase
 
         $outOfScope = $this->deskAdmin('KD');
         $this->actingAs($outOfScope)
-            ->get(route('desk.admin.submissions.document', [$application, 'supporting', 0]))
+            ->get(\Illuminate\Support\Facades\URL::signedRoute('desk.admin.submissions.document', [
+                'applicationHash' => \App\Services\HashidService::encode($application->id),
+                'collection' => 'supporting',
+                'index' => 0,
+            ]))
             ->assertForbidden();
 
         $this->actingAs($this->deskAdmin())
-            ->get(route('desk.admin.submissions.document', [$application, 'supporting', 5]))
+            ->get(\Illuminate\Support\Facades\URL::signedRoute('desk.admin.submissions.document', [
+                'applicationHash' => \App\Services\HashidService::encode($application->id),
+                'collection' => 'supporting',
+                'index' => 5,
+            ]))
             ->assertNotFound();
     }
 
@@ -159,7 +180,7 @@ class DeskAdminSubmissionToolsTest extends TestCase
         $admin = $this->deskAdmin();
         $application = $this->submission($this->officer());
 
-        $response = $this->actingAs($admin)->get(route('desk.admin.submissions.download', $application));
+        $response = $this->actingAs($admin)->get($this->signedApplicationRoute('desk.admin.submissions.download', $application));
 
         $response->assertOk();
         $this->assertStringContainsString('text/csv', $response->headers->get('content-type'));

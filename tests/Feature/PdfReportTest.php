@@ -62,7 +62,7 @@ class PdfReportTest extends TestCase
         $officer = $this->officer();
         $application = $this->approvedSubmission($officer);
 
-        $response = $this->actingAs($officer)->get(route('user.submissions.pdf', $application));
+        $response = $this->actingAs($officer)->get($this->signedApplicationRoute('user.submissions.pdf', $application));
 
         $response->assertOk();
         $this->assertStringContainsString('application/pdf', $response->headers->get('content-type'));
@@ -75,7 +75,7 @@ class PdfReportTest extends TestCase
         $admin = $this->deskAdmin('LA');
         $application = $this->approvedSubmission($this->officer());
 
-        $this->actingAs($admin)->get(route('user.submissions.pdf', $application))->assertOk();
+        $this->actingAs($admin)->get($this->signedApplicationRoute('user.submissions.pdf', $application))->assertOk();
     }
 
     public function test_out_of_scope_or_unrelated_user_cannot_download_submission_pdf(): void
@@ -85,11 +85,11 @@ class PdfReportTest extends TestCase
         $application = $this->approvedSubmission($this->officer());
 
         $this->actingAs($this->deskAdmin('KD'))
-            ->get(route('user.submissions.pdf', $application))
+            ->get($this->signedApplicationRoute('user.submissions.pdf', $application))
             ->assertForbidden();
 
         $this->actingAs($this->officer())
-            ->get(route('user.submissions.pdf', $application))
+            ->get($this->signedApplicationRoute('user.submissions.pdf', $application))
             ->assertForbidden();
     }
 
@@ -117,7 +117,10 @@ class PdfReportTest extends TestCase
         $admin = $this->deskAdmin();
         $application = $this->approvedSubmission($this->officer());
 
-        $response = $this->actingAs($admin)->get(route('desk.admin.submissions.download', $application) . '?format=pdf');
+        $response = $this->actingAs($admin)->get(\Illuminate\Support\Facades\URL::signedRoute('desk.admin.submissions.download', [
+            'applicationHash' => \App\Services\HashidService::encode($application->id),
+            'format' => 'pdf',
+        ]));
 
         $response->assertOk();
         $this->assertStringContainsString('application/pdf', $response->headers->get('content-type'));
@@ -136,7 +139,7 @@ class PdfReportTest extends TestCase
         $response->assertOk();
         $response->assertSee('Completed Returns');
         $response->assertSee('Submission #' . $application->id);
-        $response->assertSee(route('user.submissions.pdf', $application), false);
+        $response->assertSee($this->signedApplicationRoute('user.submissions.pdf', $application), false);
     }
 
     public function test_archive_shows_scoped_completed_returns_to_approver(): void
@@ -174,7 +177,7 @@ class PdfReportTest extends TestCase
             'return_data' => ['directorate_slug' => 'hrm', 'report_period' => '2026-08'],
         ]);
 
-        $response = $this->actingAs($user)->get(route('user.directorates.submissions.show', $application));
+        $response = $this->actingAs($user)->get($this->applicationRoute('user.directorates.submissions.show', $application));
 
         $response->assertOk();
         $response->assertSee('nis-logo.png', false);
