@@ -1,19 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Forgot Password</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="Password recovery for NIS-REDAS — Nigeria Immigration Service Reporting Dashboard & Archiving System.">
+    <title>NIS-REDAS | Forgot Password</title>
+
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/nis.png') }}">
     @include('partials.head-meta')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @laravelPWA
-    <link rel="stylesheet" href="/assets/app.css">
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
-            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
         .forgot-page {
             min-height: 100vh;
             display: flex;
@@ -30,17 +30,32 @@
             box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
             padding: 32px;
         }
+        .page-header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
         .forgot-title {
             margin: 0 0 8px;
             font-size: 1.75rem;
             font-weight: 800;
-            color: #0f172a;
+            color: #0a520a;
         }
         .forgot-subtitle {
             margin: 0 0 24px;
             color: #475569;
             font-size: .95rem;
             line-height: 1.5;
+        }
+        .login-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 18px;
+
+        }
+        .login-brand img {
+            height: 50px;
         }
         .forgot-input-group {
             margin-bottom: 18px;
@@ -64,7 +79,7 @@
             padding: 14px 16px;
             border: none;
             border-radius: 12px;
-            background: #1d4ed8;
+            background: #0a520a;
             color: #fff;
             font-weight: 700;
             cursor: pointer;
@@ -73,7 +88,7 @@
             margin-top: 16px;
             display: block;
             text-align: center;
-            color: #1d4ed8;
+            color: #0a520a;
             text-decoration: none;
             font-weight: 600;
         }
@@ -86,7 +101,9 @@
 <div class="forgot-card">
     <div class="page-header">
         <div>
-             <img src="{{ asset('assets/images/nis.png') }}" alt="NIS">
+            <div class="login-brand">
+            <img src="{{ asset('assets/images/nis.png') }}" alt="NIS">
+        </div>
             <h1 class="page-title">Forgot Password</h1>
             <p class="page-subtitle">Enter your registered email address to receive a password reset link.</p>
         </div>
@@ -98,21 +115,21 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('password.forgot') }}" style="background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;">
+    <form method="POST" action="{{ route('password.forgot') }}">
         @csrf
 
-        <div style="margin-bottom:18px;">
-            <label style="display:block;font-weight:600;margin-bottom:8px;color:#334155;">Email Address</label>
-            <input type="email" name="email" value="{{ old('email') }}" style="width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:12px;" placeholder="officer@immigration.gov.ng" required>
+         <div class="auth-form-group">
+            <label class="forgot-label">Email Address</label>
+            <input type="email" class="auth-input @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" placeholder="officer@immigration.gov.ng" required>
             @error('email')
                 <div style="color:#b91c1c;font-size:.84rem;margin-top:8px;">{{ $message }}</div>
             @enderror
         </div>
 
-        <button type="submit" style="width:100%;padding:12px 16px;border:none;border-radius:12px;background:#1d4ed8;color:#fff;font-weight:700;cursor:pointer;">Send reset link</button>
+        <button type="submit" style="width:100%;padding:12px 16px;border:none;border-radius:12px;background:#0a520a;color:#fff;font-weight:700;cursor:pointer;">Send reset link</button>
 
         <div style="margin-top:16px;text-align:center;">
-            <a href="{{ route('login') }}" style="color:#1d4ed8;text-decoration:none;font-weight:600;">Back to sign in</a>
+            <a href="{{ route('login') }}" class="forgot-back-link">Back to sign in</a>
         </div>
     </form>
 </div>
