@@ -55,8 +55,9 @@ $ammoOptionsHtml = '<option value="">-- Select Ammunition Type --</option>'
 $storeOptionsHtml = '<option value="">-- Select Stationery Item --</option>'
     . collect($storeItemList)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('')
     . '<option value="Others">Others</option>';
-
-$vehicleOptions = ['Toyota Hilux', 'Toyota Coaster', 'Ford Ranger', 'Mercedes Benz Sprinter'];
+// Vehicle options for the transport fleet section from car-list json file
+$vehicleJson = json_decode(file_get_contents(resource_path('js/car-list.json')) ?: '{}', true);
+$vehicleOptions = $vehicleJson['cars'] ?? [];
 $vehicleOptionsHtml = '<option value="">Select Make &amp; Model</option>'
     . collect($vehicleOptions)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('');
 
