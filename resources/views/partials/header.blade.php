@@ -226,13 +226,45 @@
                     </a>
                     @endif
                     <div style="border-top:1px solid var(--gray-100);"></div>
-                    <form action="{{ route('logout') }}" method="POST">
+                    <button type="button" id="lockSessionBtn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);background:none;border:none;cursor:pointer;width:100%;text-align:left;">
+                        <i class="fas fa-lock" style="color:var(--gray-400);width:16px;"></i> Lock Session
+                    </button>
+                    <div style="border-top:1px solid var(--gray-100);"></div>
+                    <form action="{{ route('logout') }}" method="POST" style="margin:0;">
                         @csrf
-                        <button type="submit" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--color-danger);background:none;border:none;cursor:pointer;width:100%;">
+                        <button type="submit" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--color-danger);background:none;border:none;cursor:pointer;width:100%;text-align:left;">
                             <i class="fas fa-sign-out-alt" style="width:16px;"></i> Sign Out
                         </button>
                     </form>
-                </div>
-            </div>
-        </div>
-    </header>
+      </div>
+                                </div>
+                                </div>
+                                                                </header>
+    <script>
+        document.getElementById('lockSessionBtn')?.addEventListener('click', function() {
+            window.location.href = "{{ route('lockscreen.lock') }}";
+        });
+    </script> 
+ <script>
+       document.getElementById('lockSessionBtn')?.addEventListener('click', function() {
+           window.location.href = "{{ route('lockscreen.lock') }}";
+       });
+   </script>
+
+
+                     </button>
+
+
+
+
+
+
+
+                    <div style="border-top:1px solid var(--gray-100);"></div>
+
+
+
+
+
+                        </button>
+                    </form>

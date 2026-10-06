@@ -56,8 +56,8 @@ $storeOptionsHtml = '<option value="">-- Select Stationery Item --</option>'
     . collect($storeItemList)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('')
     . '<option value="Others">Others</option>';
 // Vehicle options for the transport fleet section from car-list json file
-$vehicleJson = json_decode(file_get_contents(resource_path('js/car-list.json')) ?: '{}', true);
-$vehicleOptions = $vehicleJson['cars'] ?? [];
+$vehicleJson = json_decode(file_get_contents(resource_path('js/carbrands.json')) ?: '{}', true);
+$vehicleOptions = $vehicleJson['inventory_makes'] ?? [];
 $vehicleOptionsHtml = '<option value="">Select Make &amp; Model</option>'
     . collect($vehicleOptions)->map(fn($i) => '<option value="' . e($i) . '">' . e($i) . '</option>')->implode('');
 
@@ -712,12 +712,12 @@ $energyUnitMap = [
 
     <!-- TAB 5: Transport -->
     <div class="tab-panel" id="tab-works-logistics-transport">
-        <!-- a. VEHICLE DETAILS  -->
+        <!-- a. VEHICLE & MOTORCYCLE DETAILS  -->
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-truck"></i></div>
-                    a. VEHICLE DETAILS
+                    a. VEHICLE & MOTORCYCLE DETAILS
                 </div>
                 <button type="button" class="btn-nis btn-ghost btn-sm wl-add-row" data-row-target="transport-fleet-body" data-row-prefix="transport_fleet">
                     <i class="fas fa-plus"></i> Add Vehicle Row
@@ -741,7 +741,7 @@ $energyUnitMap = [
                             @php $selectedVehicle = $row['make_model'] ?? ''; @endphp
                             <tr class="transport-fleet-row">
                                 <td>
-                                    <select name="transport_fleet[{{ $idx }}][make_model]" class="ni">
+                                    <select name="transport_fleet[{{ $idx }}][make_model]" class="ni transport-fleet-select">
                                         <option value="">Select Make &amp; Model</option>
                                         @foreach($vehicleOptions as $vehicle)
                                         <option value="{{ $vehicle }}" @selected($selectedVehicle === $vehicle)>{{ $vehicle }}</option>
@@ -1209,7 +1209,7 @@ $energyUnitMap = [
     const ARMS_OPTIONS_HTML = @json($armsOptionsHtml);
     const AMMO_OPTIONS_HTML = @json($ammoOptionsHtml);
     const STORE_OPTIONS_HTML = @json($storeOptionsHtml);
-    const VEHICLE_OPTIONS_HTML = @json($vehicleOptionsHtml);
+    let VEHICLE_OPTIONS_HTML = @json($vehicleOptionsHtml);
 
     const STATUS_OPTIONS = `
         <option value="Completed">Completed</option>
@@ -1234,6 +1234,32 @@ $energyUnitMap = [
     const REMOVE_CELL = `<td style="text-align:center;">
         <button type="button" class="btn-nis btn-ghost wl-remove-row" style="color:var(--color-danger);padding:4px;"><i class="fas fa-trash"></i></button>
     </td>`;
+
+    async function loadVehicleOptions() {
+        try {
+            const [carRes, bikeRes] = await Promise.all([
+                fetch('/js/carbrands.json'),
+                fetch('/js/motorcycle_makes.json')
+            ]);
+            const cars = await carRes.json();
+            const bikes = await bikeRes.json();
+
+            const carNames = cars.map(c => c.name);
+            const bikeNames = bikes.inventory_makes || [];
+            const allNames = [...new Set([...carNames, ...bikeNames])].sort();
+
+            VEHICLE_OPTIONS_HTML = allNames.map(name => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+            
+            // Update existing selects
+            ROOT.querySelectorAll('.transport-fleet-select').forEach(select => {
+                const currentVal = select.value;
+                select.innerHTML = '<option value="">Select Make &amp; Model</option>' + VEHICLE_OPTIONS_HTML;
+                select.value = currentVal;
+            });
+        } catch (e) {
+            console.error('Failed to load vehicle options:', e);
+        }
+    }
 
     function energyRow(tbodyId, idx) {
         const unitKey = tbodyId.replace('energy-', '').replace('-body', '');
@@ -1781,6 +1807,7 @@ $energyUnitMap = [
     window.buildDirectoratePreview = window.buildDirectoratePreview || buildPreview;
 
     /* Init */
+    loadVehicleOptions();
     recomputeAll();
 })();
 </script>

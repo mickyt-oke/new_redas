@@ -19,6 +19,7 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'current_password' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'lockscreen_passcode' => ['nullable', 'string', 'max:20'],
         ]);
 
         $user = Auth::user();
@@ -31,8 +32,15 @@ class ProfileController extends Controller
 
         $user->password = Hash::make($validated['password']);
         $user->must_change_password = false;
+
+        if ($request->filled('lockscreen_passcode')) {
+            $user->lockscreen_passcode = Hash::make($validated['lockscreen_passcode']);
+        } elseif ($request->has('lockscreen_passcode') && empty($request->lockscreen_passcode)) {
+            $user->lockscreen_passcode = null;
+        }
+
         $user->save();
 
-        return redirect()->route('user.profile')->with('status', 'Password updated successfully.');
+        return redirect()->route('user.profile')->with('status', 'Profile updated successfully.');
     }
 }

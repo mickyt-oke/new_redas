@@ -59,7 +59,22 @@
                 </div>
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
-                    <label class="form-label-nis">New Password</label>
+                    <label class="form-label-nis">Lockscreen Passcode (Optional)</label>
+                     <div class="auth-input-wrap pw-wrap">
+                         <input type="password" id="lockscreen_passcode" name="lockscreen_passcode" class="auth-input" placeholder="Set a short passcode for quick locking" value="{{ $user->lockscreen_passcode ? '********' : '' }}">
+                          <span class="auth-input-icon"><i class="fas fa-key"></i></span>
+                     <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                         <i class="fas fa-eye"></i>
+                     </button>
+                     </div>
+                     <p style="font-size:.7rem;color:var(--gray-500);margin-top:4px;">If left blank, your main password will be used to unlock the session.</p>
+                     @error('lockscreen_passcode')
+                         <div class="inline-error"><i class="fas fa-circle-xmark"></i>{{ $message }}</div>
+                     @enderror
+                 </div>
+
+                 <div class="auth-form-group" style="margin-bottom:18px;">
+                     <label class="form-label-nis">New Password</label>
                     <div class="auth-input-wrap pw-wrap">
                         <input type="password" id="new_password" name="password" class="auth-input" placeholder="Enter new password" required>
                          <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
