@@ -79,6 +79,10 @@
       "category": "Pistols and Handguns"
     },
     {
+      "name": "Stun Pistol",
+      "category": "Pistols and Handguns"
+    },
+    {
       "name": "CZ 75",
       "category": "Pistols and Handguns"
     },
@@ -112,6 +116,10 @@
     },
     {
       "name": "Type 56",
+      "category": "Assault and Service Rifles"
+    },
+    {
+      "name": "Tavor Rifle",
       "category": "Assault and Service Rifles"
     },
     {
