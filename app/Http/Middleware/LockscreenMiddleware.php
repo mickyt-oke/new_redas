@@ -28,6 +28,12 @@ class LockscreenMiddleware
                 return $next($request);
             }
 
+            // Remember the page the user was trying to reach (GET navigations only)
+            // so they are returned there once the session is unlocked.
+            if ($request->isMethod('GET') && ! $request->expectsJson()) {
+                $request->session()->put('url.intended', $request->fullUrl());
+            }
+
             return redirect()->route('lockscreen.show');
         }
 

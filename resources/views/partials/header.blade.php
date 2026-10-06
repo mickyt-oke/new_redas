@@ -176,6 +176,7 @@
         </a>
         @endif
         @endif
+    </nav>
 </aside>
 
 <!-- ═══════ MAIN ═══════ -->
@@ -212,9 +213,9 @@
             </div>
             <div style="position:relative;">
                 <button class="topbar-user" id="userMenuBtn" style="border:none;background:transparent;cursor:pointer;">
-                    <div class="topbar-avatar">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 2)) }}</div>
+                    <div class="topbar-avatar">{{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}</div>
                     <div class="topbar-user-info">
-                        <div class="topbar-user-name">{{ auth()->user()->name ?? 'Officer' }}</div>
+                        <div class="topbar-user-name">{{ auth()->user()?->name ?? 'Officer' }}</div>
                         <div class="topbar-user-role">{{ auth()->user()?->role === 'directorate' ? 'Directorate User' : 'State User' }}</div>
                     </div>
                     <i class="fas fa-chevron-down" style="font-size:.7rem;color:var(--gray-400);margin-left:4px;"></i>
@@ -226,9 +227,12 @@
                     </a>
                     @endif
                     <div style="border-top:1px solid var(--gray-100);"></div>
-                    <button type="button" id="lockSessionBtn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);background:none;border:none;cursor:pointer;width:100%;text-align:left;">
-                        <i class="fas fa-lock" style="color:var(--gray-400);width:16px;"></i> Lock Session
-                    </button>
+                    <form action="{{ route('lockscreen.lock') }}" method="POST" style="margin:0;">
+                        @csrf
+                        <button type="submit" id="lockSessionBtn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);background:none;border:none;cursor:pointer;width:100%;text-align:left;">
+                            <i class="fas fa-lock" style="color:var(--gray-400);width:16px;"></i> Lock Session
+                        </button>
+                    </form>
                     <div style="border-top:1px solid var(--gray-100);"></div>
                     <form action="{{ route('logout') }}" method="POST" style="margin:0;">
                         @csrf
@@ -236,35 +240,7 @@
                             <i class="fas fa-sign-out-alt" style="width:16px;"></i> Sign Out
                         </button>
                     </form>
-      </div>
-                                </div>
-                                </div>
-                                                                </header>
-    <script>
-        document.getElementById('lockSessionBtn')?.addEventListener('click', function() {
-            window.location.href = "{{ route('lockscreen.lock') }}";
-        });
-    </script> 
- <script>
-       document.getElementById('lockSessionBtn')?.addEventListener('click', function() {
-           window.location.href = "{{ route('lockscreen.lock') }}";
-       });
-   </script>
-
-
-                     </button>
-
-
-
-
-
-
-
-                    <div style="border-top:1px solid var(--gray-100);"></div>
-
-
-
-
-
-                        </button>
-                    </form>
+                </div>
+            </div>
+        </div>
+    </header>

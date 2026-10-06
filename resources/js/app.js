@@ -639,45 +639,88 @@ function showToast(message, type = 'info') {
 }
 
 /* ============================
-   SCREEN LOCK JS
-============================ */
+   SCREEN LOCK / IDLE TIMEOUT
+   ============================ */
 
-// Configuration
-const LOCK_TIMEOUT = 5 * 60 * 1000; // Lock screen after 5 mins
-const WARN_TIMEOUT = 10 * 60 * 1000; // Warn session expiry after 10 mins
-const EXPIRE_TIMEOUT = 15 * 60 * 1000; // Full logout after 15 mins
+// After LOCK_TIMEOUT of inactivity the server marks the session as locked
+// (POST /lockscreen/lock) and every following request is redirected to the
+// lockscreen until the user enters their passcode. After EXPIRE_TIMEOUT the
+// session is fully logged out.
+const LOCK_TIMEOUT = 5 * 60 * 1000;    // 5 minutes  → lock the session
+const EXPIRE_TIMEOUT = 15 * 60 * 1000; // 15 minutes → full logout
+const LOCK_POLL_INTERVAL = 1000;
+
+const LOCKS_URL = '/lockscreen';
+const LOCK_URL = '/lockscreen/lock';
+const LOGOUT_URL = '/logout';
 
 let lastActivity = Date.now();
-let warningTimer = null;
+let isLocking = false;
 
-// Reset activity on mouse/keyboard events
+// The lockscreen itself must never trigger another lock.
+const onLockscreenPage = () => window.location.pathname.startsWith(LOCKS_URL);
+
 const resetActivity = () => {
     lastActivity = Date.now();
-    if (warningTimer) clearTimeout(warningTimer);
 };
 
-window.addEventListener('mousemove', resetActivity);
-window.addEventListener('keydown', resetActivity);
+['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(eventName => {
+    window.addEventListener(eventName, resetActivity, { passive: true });
+});
+
+function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
+
+function lockSession() {
+    if (isLocking || onLockscreenPage()) return;
+    isLocking = true;
+
+    fetch(LOCK_URL, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken(),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+        },
+    })
+        .catch(() => { /* network hiccup — the middleware still locks the next request */ })
+        .finally(() => {
+            window.location.href = LOCKS_URL;
+        });
+}
+
+function logoutSession() {
+    if (onLockscreenPage()) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = LOGOUT_URL;
+
+    const token = document.createElement('input');
+    token.type = 'hidden';
+    token.name = '_token';
+    token.value = csrfToken();
+    form.appendChild(token);
+
+    document.body.appendChild(form);
+    form.submit();
+}
 
 setInterval(() => {
+    if (onLockscreenPage()) return;
+
     const idleTime = Date.now() - lastActivity;
 
-    // 1. Trigger Lockscreen
+    if (idleTime >= EXPIRE_TIMEOUT) {
+        logoutSession();
+        return;
+    }
+
     if (idleTime >= LOCK_TIMEOUT) {
-        fetch('/lockscreen/lock', { method: 'POST', headers: { 'X-CSRF-TOKEN': '...' } })
-            .then(() => window.location.reload());
+        lockSession();
     }
-
-    // 2. Trigger Expiry Warning
-    if (idleTime >= WARN_TIMEOUT && !warningTimer) {
-        showExpiryWarning();
-    }
-}, 1000);
-
-function showExpiryWarning() {
-    // Logic to show a modal with a countdown timer (EXPIRE_TIMEOUT - idleTime)
-    // When timer hits 0: window.location.href = '/logout';
-}
+}, LOCK_POLL_INTERVAL);
 
 
 
