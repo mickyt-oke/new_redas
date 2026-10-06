@@ -52,6 +52,7 @@
                             @php
                             $localRows = [
                                 'local_revenue_passport' => 'Passport',
+                                'local_revenue_visa' => 'Visa',
                                 'local_revenue_residence_permit_ecowas' => 'Residence Permit (ECOWAS & AFRICAN AFFAIRS)',
                                 'local_revenue_admin_fees' => 'Non-refundable Administrative Fees for Operations',
                                 'local_revenue_residence_permit_non_africans' => 'RESIDENCE Permit for Non-Africans (CERPAC)',

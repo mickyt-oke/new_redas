@@ -117,7 +117,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
 </div>
 
 <div class="tab-content">
-
+    
     <!-- TAB 1: Service Personnel Strength by Cadre -->
     <div class="tab-panel active" id="tab-hrm-cadre">
         <div class="redas-card" style="margin-bottom:14px;">
