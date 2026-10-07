@@ -44,8 +44,10 @@ class HqAdminController extends Controller
 
     public function index(): View
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin'), 403);
+
         $stats = Application::query()
-            ->selectRaw("count(*) as total")
+            ->selectRaw("count(*) as total", [])
             ->selectRaw("count(case when workflow_stage = ? and status not in (?, ?) then 1 end) as awaiting_hq", [
                 SubmissionWorkflow::STAGE_HQ_REVIEW,
                 SubmissionWorkflow::STATUS_APPROVED,
@@ -57,7 +59,7 @@ class HqAdminController extends Controller
 
 
         $directorateRows = Application::query()
-            ->selectRaw("scope_code, status, count(*) as aggregate")
+            ->selectRaw("scope_code, status, count(*) as aggregate", [])
             ->where('category', SubmissionWorkflow::CATEGORY_DIRECTORATE)
             ->groupBy('scope_code', 'status')
             ->get();
@@ -76,7 +78,7 @@ class HqAdminController extends Controller
         })->values();
 
         $cgisUnits = Application::query()
-            ->join('users', 'applications.user_id', '=', 'users.id')
+            ->join('users', 'applications.user_id', '=', 'users.id', 'inner', false)
             ->select('users.assigned_cgis_unit_code as unit')
             ->selectRaw('count(*) as total')
             ->selectRaw("sum(case when applications.status = ? then 1 else 0 end) as approved", [SubmissionWorkflow::STATUS_APPROVED])
@@ -103,6 +105,8 @@ class HqAdminController extends Controller
 
     public function returns(Request $request): View
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin'), 403);
+
         $filters = $request->validate([
             'formation' => ['nullable', 'string', 'max:60'],
             'category' => ['nullable', 'in:' . implode(',', [
@@ -141,7 +145,7 @@ class HqAdminController extends Controller
         $application->load(['user:id,name,service_number,email,assigned_cgis_unit_code', 'reviewComments.user']);
 
         $actorIds = collect($application->workflow_path ?? [])->pluck('by')->filter()->unique();
-        $actors = User::query()->whereIn('id', $actorIds)->pluck('name', 'id');
+        $actors = User::query()->whereIn('id', $actorIds, 'and', false)->pluck('name', 'id');
 
         $timeline = collect($application->workflow_path ?? [])->map(function (array $entry) use ($actors) {
             return [

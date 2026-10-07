@@ -190,7 +190,22 @@ function showSelectedFiles(input) {
     Array.from(input.files).forEach(file => {
         const item = document.createElement('div');
         item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--nis-50);border-radius:var(--radius-sm);margin-bottom:6px;font-size:.82rem;';
-        item.innerHTML = `<i class="fas fa-file" style="color:var(--nis-600);"></i><span style="flex:1;color:var(--gray-700);">${file.name}</span><span style="color:var(--gray-400);">${(file.size/1024/1024).toFixed(2)} MB</span>`;
+
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-file';
+        icon.style.color = 'var(--nis-600)';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.style.cssText = 'flex:1;color:var(--gray-700);';
+        nameSpan.textContent = file.name;
+
+        const sizeSpan = document.createElement('span');
+        sizeSpan.style.color = 'var(--gray-400)';
+        sizeSpan.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+
+        item.appendChild(icon);
+        item.appendChild(nameSpan);
+        item.appendChild(sizeSpan);
         list.appendChild(item);
     });
 }

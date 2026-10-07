@@ -7,6 +7,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use ZipArchive;
 
+/**
+ * Generates consolidated returns reports (XLSX) for headquarters reporting.
+ */
 class ExcelReportService
 {
     public const TEMPLATES = [

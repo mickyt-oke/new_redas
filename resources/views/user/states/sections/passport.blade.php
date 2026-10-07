@@ -1030,7 +1030,10 @@
                     }
                     input.value = originalInput.value;
                     if (input.tagName === 'SELECT') {
-                        input.innerHTML = `<option>${originalInput.value}</option>`;
+                        input.innerHTML = '';
+                        const opt = document.createElement('option');
+                        opt.textContent = originalInput.value;
+                        input.appendChild(opt);
                     }
                     if (input.tagName === 'TEXTAREA') {
                         input.textContent = originalInput.value;

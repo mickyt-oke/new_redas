@@ -182,7 +182,7 @@ class SubmissionReviewController extends Controller
 
             $data = is_array($application->return_data) ? $application->return_data : [];
             foreach ($data as $section => $values) {
-                $this->flattenForCsv($out, (string) $section, '', $values);
+                $this->flattenForCsv($out, $this->escapeCsvCell($section), '', $values);
             }
 
             fclose($out);
@@ -368,11 +368,11 @@ class SubmissionReviewController extends Controller
             foreach ($submissions as $submission) {
                 fputcsv($out, [
                     $submission->id,
-                    optional($submission->user)->name ?? 'N/A',
-                    $submission->scope_code,
-                    $submission->category,
-                    $submission->return_data['report_period'] ?? '',
-                    $submission->status,
+                    $this->escapeCsvCell(optional($submission->user)->name ?? 'N/A'),
+                    $this->escapeCsvCell($submission->scope_code),
+                    $this->escapeCsvCell($submission->category),
+                    $this->escapeCsvCell($submission->return_data['report_period'] ?? ''),
+                    $this->escapeCsvCell($submission->status),
                     optional($submission->created_at)->toDateTimeString(),
                 ]);
             }
@@ -388,18 +388,26 @@ class SubmissionReviewController extends Controller
     {
         if (is_array($value)) {
             foreach ($value as $key => $item) {
-                $field = $prefix === '' ? (string) $key : $prefix . '.' . $key;
+                $field = $prefix === '' ? $this->escapeCsvCell($key) : $prefix . '.' . $this->escapeCsvCell($key);
                 $this->flattenForCsv($out, $section, $field, $item);
             }
 
             return;
         }
 
-        if (is_bool($value)) {
-            $value = $value ? 'Yes' : 'No';
-        }
+        fputcsv($out, [$section, $prefix, $this->escapeCsvCell($value)]);
+    }
 
-        fputcsv($out, [$section, $prefix, $value ?? '']);
+    private function escapeCsvCell(mixed $value): string
+    {
+        if ($value === null || is_bool($value)) {
+            $value = $value ? 'Yes' : ($value === null ? '' : 'No');
+        }
+        $str = (string) $value;
+        if (preg_match('/^[+=\-\t\r@]/', $str)) {
+            $str = "'" . $str;
+        }
+        return $str;
     }
 
     private function accessRole(?User $user): string

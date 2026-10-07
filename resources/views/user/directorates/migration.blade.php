@@ -108,7 +108,10 @@
                     if (originalInput) {
                         input.value = originalInput.value;
                         if (input.tagName === 'SELECT') {
-                            input.innerHTML = '<option>' + originalInput.value + '</option>';
+                            input.innerHTML = '';
+                            var opt = document.createElement('option');
+                            opt.textContent = originalInput.value;
+                            input.appendChild(opt);
                         }
                     }
 

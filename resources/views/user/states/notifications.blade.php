@@ -50,9 +50,9 @@
     function escapeHtml(s) {
         return String(s ?? '')
             .replaceAll('&', '&amp;')
-            .replaceAll('<', '<')
-            .replaceAll('>', '>')
-            .replaceAll('"', '"')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
             .replaceAll("'", '&#039;');
     }
 
