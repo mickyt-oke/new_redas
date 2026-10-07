@@ -1298,7 +1298,7 @@ $energyUnitMap = [
             ${REMOVE_CELL}
         </tr>`,
         'store-accessories-body': idx => `<tr class="store-acc-row">
-            <td><select name="store_accessories[${idx}][item]" class="ni ni-select">${STORE_OPTIONS_HTML}</select></td>
+            <td><input type="text" name="store_accessories[${idx}][item]" class="ni" placeholder="e.g. Keyboard, Fuel pump"></td>
             <td><input type="number" name="store_accessories[${idx}][qty_supplied]" class="ni calc-store-acc" value="0" min="0" step="1"></td>
             <td><input type="number" name="store_accessories[${idx}][qty_issues]" class="ni calc-store-acc" value="0" min="0" step="1"></td>
             <td><input type="number" name="store_accessories[${idx}][total_bal]" class="ni store-acc-tot" value="0" readonly style="background:#f9fafb;"></td>
@@ -1470,7 +1470,7 @@ $energyUnitMap = [
             const s = val(row.querySelector('[name*="[serviceable]"]'));
             const u = val(row.querySelector('[name*="[unserviceable]"]'));
             const used = val(row.querySelector('[name*="[used]"]'));
-            const total = s + u + used;
+            const total = rounds + s + u + used;
             row.querySelector('.ammo-tot-disp').value = total;
             roundsGrand += rounds; sGrand += s; uGrand += u; usedGrand += used; totGrand += total;
         });
@@ -1631,6 +1631,7 @@ $energyUnitMap = [
         return `<div style="overflow-x:auto;"><table class="hrm-preview-table" style="margin-bottom:12px;"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>`;
     }
     function getVal(name) { return ROOT.querySelector(`[name="${name}"]`)?.value || '—'; }
+    function getDocVal(name) { return document.querySelector(`[name="${name}"]`)?.value || '—'; }
     function getText(id) { return byId(id)?.textContent || '0'; }
 
     /* Non-empty rows of a dynamic tbody as arrays of escaped values
@@ -1658,10 +1659,10 @@ $energyUnitMap = [
         /* 1. Reporting Officer & Command */
         html += previewSectionTitle(1, 'Reporting Officer & Command');
         html += previewTable([
-            ['Officer Service Number', esc(getVal('works[reporting_officer_nis]'))],
-            ['Command / Formation', esc(getVal('works[command_name]'))],
-            ['Rank', esc(getVal('works[rank]'))],
-            ['Phone Number', esc(getVal('works[gsm_number]'))]
+            ['Command / Formation', esc(getDocVal('command_name'))],
+            ['Report Period', esc(getDocVal('period'))],
+            ['Return Type', esc(getDocVal('return_type'))],
+            ['Reporting Officer', esc(getDocVal('reporting_officer'))]
         ]);
 
         /* 2. Staff Strength by Cadre */
@@ -1788,7 +1789,7 @@ $energyUnitMap = [
                 : `<p style="font-size:.82rem;color:var(--gray-600);margin-top:4px;">${emptyText}</p>`;
         });
         html += `<div style="margin-top:12px;"><strong>Supporting Documents:</strong></div>`;
-        const docInputs = Array.from(ROOT.querySelectorAll('#documents-body input[type="file"]'))
+        const docInputs = Array.from(document.querySelectorAll('input[name="attachments[]"], input[name="supporting_documents[]"]'))
             .filter(input => input.files && input.files.length > 0);
         if (!docInputs.length) {
             html += `<p style="font-size:.82rem;color:var(--gray-600);margin-top:4px;">No supporting documents uploaded.</p>`;
