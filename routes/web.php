@@ -101,7 +101,9 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
         ]);
 
         $user = Auth::user();
-        $returnData = $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status']);
+        $returnData = (new \App\Http\Controllers\Web\DashboardController())->sanitizeReturnData(
+            $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status'])
+        );
         $returnData['report_period'] = $request->input('period');
         // Command/officer identity is server-derived, never trusted from the
         // (readonly, but client-editable) POST body.
@@ -238,6 +240,7 @@ Route::middleware([Authenticate::class, 'access:category=zonal_commander,locatio
     Route::get('/zonal/dashboard', [SubmissionReviewController::class, 'index'])->name('user.zonal.home');
     Route::get('/zonal/submissions/{applicationHash}', [SubmissionReviewController::class, 'show'])->name('zonal.submissions.show');
     Route::get('/zonal/submissions/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('zonal.submissions.document');
+    Route::get('/zonal/submissions/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('zonal.submissions.download');
     Route::patch('/zonal/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.approve');
     Route::patch('/zonal/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
 });
@@ -321,6 +324,7 @@ Route::middleware([Authenticate::class, 'access:category=super_admin,location=he
     Route::get('/superadmin/returns', [\App\Http\Controllers\Admin\SuperAdminController::class, 'returns'])->name('superadmin.returns');
     Route::get('/superadmin/returns/{applicationHash}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'show'])->name('superadmin.returns.show');
     Route::get('/superadmin/returns/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('superadmin.returns.document');
+    Route::get('/superadmin/returns/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('superadmin.returns.download');
 });
 
 // Supervisor dashboards (state and zonal share the same view)
@@ -350,6 +354,7 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin|admin,location
     Route::get('/admin/hq/returns', [HqAdminController::class, 'returns'])->name('admin.hq.returns');
     Route::get('/admin/hq/returns/{applicationHash}', [HqAdminController::class, 'show'])->name('admin.hq.returns.show');
     Route::get('/admin/hq/returns/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('admin.hq.returns.document');
+    Route::get('/admin/hq/returns/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('admin.hq.returns.download');
     Route::get('/admin/hq/archive', [HqAdminController::class, 'archive'])->name('admin.hq.archive');
     Route::get('/admin/hq/analytics', [HqAdminController::class, 'analytics'])->name('admin.hq.analytics');
     Route::get('/admin/hq/reports', [HqAdminController::class, 'reports'])->name('admin.hq.reports');

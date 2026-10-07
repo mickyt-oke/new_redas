@@ -69,7 +69,7 @@ class SpecialCommandController extends Controller
         $user = Auth::user();
         $stateCode = NisFormationService::geoStateForCode($user?->primary_location_code);
 
-        $returnData = $request->except(['_token', 'data_consent', 'attachments']);
+        $returnData = $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
         $returnData['command_name'] = $this->commandNameForUser($user);
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
@@ -155,7 +155,7 @@ class SpecialCommandController extends Controller
             $existingAttachments = [];
         }
 
-        $returnData = $request->except(['_token', '_method', 'data_consent', 'attachments']);
+        $returnData = $this->sanitizeReturnData($request->except(['_token', '_method', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
         $returnData['command_name'] = $this->commandNameForUser($user);
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
@@ -326,5 +326,39 @@ class SpecialCommandController extends Controller
         }
 
         return $paths;
+    }
+
+    /**
+     * Recursively sanitize user-submitted return data before persistence.
+     */
+    private function sanitizeReturnData(array $data): array
+    {
+        $forbiddenKeys = ['_token', '_method', 'data_consent', 'workflow_path', 'status'];
+        $clean = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $forbiddenKeys, true)) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $nested = $this->sanitizeReturnData($value);
+                if ($nested !== []) {
+                    $clean[$key] = $nested;
+                }
+            } elseif (is_string($value)) {
+                $trimmed = trim(strip_tags($value));
+                if ($trimmed === '') {
+                    continue;
+                }
+                $clean[$key] = preg_match('/^\d+$/', $trimmed) ? (int) $trimmed : $trimmed;
+            } elseif (is_numeric($value)) {
+                $clean[$key] = $value;
+            } elseif ($value !== null) {
+                $clean[$key] = $value;
+            }
+        }
+
+        return $clean;
     }
 }

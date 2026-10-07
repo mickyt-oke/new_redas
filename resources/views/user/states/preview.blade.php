@@ -76,7 +76,15 @@
 @php
 $sections = \App\Services\PreviewRenderer::buildSections($data, [
     'skipKeys' => $skipKeys,
+    'directorateSlug' => $data['directorate_slug'] ?? $data['cgis_unit_slug'] ?? null,
     'directorateNames' => $directorateNames,
+    'sectionLabels' => [
+        'personnel' => 'Personnel Strength',
+        'operations' => 'Operations Summary',
+        'logistics' => 'Logistics / Equipment',
+        'finance' => 'Finance / Budget Summary',
+        'challenges' => 'Challenges & Way Forward',
+    ],
 ]);
 @endphp
 

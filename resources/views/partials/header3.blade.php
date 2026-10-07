@@ -63,7 +63,7 @@
         ] as [$url, $icon, $label])
         <a href="{{ url($url) }}" class="sidebar-link">
             <span class="link-icon"><i class="{{ $icon }}"></i></span>
-            <span class="link-text">{!! $label !!}</span>
+            <span class="link-text">{{ $label }}</span>
         </a>
         @endforeach
 

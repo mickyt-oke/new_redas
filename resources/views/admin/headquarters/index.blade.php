@@ -61,129 +61,104 @@
         </div>
     </div>
 
-    <div class="redas-card" style="margin-bottom:20px;">
-        <div class="card-head">
-            <div class="card-head-title">
-                <div class="card-head-icon" style="background:#e0f2fe;color:#0369a1;">
-                    <i class="fas fa-building"></i>
-                </div>
-                Directorate Returns Overview
-            </div>
-            <a href="{{ route('admin.hq.returns', ['category' => 'directorate']) }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all <i class="fas fa-arrow-right" style="font-size:.65rem;"></i></a>
-        </div>
-        <div class="card-body no-pad">
-            <div style="overflow:auto;">
-                <table class="redas-table" style="min-width:680px;">
-                    <thead>
-                        <tr>
-                            <th>Directorate</th>
-                            <th style="text-align:center;">Total</th>
-                            <th style="text-align:center;">Pending</th>
-                            <th style="text-align:center;">Approved</th>
-                            <th style="text-align:center;">Returned</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($directorates as $directorate)
-                            <tr>
-                                <td style="font-weight:600;">{{ $directorate['name'] }}</td>
-                                <td style="text-align:center;">{{ $directorate['total'] }}</td>
-                                <td style="text-align:center;"><span class="status-badge badge-pending">{{ $directorate['pending'] }}</span></td>
-                                <td style="text-align:center;"><span class="status-badge badge-approved">{{ $directorate['approved'] }}</span></td>
-                                <td style="text-align:center;"><span class="status-badge badge-rejected">{{ $directorate['returned'] }}</span></td>
-                                <td style="text-align:right;">
-                                    <a href="{{ route('admin.hq.returns', ['formation' => $directorate['slug']]) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="6" style="text-align:center;color:var(--gray-400);padding:24px;">No directorate returns recorded yet.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    <ul class="nav nav-tabs nav-tabs-nis" id="hqTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab" aria-controls="overview-pane" aria-selected="true">
+                <i class="fas fa-th-large" style="margin-right:6px;"></i>Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="recent-tab" data-bs-toggle="tab" data-bs-target="#recent-pane" type="button" role="tab" aria-controls="recent-pane" aria-selected="false">
+                <i class="fas fa-list" style="margin-right:6px;"></i>Recent Returns
+                <span class="badge bg-secondary" style="margin-left:6px;font-size:.65rem;">{{ $recentReturns->count() }}</span>
+            </button>
+        </li>
+    </ul>
 
-    <div class="redas-card" style="margin-bottom:20px;">
-        <div class="card-head">
-            <div class="card-head-title">
-                <div class="card-head-icon" style="background:#fef3c7;color:#b45309;">
-                    <i class="fas fa-star"></i>
+    <div class="tab-content tab-content-nis" id="hqTabContent">
+        <div class="tab-pane fade show active" id="overview-pane" role="tabpanel" aria-labelledby="overview-tab">
+            <div class="redas-card" style="margin-bottom:20px;">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:#e0f2fe;color:#0369a1;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        Directorate Returns Overview
+                    </div>
+                    <a href="{{ route('admin.hq.returns', ['category' => 'directorate']) }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all <i class="fas fa-arrow-right" style="font-size:.65rem;"></i></a>
                 </div>
-                CGIS Units Returns
+                <div class="card-body no-pad">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered table-nis align-middle" style="min-width:680px;">
+                            <thead>
+                                <tr>
+                                    <th>Directorate</th>
+                                    <th style="text-align:center;">Total</th>
+                                    <th style="text-align:center;">Pending</th>
+                                    <th style="text-align:center;">Approved</th>
+                                    <th style="text-align:center;">Returned</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($directorates as $directorate)
+                                    <tr>
+                                        <td style="font-weight:600;">{{ $directorate['name'] }}</td>
+                                        <td style="text-align:center;">{{ $directorate['total'] }}</td>
+                                        <td style="text-align:center;"><span class="status-badge badge-pending">{{ $directorate['pending'] }}</span></td>
+                                        <td style="text-align:center;"><span class="status-badge badge-approved">{{ $directorate['approved'] }}</span></td>
+                                        <td style="text-align:center;"><span class="status-badge badge-rejected">{{ $directorate['returned'] }}</span></td>
+                                        <td style="text-align:right;">
+                                            <a href="{{ route('admin.hq.returns', ['formation' => $directorate['slug']]) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" style="text-align:center;color:var(--gray-400);padding:24px;">No directorate returns recorded yet.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            @if($cgisUnits->isEmpty())
-                <p style="margin:0;color:var(--gray-400);font-size:.85rem;">No returns have been submitted by CGIS units yet.</p>
-            @else
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
-                    @foreach($cgisUnits as $unit)
-                        <a href="{{ route('admin.hq.returns', ['category' => 'cgis']) }}" style="display:block;border:1px solid var(--gray-200);border-radius:10px;padding:12px;text-decoration:none;color:inherit;">
-                            <div style="font-size:.75rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.03em;">{{ $unit['unit'] }}</div>
-                            <div style="font-size:1.15rem;font-weight:700;color:var(--gray-900);">{{ $unit['total'] }} <span style="font-size:.72rem;font-weight:500;color:var(--gray-400);">returns</span></div>
-                            <div style="font-size:.74rem;color:#15803d;">{{ $unit['approved'] }} approved</div>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
-        </div>
-    </div>
 
-    <div class="redas-card">
-        <div class="card-head">
-            <div class="card-head-title">
-                <div class="card-head-icon" style="background:#ede9fe;color:#6d28d9;">
-                    <i class="fas fa-list"></i>
+            <div class="redas-card" style="margin-bottom:20px;">
+                <div class="card-head">
+                    <div class="card-head-title">
+                        <div class="card-head-icon" style="background:#fef3c7;color:#b45309;">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        CGIS Units Returns
+                    </div>
                 </div>
-                Recent Returns (All Formations)
+                <div class="card-body">
+                    @if($cgisUnits->isEmpty())
+                        <p style="margin:0;color:var(--gray-400);font-size:.85rem;">No returns have been submitted by CGIS units yet.</p>
+                    @else
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+                            @foreach($cgisUnits as $unit)
+                                <a href="{{ route('admin.hq.returns', ['category' => 'cgis']) }}" style="display:block;border:1px solid var(--gray-200);border-radius:10px;padding:12px;text-decoration:none;color:inherit;">
+                                    <div style="font-size:.75rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.03em;">{{ $unit['unit'] }}</div>
+                                    <div style="font-size:1.15rem;font-weight:700;color:var(--gray-900);">{{ $unit['total'] }} <span style="font-size:.72rem;font-weight:500;color:var(--gray-400);">returns</span></div>
+                                    <div style="font-size:.74rem;color:#15803d;">{{ $unit['approved'] }} approved</div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
-            <a href="{{ route('admin.hq.returns') }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all <i class="fas fa-arrow-right" style="font-size:.65rem;"></i></a>
         </div>
-        <div class="card-body no-pad">
-            <div style="overflow:auto;">
-                <table class="redas-table" style="min-width:760px;">
-                    <thead>
-                        <tr>
-                            <th>Ref</th>
-                            <th>Formation</th>
-                            <th>Officer</th>
-                            <th>Period</th>
-                            <th>Stage</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentReturns as $return)
-                            @php
-                                $data = $return->return_data ?? [];
-                                $badge = match ($return->status) {
-                                    'approved' => 'badge-approved',
-                                    'returned', 'rejected' => 'badge-rejected',
-                                    default => 'badge-pending',
-                                };
-                            @endphp
-                            <tr>
-                                <td style="font-weight:600;">RET-{{ str_pad($return->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                <td>{{ $data['command_name'] ?? $return->scope_code ?? '—' }}</td>
-                                <td>{{ $data['reporting_officer'] ?? $return->user->name ?? '—' }}</td>
-                                <td>{{ $data['report_period'] ?? '—' }}</td>
-                                <td style="text-transform:capitalize;">{{ str_replace('_', ' ', $return->workflow_stage) }}</td>
-                                <td><span class="status-badge {{ $badge }}">{{ ucfirst($return->status) }}</span></td>
-                                <td>{{ optional($return->created_at)->format('d M Y') }}</td>
-                                <td style="text-align:right;">
-                                    <a href="{{ route('admin.hq.returns.show', ['applicationHash' => \App\Services\HashidService::encode($return->id)]) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="8" style="text-align:center;color:var(--gray-400);padding:24px;">No returns recorded yet.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+
+        <div class="tab-pane fade" id="recent-pane" role="tabpanel" aria-labelledby="recent-tab">
+            @include('partials.admin-submissions-table', [
+                'submissions' => $recentReturns,
+                'title' => 'Recent Returns (All Formations)',
+                'emptyMessage' => 'No returns recorded yet.',
+                'previewRoute' => 'admin.hq.returns.show',
+                'documentRoute' => 'admin.hq.returns.document',
+                'downloadRoute' => 'admin.hq.returns.download',
+            ])
         </div>
     </div>
 </main>

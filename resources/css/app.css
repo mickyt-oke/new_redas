@@ -1,4 +1,101 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
 @import './redas-theme.css';
 @import './styles.css';
 @import './auth-pages.css';
 @import './dashboard.css';
+
+/* ============================================================
+   NIS REDAS — Bootstrap table/tab theme overrides
+   ============================================================ */
+
+.table-nis {
+    --bs-table-bg: #fff;
+    --bs-table-border-color: var(--gray-200, #e5e7eb);
+    margin-bottom: 0;
+    font-size: 0.82rem;
+}
+
+.table-nis thead th {
+    background: var(--nis-600, #006633);
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-color: var(--nis-600, #006633);
+    white-space: nowrap;
+}
+
+.table-nis tbody td {
+    color: var(--gray-700, #374151);
+    vertical-align: middle;
+}
+
+.table-nis.table-hover > tbody > tr:hover {
+    --bs-table-bg: #f0fdf4;
+}
+
+.table-nis .status-badge {
+    font-size: 0.7rem;
+}
+
+.table-responsive {
+    border: 1px solid var(--gray-200, #e5e7eb);
+    border-radius: var(--radius-md, 10px);
+    overflow: hidden;
+    background: #fff;
+}
+
+.nav-tabs-nis {
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+    margin-bottom: 16px;
+    gap: 4px;
+}
+
+.nav-tabs-nis .nav-link {
+    color: var(--gray-600, #4b5563);
+    font-weight: 600;
+    font-size: 0.85rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: var(--radius-sm, 6px) var(--radius-sm, 6px) 0 0;
+    padding: 10px 16px;
+}
+
+.nav-tabs-nis .nav-link:hover {
+    color: var(--nis-700, #14532d);
+    background: var(--nis-50, #f0faf4);
+    border-color: var(--gray-200, #e5e7eb);
+}
+
+.nav-tabs-nis .nav-link.active {
+    color: var(--nis-700, #14532d);
+    background: #fff;
+    border-color: var(--gray-200, #e5e7eb) var(--gray-200, #e5e7eb) #fff;
+    border-top: 3px solid var(--nis-600, #006633);
+}
+
+.tab-content-nis {
+    padding-top: 4px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--gray-500, #6b7280);
+    font-size: 0.86rem;
+}
+
+.empty-state i {
+    display: block;
+    font-size: 1.6rem;
+    color: var(--gray-300, #d1d5db);
+    margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+    .nav-tabs-nis .nav-link {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+    }
+}

@@ -43,6 +43,8 @@ class SuperAdminController extends Controller
 
     public function dashboard(): View
     {
+        abort_unless(auth()->user()?->hasCategory('super_admin'), 403);
+
         $statusCounts = Application::query()
             ->selectRaw('status, count(*) as aggregate')
             ->groupBy('status')
@@ -163,6 +165,8 @@ class SuperAdminController extends Controller
 
     public function returns(Request $request): View
     {
+        abort_unless(auth()->user()?->hasCategory('super_admin'), 403);
+
         $filters = $request->validate([
             'category' => ['nullable', 'in:state,directorate,cgis'],
             'status' => ['nullable', 'in:pending,approved,returned'],
@@ -190,12 +194,13 @@ class SuperAdminController extends Controller
         }
 
         if ($search = trim((string) ($filters['search'] ?? ''))) {
-            $query->where(function ($q) use ($search) {
-                $q->where('return_data->reporting_officer', 'like', "%{$search}%")
-                    ->orWhere('return_data->command_name', 'like', "%{$search}%")
+            $escaped = $this->escapeLike($search);
+            $query->where(function ($q) use ($escaped) {
+                $q->where('return_data->reporting_officer', 'like', "%{$escaped}%")
+                    ->orWhere('return_data->command_name', 'like', "%{$escaped}%")
                     ->orWhereHas('user', fn ($inner) => $inner
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('service_number', 'like', "%{$search}%"));
+                        ->where('name', 'like', "%{$escaped}%")
+                        ->orWhere('service_number', 'like', "%{$escaped}%"));
             });
         }
 
@@ -210,6 +215,8 @@ class SuperAdminController extends Controller
 
     public function show(string $applicationHash): View
     {
+        abort_unless(auth()->user()?->hasCategory('super_admin'), 403);
+
         $application = $this->resolveApplication($applicationHash);
         $application->load(['user:id,name,service_number,email,assigned_cgis_unit_code', 'reviewComments.user']);
 
@@ -232,7 +239,17 @@ class SuperAdminController extends Controller
             'layout' => 'super-admin.layout',
             'backRoute' => 'superadmin.returns',
             'documentRoute' => 'superadmin.returns.document',
+            'downloadRoute' => 'superadmin.returns.download',
         ]);
+    }
+
+    /**
+     * Escape LIKE wildcard characters so user-supplied search strings cannot
+     * alter query semantics.
+     */
+    private function escapeLike(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
     /**

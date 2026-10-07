@@ -67,61 +67,17 @@
         </div>
     </div>
 
-    <div class="redas-card">
-        <div class="card-body no-pad">
-            <div style="overflow:auto;">
-                <table class="redas-table" style="min-width:860px;">
-                    <thead>
-                        <tr>
-                            <th>Ref</th>
-                            <th>Formation</th>
-                            <th>Category</th>
-                            <th>Officer</th>
-                            <th>Period</th>
-                            <th>Stage</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($applications as $return)
-                            @php
-                                $data = $return->return_data ?? [];
-                                $badge = match ($return->status) {
-                                    'approved' => 'badge-approved',
-                                    'returned', 'rejected' => 'badge-rejected',
-                                    default => 'badge-pending',
-                                };
-                            @endphp
-                            <tr>
-                                <td style="font-weight:600;">RET-{{ str_pad($return->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                <td>{{ $data['command_name'] ?? $return->scope_code ?? '—' }}</td>
-                                <td style="text-transform:capitalize;">{{ $return->category }}</td>
-                                <td>
-                                    {{ $data['reporting_officer'] ?? $return->user->name ?? '—' }}
-                                    @if($return->user?->service_number)
-                                        <div style="font-size:.72rem;color:var(--gray-400);">{{ $return->user->service_number }}</div>
-                                    @endif
-                                </td>
-                                <td>{{ $data['report_period'] ?? '—' }}</td>
-                                <td style="text-transform:capitalize;">{{ str_replace('_', ' ', $return->workflow_stage) }}</td>
-                                <td><span class="status-badge {{ $badge }}">{{ ucfirst($return->status) }}</span></td>
-                                <td>{{ optional($return->created_at)->format('d M Y') }}</td>
-                                <td style="text-align:right;">
-                                    <a href="{{ route('admin.hq.returns.show', ['applicationHash' => \App\Services\HashidService::encode($return->id)]) }}" class="btn-nis btn-ghost" style="padding:6px 12px;font-size:.75rem;">View</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="9" style="text-align:center;color:var(--gray-400);padding:24px;">No returns match the selected filters.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div style="padding:14px 20px;border-top:1px solid var(--gray-100);">
-                {{ $applications->links() }}
-            </div>
-        </div>
+    @include('partials.admin-submissions-table', [
+        'submissions' => $applications,
+        'title' => 'Filtered Returns',
+        'emptyMessage' => 'No returns match the selected filters.',
+        'previewRoute' => 'admin.hq.returns.show',
+        'documentRoute' => 'admin.hq.returns.document',
+        'downloadRoute' => 'admin.hq.returns.download',
+    ])
+
+    <div style="padding:14px 20px;">
+        {{ $applications->links() }}
     </div>
 </main>
 

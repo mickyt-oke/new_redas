@@ -298,6 +298,42 @@ class DashboardController extends Controller
         ];
     }
 
+    /**
+     * Recursively sanitize user-submitted return data before persistence.
+     * Removes workflow keys, trims strings, casts numeric strings, strips tags
+     * and drops empty leaf values to reduce injection / mass-assignment risk.
+     */
+    public function sanitizeReturnData(array $data): array
+    {
+        $forbiddenKeys = ['_token', '_method', 'data_consent', 'workflow_path', 'status'];
+        $clean = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $forbiddenKeys, true)) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $nested = $this->sanitizeReturnData($value);
+                if ($nested !== []) {
+                    $clean[$key] = $nested;
+                }
+            } elseif (is_string($value)) {
+                $trimmed = trim(strip_tags($value));
+                if ($trimmed === '') {
+                    continue;
+                }
+                $clean[$key] = preg_match('/^\d+$/', $trimmed) ? (int) $trimmed : $trimmed;
+            } elseif (is_numeric($value)) {
+                $clean[$key] = $value;
+            } elseif ($value !== null) {
+                $clean[$key] = $value;
+            }
+        }
+
+        return $clean;
+    }
+
     public function storeDirectorate(Request $request, string $slug): RedirectResponse
     {
         $directorate = self::DIRECTORATES[$slug] ?? null;
@@ -318,7 +354,7 @@ class DashboardController extends Controller
 
         try {
             SubmissionWorkflow::create($user, array_merge(
-                $request->except(['_token', 'data_consent', 'supporting_documents', 'attachments']),
+                $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'supporting_documents', 'attachments'])),
                 [
                     'directorate_slug' => $slug,
                     'report_period' => $validated['report_period'],
@@ -449,7 +485,7 @@ class DashboardController extends Controller
 
         try {
             SubmissionWorkflow::create($user, array_merge(
-                $request->except(['_token', 'data_consent', 'supporting_documents', 'attachments']),
+                $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'supporting_documents', 'attachments'])),
                 [
                     'cgis_unit_slug' => $slug,
                     'report_period' => $validated['report_period'],
@@ -779,7 +815,7 @@ class DashboardController extends Controller
             ]);
 
             $returnData = array_merge(
-                $request->except(['_token', '_method', 'data_consent', 'attachments', 'workflow_path', 'status']),
+                $this->sanitizeReturnData($request->except(['_token', '_method', 'data_consent', 'attachments', 'workflow_path', 'status'])),
                 [
                     'report_period' => $request->input('period'),
                     // Command/officer identity is server-derived, never trusted from the
@@ -798,7 +834,7 @@ class DashboardController extends Controller
             $slugKey = isset(self::CGIS_UNITS[$slug]) ? 'cgis_unit_slug' : 'directorate_slug';
 
             $returnData = array_merge(
-                $request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments']),
+                $this->sanitizeReturnData($request->except(['_token', '_method', 'data_consent', 'supporting_documents', 'attachments'])),
                 [
                     $slugKey => $slug,
                     'report_period' => $validated['report_period'],

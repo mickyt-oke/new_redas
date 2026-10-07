@@ -160,11 +160,14 @@ class HqAdminController extends Controller
             'application' => $application,
             'timeline' => $timeline,
             'stageLabels' => self::STAGE_LABELS,
+            'downloadRoute' => 'admin.hq.returns.download',
         ]);
     }
 
     public function archive(Request $request): View
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin'), 403);
+
         $filters = $request->validate([
             'formation' => ['nullable', 'string', 'max:60'],
             'period' => ['nullable', 'date_format:Y-m'],
@@ -188,6 +191,8 @@ class HqAdminController extends Controller
 
     public function analytics(HqAnalyticsService $analytics): View
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin'), 403);
+
         return view('admin.headquarters.analytics', [
             'directorateChart' => $analytics->getDirectorateChart(self::DIRECTORATES),
             'statusChart' => $analytics->getStatusChart(),
@@ -198,6 +203,8 @@ class HqAdminController extends Controller
 
     public function reports(): View
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin'), 403);
+
         return view('admin.headquarters.reports', [
             'templates' => ExcelReportService::TEMPLATES,
         ]);
@@ -205,6 +212,8 @@ class HqAdminController extends Controller
 
     public function generateReport(Request $request, ExcelReportService $excel): BinaryFileResponse|RedirectResponse
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin'), 403);
+
         $validated = $request->validate([
             'report_type' => ['required', 'in:' . implode(',', array_keys(ExcelReportService::TEMPLATES))],
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
@@ -276,6 +285,15 @@ class HqAdminController extends Controller
         }
     }
 
+    /**
+     * Escape LIKE wildcard characters so user-supplied search strings cannot
+     * alter query semantics.
+     */
+    private function escapeLike(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+    }
+
     protected function filterApplications(\Illuminate\Database\Eloquent\Builder $query, array $filters): void
     {
         if ($category = $filters['category'] ?? null) {
@@ -303,12 +321,13 @@ class HqAdminController extends Controller
         }
 
         if ($search = trim((string) ($filters['search'] ?? ''))) {
-            $query->where(function ($q) use ($search) {
-                $q->where('return_data->reporting_officer', 'like', "%{$search}%")
-                    ->orWhere('return_data->command_name', 'like', "%{$search}%")
+            $escaped = $this->escapeLike($search);
+            $query->where(function ($q) use ($escaped) {
+                $q->where('return_data->reporting_officer', 'like', "%{$escaped}%")
+                    ->orWhere('return_data->command_name', 'like', "%{$escaped}%")
                     ->orWhereHas('user', fn ($inner) => $inner
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('service_number', 'like', "%{$search}%"));
+                        ->where('name', 'like', "%{$escaped}%")
+                        ->orWhere('service_number', 'like', "%{$escaped}%"));
             });
         }
     }

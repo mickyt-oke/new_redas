@@ -29,6 +29,8 @@ class ConsolidationController extends Controller
      */
     public function index(): View
     {
+        abort_unless(auth()->user()?->hasCategory('hq_admin', 'admin', 'super_admin'), 403);
+
         $statusRows = Application::query()
             ->selectRaw('status, count(*) as aggregate')
             ->groupBy('status')

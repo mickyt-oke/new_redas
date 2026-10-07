@@ -40,13 +40,13 @@ final class PreviewRenderer
         $flatFields = [];
 
         foreach ($data as $key => $value) {
-            if (in_array($key, $skipKeys, true) || self::isEmptyValue($value)) {
+            if (in_array($key, $skipKeys, true) || self::isBlankValue($value)) {
                 continue;
             }
 
             if ($key === $directorateSlug && is_array($value)) {
                 foreach ($value as $subKey => $subValue) {
-                    if (self::isEmptyValue($subValue)) {
+                    if (self::isBlankValue($subValue)) {
                         continue;
                     }
                     if (is_array($subValue)) {
@@ -103,7 +103,20 @@ final class PreviewRenderer
         if (is_bool($value)) {
             return $value ? 'Yes' : 'No';
         }
+        if (is_string($value)) {
+            return self::sanitizeString($value);
+        }
         return (string) $value;
+    }
+
+    /**
+     * Strip tags and event-handler attributes from a string before display.
+     */
+    private static function sanitizeString(string $value): string
+    {
+        $value = strip_tags($value);
+        $value = preg_replace('/\bon\w+\s*=\s*["\']?[^"\']*["\']?/i', '', $value) ?? $value;
+        return trim($value);
     }
 
     private static function isEmptyValue(mixed $value): bool
@@ -114,6 +127,26 @@ final class PreviewRenderer
         if (is_array($value)) {
             foreach ($value as $v) {
                 if (! self::isEmptyValue($v)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Treat null, empty string, zero and the string "0" as blank.
+     * Used when deciding whether to drop an entire section/table.
+     */
+    private static function isBlankValue(mixed $value): bool
+    {
+        if ($value === null || $value === '' || $value === 0 || $value === '0') {
+            return true;
+        }
+        if (is_array($value)) {
+            foreach ($value as $v) {
+                if (! self::isBlankValue($v)) {
                     return false;
                 }
             }

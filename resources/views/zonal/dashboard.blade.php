@@ -51,181 +51,63 @@
         </div>
     </div>
 
-    <div class="redas-card">
-        <div class="card-head">
-            <div class="card-head-title">
-                <div class="card-head-icon" style="background:#ede9fe;color:#6d28d9;">
-                    <i class="fas fa-list-check"></i>
-                </div>
-                Submissions Awaiting Action
-            </div>
-        </div>
-        <div class="card-body no-pad">
-            <div style="overflow:auto;">
-                <table style="width:100%;border-collapse:collapse;min-width:760px;">
-                    <thead>
-                        <tr style="background:#f8fafc;">
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">ID</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Officer</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Report Period</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Status</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Date</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pendingSubmissions as $submission)
-                            <tr>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">#{{ $submission->id }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->user)->name ?? 'N/A' }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ $submission->return_data['report_period'] ?? '—' }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                                    <span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:.72rem;font-weight:700;">
-                                        {{ ucfirst($submission->status) }}
-                                    </span>
-                                </td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->created_at)->format('d M Y, H:i') }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
-                                        <a href="{{ route('zonal.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
-                                            <i class="fas fa-eye"></i> Preview
-                                        </a>
-                                        <form method="POST" action="{{ \Illuminate\Support\Facades\URL::signedRoute($approveRoute, ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" style="display:flex;gap:8px;flex-wrap:wrap;min-width:240px;">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="text" name="note" maxlength="1000" placeholder="Approval note (optional)" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:.75rem;flex:1;min-width:140px;">
-                                            <button type="submit" class="btn-nis btn-sm btn-primary-nis">Approve</button>
-                                        </form>
+    <ul class="nav nav-tabs nav-tabs-nis" id="zonalTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="zonal-pending-tab" data-bs-toggle="tab" data-bs-target="#zonal-pending-pane" type="button" role="tab" aria-controls="zonal-pending-pane" aria-selected="true">
+                <i class="fas fa-clock" style="margin-right:6px;"></i>Pending
+                <span class="badge bg-warning text-dark" style="margin-left:6px;font-size:.65rem;">{{ $pendingSubmissions->count() }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="zonal-approved-tab" data-bs-toggle="tab" data-bs-target="#zonal-approved-pane" type="button" role="tab" aria-controls="zonal-approved-pane" aria-selected="false">
+                <i class="fas fa-circle-check" style="margin-right:6px;"></i>Approved
+                <span class="badge bg-success" style="margin-left:6px;font-size:.65rem;">{{ $approvedCount }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="zonal-returned-tab" data-bs-toggle="tab" data-bs-target="#zonal-returned-pane" type="button" role="tab" aria-controls="zonal-returned-pane" aria-selected="false">
+                <i class="fas fa-circle-xmark" style="margin-right:6px;"></i>Returned
+                <span class="badge bg-danger" style="margin-left:6px;font-size:.65rem;">{{ $rejectedCount }}</span>
+            </button>
+        </li>
+    </ul>
 
-                                        <form method="POST" action="{{ \Illuminate\Support\Facades\URL::signedRoute($rejectRoute, ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" style="display:flex;gap:8px;flex-wrap:wrap;min-width:260px;">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="text" name="comment" maxlength="1000" required placeholder="Rejection reason (required)" style="padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:.75rem;flex:1;min-width:140px;">
-                                            <button type="submit" class="btn-nis btn-sm" style="background:#b91c1c;color:#fff;">Reject</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="padding:16px;text-align:center;color:#64748b;">No pending submissions in your provisioned scope.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+    <div class="tab-content tab-content-nis" id="zonalTabContent">
+        <div class="tab-pane fade show active" id="zonal-pending-pane" role="tabpanel" aria-labelledby="zonal-pending-tab">
+            @include('partials.admin-submissions-table', [
+                'submissions' => $pendingSubmissions,
+                'title' => 'Submissions Awaiting Action',
+                'status' => 'pending',
+                'emptyMessage' => 'No pending submissions in your provisioned scope.',
+                'showApproveReject' => true,
+                'previewRoute' => 'zonal.submissions.show',
+                'documentRoute' => 'zonal.submissions.document',
+                'downloadRoute' => 'zonal.submissions.download',
+                'approveRoute' => $approveRoute,
+                'rejectRoute' => $rejectRoute,
+            ])
         </div>
-    </div>
-
-    <div class="redas-card" style="margin-top:20px;">
-        <div class="card-head">
-            <div class="card-head-title">
-                <div class="card-head-icon" style="background:#ecfdf5;color:#15803d;">
-                    <i class="fas fa-circle-check"></i>
-                </div>
-                Approved Submissions
-            </div>
+        <div class="tab-pane fade" id="zonal-approved-pane" role="tabpanel" aria-labelledby="zonal-approved-tab">
+            @include('partials.admin-submissions-table', [
+                'submissions' => $approvedSubmissions,
+                'title' => 'Approved Submissions',
+                'status' => 'approved',
+                'emptyMessage' => 'No approved submissions in your provisioned scope yet.',
+                'previewRoute' => 'zonal.submissions.show',
+                'documentRoute' => 'zonal.submissions.document',
+                'downloadRoute' => 'zonal.submissions.download',
+            ])
         </div>
-        <div class="card-body no-pad">
-            <div style="overflow:auto;">
-                <table style="width:100%;border-collapse:collapse;min-width:720px;">
-                    <thead>
-                        <tr style="background:#f8fafc;">
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">ID</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Officer</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Report Period</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Status</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Approved</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($approvedSubmissions as $submission)
-                            <tr>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">#{{ $submission->id }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->user)->name ?? 'N/A' }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ $submission->return_data['report_period'] ?? '—' }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                                    <span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:.72rem;font-weight:700;">
-                                        {{ ucfirst($submission->status) }}
-                                    </span>
-                                </td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->updated_at)->format('d M Y, H:i') }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                        <a href="{{ route('zonal.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
-                                            <i class="fas fa-eye"></i> Preview
-                                        </a>
-                                        <a href="{{ \Illuminate\Support\Facades\URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
-                                            <i class="fas fa-file-pdf"></i> PDF
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="padding:16px;text-align:center;color:#64748b;">No approved submissions in your provisioned scope yet.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="redas-card" style="margin-top:20px;">
-        <div class="card-head">
-            <div class="card-head-title">
-                <div class="card-head-icon" style="background:#fee2e2;color:#991b1b;">
-                    <i class="fas fa-circle-xmark"></i>
-                </div>
-                Returned Submissions
-            </div>
-        </div>
-        <div class="card-body no-pad">
-            <div style="overflow:auto;">
-                <table style="width:100%;border-collapse:collapse;min-width:720px;">
-                    <thead>
-                        <tr style="background:#f8fafc;">
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">ID</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Officer</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Report Period</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Status</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Returned</th>
-                            <th style="text-align:left;padding:10px;font-size:.75rem;color:#475569;border-bottom:1px solid #e5e7eb;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($rejectedSubmissions as $submission)
-                            <tr>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">#{{ $submission->id }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->user)->name ?? 'N/A' }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ $submission->return_data['report_period'] ?? '—' }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                                    <span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:#fee2e2;color:#991b1b;font-size:.72rem;font-weight:700;">
-                                        {{ ucfirst($submission->status) }}
-                                    </span>
-                                </td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">{{ optional($submission->updated_at)->format('d M Y, H:i') }}</td>
-                                <td style="padding:10px;border-bottom:1px solid #f1f5f9;">
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                        <a href="{{ route('zonal.submissions.show', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-ghost" style="padding:6px 12px;">
-                                            <i class="fas fa-eye"></i> Preview
-                                        </a>
-                                        <a href="{{ \Illuminate\Support\Facades\URL::signedRoute('user.submissions.pdf', ['applicationHash' => \App\Services\HashidService::encode($submission->id)]) }}" class="btn-nis btn-sm btn-outline-nis" style="padding:6px 12px;">
-                                            <i class="fas fa-file-pdf"></i> PDF
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="padding:16px;text-align:center;color:#64748b;">No returned submissions in your provisioned scope yet.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+        <div class="tab-pane fade" id="zonal-returned-pane" role="tabpanel" aria-labelledby="zonal-returned-tab">
+            @include('partials.admin-submissions-table', [
+                'submissions' => $rejectedSubmissions,
+                'title' => 'Returned Submissions',
+                'status' => 'returned',
+                'emptyMessage' => 'No returned submissions in your provisioned scope yet.',
+                'previewRoute' => 'zonal.submissions.show',
+                'documentRoute' => 'zonal.submissions.document',
+                'downloadRoute' => 'zonal.submissions.download',
+            ])
         </div>
     </div>
 </main>
