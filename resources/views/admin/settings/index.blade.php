@@ -21,7 +21,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.settings.update') }}" method="POST" class="redas-card">
+    <form action="{{ route('admin.settings.update') }}" method="POST" class="redas-card needs-validation" novalidate>
         @csrf
         @method('PUT')
 
@@ -115,7 +115,12 @@
                     <label class="form-label" style="font-weight:600;font-size:.85rem;color:var(--gray-700);display:block;margin-bottom:6px;">
                         API Token (optional)
                     </label>
-                    <input type="password" name="geolocation_api_token" value="{{ $settings['geolocation_api_token'] ?? '' }}" class="form-control" style="width:100%;padding:8px 12px;border-radius:var(--radius-md);border:1px solid var(--gray-200);" placeholder="Only required for ipapi.co" autocomplete="off">
+                    <div class="pw-wrap">
+                        <input type="password" name="geolocation_api_token" value="{{ $settings['geolocation_api_token'] ?? '' }}" class="form-control" style="width:100%;padding:8px 40px 8px 12px;border-radius:var(--radius-md);border:1px solid var(--gray-200);" placeholder="Only required for ipapi.co" autocomplete="off">
+                        <button type="button" class="pw-toggle" aria-label="Toggle token visibility" style="right:8px;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                     <small style="color:var(--gray-400);">Optional token for paid geolocation providers. Masked for security.</small>
                 </div>
             </div>

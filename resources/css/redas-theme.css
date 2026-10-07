@@ -1566,6 +1566,34 @@ body.auth-page {
 
 .auth-input.is-invalid { border-color: var(--color-danger); }
 
+.pw-wrap { position: relative; }
+
+.pw-wrap .pw-toggle,
+.auth-input-wrap .pw-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--gray-400);
+    padding: 4px;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.pw-wrap .pw-toggle:hover,
+.auth-input-wrap .pw-toggle:hover {
+    color: var(--gray-600);
+}
+
+.pw-wrap input,
+.auth-input-wrap input[type="password"],
+.auth-input-wrap input[type="text"] {
+    padding-right: 40px;
+}
+
 .auth-role-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;

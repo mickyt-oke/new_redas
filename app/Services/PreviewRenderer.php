@@ -72,10 +72,13 @@ final class PreviewRenderer
         }
 
         if ($flatFields !== []) {
-            array_unshift($sections, ['label' => 'Return Details', 'html' => self::kvTable($flatFields)]);
+            $flatHtml = self::kvTable($flatFields);
+            if ($flatHtml !== '') {
+                array_unshift($sections, ['label' => 'Return Details', 'html' => $flatHtml]);
+            }
         }
 
-        return $sections;
+        return array_values(array_filter($sections, fn ($s) => ! empty($s['html'])));
     }
 
     public static function humanize(string|int $key): string
@@ -172,15 +175,18 @@ final class PreviewRenderer
 
     private static function kvTable(array $pairs): string
     {
-        $out = '<table class="report-table kv-table"><tbody>';
+        $rows = '';
         foreach ($pairs as $key => $value) {
             if (self::isEmptyValue($value)) {
                 continue;
             }
-            $out .= '<tr><td class="kv-key">' . e(self::humanize($key)) . '</td><td>'
+            $rows .= '<tr><td class="kv-key">' . e(self::humanize($key)) . '</td><td>'
                 . e(self::formatValue($value)) . '</td></tr>';
         }
-        return $out . '</tbody></table>';
+        if ($rows === '') {
+            return '';
+        }
+        return '<table class="report-table kv-table"><tbody>' . $rows . '</tbody></table>';
     }
 
     private static function matrixTable(array $rows): string
@@ -194,22 +200,26 @@ final class PreviewRenderer
             }
         }
 
-        $out = '<table class="report-table"><thead><tr><th style="width:32%;">Item</th>';
-        foreach ($columns as $col) {
-            $out .= '<th>' . e(self::humanize($col)) . '</th>';
-        }
-        $out .= '</tr></thead><tbody>';
+        $body = '';
         foreach ($rows as $label => $row) {
             if (self::isEmptyValue($row)) {
                 continue;
             }
-            $out .= '<tr><td class="row-head">' . e(self::humanize($label)) . '</td>';
+            $body .= '<tr><td class="row-head">' . e(self::humanize($label)) . '</td>';
             foreach ($columns as $col) {
-                $out .= '<td>' . e(self::formatValue($row[$col] ?? null)) . '</td>';
+                $body .= '<td>' . e(self::formatValue($row[$col] ?? null)) . '</td>';
             }
-            $out .= '</tr>';
+            $body .= '</tr>';
         }
-        return $out . '</tbody></table>';
+        if ($body === '') {
+            return '';
+        }
+
+        $out = '<table class="report-table"><thead><tr><th style="width:32%;">Item</th>';
+        foreach ($columns as $col) {
+            $out .= '<th>' . e(self::humanize($col)) . '</th>';
+        }
+        return $out . '</tr></thead><tbody>' . $body . '</tbody></table>';
     }
 
     private static function rowsTable(array $rows): string

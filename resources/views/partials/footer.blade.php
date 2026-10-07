@@ -57,7 +57,11 @@
                 : s.toLowerCase().includes('pending') ? 'badge-pending'
                     : s.toLowerCase().includes('reject') || s.toLowerCase().includes('return') ? 'badge-rejected'
                         : 'badge-draft';
-            statusEl.innerHTML = `<span class="status-badge ${cls}">${s}</span>`;
+            statusEl.textContent = '';
+            const badge = document.createElement('span');
+            badge.className = 'status-badge ' + cls;
+            badge.textContent = s;
+            statusEl.appendChild(badge);
         });
     });
 </script>
@@ -322,6 +326,7 @@
         });
 
         function generatePreviewHTML() {
+            const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
             const cmd = document.querySelector('[name="command_name"]')?.value || 'N/A';
             const period = document.querySelector('[name="period"]')?.value || 'N/A';
             const type = document.querySelector('[name="return_type"]')?.value || 'N/A';
@@ -333,26 +338,26 @@
                 <span style="font-size:.84rem;color:var(--gray-600);">NIS REDAS — Operational Return</span>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;padding:12px;background:var(--gray-50);border-radius:var(--radius-md);">
-                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Command</div><div style="font-weight:700;color:var(--gray-800);">${cmd}</div></div>
-                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Period</div><div style="font-weight:700;color:var(--gray-800);">${period}</div></div>
-                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Return Type</div><div style="font-weight:700;color:var(--gray-800);">${type}</div></div>
+                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Command</div><div style="font-weight:700;color:var(--gray-800);">${esc(cmd)}</div></div>
+                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Period</div><div style="font-weight:700;color:var(--gray-800);">${esc(period)}</div></div>
+                <div><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);">Return Type</div><div style="font-weight:700;color:var(--gray-800);">${esc(type)}</div></div>
             </div>
             <div style="background:#dcfce7;border:1px solid #86efac;border-radius:var(--radius-md);padding:10px 14px;font-size:.8rem;margin-bottom:20px;">
                 <i class="fas fa-route" style="color:#15803d;"></i>
-                <strong>Workflow:</strong> This return will be routed to <strong>${path}</strong> upon submission.
+                <strong>Workflow:</strong> This return will be routed to <strong>${esc(path)}</strong> upon submission.
             </div>`;
 
             /* Collect filled sections */
             const staffTotal = document.getElementById('staffTotal')?.value;
             if (staffTotal && staffTotal !== '0') {
-                html += `<div class="preview-section"><h6>Staff Strength</h6><p>Total Staff: <strong>${staffTotal}</strong></p></div>`;
+                html += `<div class="preview-section"><h6>Staff Strength</h6><p>Total Staff: <strong>${esc(staffTotal)}</strong></p></div>`;
             }
             const security = document.querySelector('[name="general[security]"]')?.value;
-            if (security) html += `<div class="preview-section"><h6>Security Report</h6><p style="font-size:.82rem;">${security}</p></div>`;
+            if (security) html += `<div class="preview-section"><h6>Security Report</h6><p style="font-size:.82rem;">${esc(security)}</p></div>`;
             const challenges = document.querySelector('[name="general[challenges]"]')?.value;
-            if (challenges) html += `<div class="preview-section"><h6>Challenges</h6><p style="font-size:.82rem;">${challenges}</p></div>`;
+            if (challenges) html += `<div class="preview-section"><h6>Challenges</h6><p style="font-size:.82rem;">${esc(challenges)}</p></div>`;
             const rec = document.querySelector('[name="general[recommendations]"]')?.value;
-            if (rec) html += `<div class="preview-section"><h6>Recommendations</h6><p style="font-size:.82rem;">${rec}</p></div>`;
+            if (rec) html += `<div class="preview-section"><h6>Recommendations</h6><p style="font-size:.82rem;">${esc(rec)}</p></div>`;
 
             html += `<div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--gray-200);font-size:.78rem;color:var(--gray-500);">Prepared by: <strong>{{ auth()->user()?->name ?? 'NIS REDAS' }}</strong> &mdash; {{ now()->format('d F Y') }}</div>`;
             return html;
@@ -405,13 +410,14 @@
         attachInput?.addEventListener('change', () => addFiles(attachInput.files));
 
         function addFiles(files) {
+            const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
             Array.from(files).forEach(f => {
                 if (f.size > 10 * 1024 * 1024) { alert(`${f.name} exceeds 10MB limit.`); return; }
                 attachedFiles.push(f);
                 const item = document.createElement('div');
                 item.className = 'attach-item';
                 const icon = f.type.includes('pdf') ? 'fas fa-file-pdf' : f.type.includes('image') ? 'fas fa-file-image' : 'fas fa-file-word';
-                item.innerHTML = `<i class="${icon}" style="color:var(--nis-600);"></i><span>${f.name}</span><span style="color:var(--gray-400);font-size:.7rem;">(${(f.size / 1024).toFixed(0)}KB)</span><button type="button" class="remove-attach" onclick="this.parentElement.remove();"><i class="fas fa-times"></i></button>`;
+                item.innerHTML = `<i class="${icon}" style="color:var(--nis-600);"></i><span>${esc(f.name)}</span><span style="color:var(--gray-400);font-size:.7rem;">(${(f.size / 1024).toFixed(0)}KB)</span><button type="button" class="remove-attach" onclick="this.parentElement.remove();"><i class="fas fa-times"></i></button>`;
                 attachList?.appendChild(item);
             });
         }
@@ -561,7 +567,11 @@
                 document.getElementById('dRemarks').textContent = btn.dataset.remarks;
 
                 const statusEl = document.getElementById('dStatus');
-                statusEl.innerHTML = `<span class="status-badge ${btn.dataset.badge}">${s}</span>`;
+                statusEl.textContent = '';
+                const badge = document.createElement('span');
+                badge.className = 'status-badge ' + (btn.dataset.badge || '');
+                badge.textContent = s;
+                statusEl.appendChild(badge);
 
                 const notifEl = document.getElementById('dNotification');
                 const notifCfg = {
@@ -765,6 +775,7 @@
     function renderStaffStrengthTable() {
 
         const existingStrengths = [];
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
         document.querySelectorAll(".staff-strength-input").forEach(input => {
 
@@ -787,10 +798,10 @@
                 <input
                     type="hidden"
                     name="staff_strength[${index}][unit]"
-                    value="${input.value}"
+                    value="${esc(input.value)}"
                 >
 
-                ${input.value || "-"}
+                ${esc(input.value) || "-"}
 
             </td>
 
@@ -801,7 +812,7 @@
                     min="0"
                     class="ni staff-strength-input"
                     name="staff_strength[${index}][strength]"
-                    value="${existingStrengths[index] || ''}"
+                    value="${esc(existingStrengths[index] || '')}"
                     placeholder="0"
                 >
 

@@ -27,7 +27,7 @@
 
     <div class="redas-card">
         <div class="card-body" style="padding:24px;">
-            <form method="POST" action="{{ URL::signedRoute('admin.users.update', ['userHash' => \App\Services\HashidService::encode($user->id)]) }}">
+            <form method="POST" action="{{ URL::signedRoute('admin.users.update', ['userHash' => \App\Services\HashidService::encode($user->id)]) }}" class="needs-validation" novalidate>
                 @csrf
                 @method('PATCH')
 
@@ -119,11 +119,19 @@
                 <div class="auth-form-group pw-wrap" style="margin-bottom:18px;">
                     <label class="form-label-nis">New Password</label>
                     <input type="password" id="password" name="password" class="auth-input" placeholder="Leave blank to keep current password">
+                    <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
 
                 <div class="auth-form-group pw-wrap" style="margin-bottom:24px;">
                     <label class="form-label-nis">Confirm New Password</label>
-                    <input type="password" id="password" name="password_confirmation" class="auth-input">
+                    <input type="password" id="password_confirmation" name="password_confirmation" class="auth-input">
+                    <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
 
                 <button type="submit" class="btn-nis btn-primary-nis full-width">

@@ -102,6 +102,24 @@ function initGlobal() {
             form.classList.add('was-validated');
         });
     });
+
+    /* Password / passcode visibility toggle (works on any page that includes
+       .pw-toggle inside .pw-wrap or .auth-input-wrap). */
+    document.querySelectorAll('.pw-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const wrap = btn.closest('.pw-wrap, .auth-input-wrap');
+            const input = wrap?.querySelector('input[type="password"], input[type="text"]');
+            if (!input) return;
+            const isText = input.type === 'text';
+            input.type = isText ? 'password' : 'text';
+            input.setAttribute('autocomplete', isText ? 'current-password' : 'off');
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-eye', isText);
+                icon.classList.toggle('fa-eye-slash', !isText);
+            }
+        });
+    });
 }
 
 /* ════════════════════════════════════════
@@ -177,18 +195,6 @@ function initAuthPage() {
         opt.addEventListener('change', () => {
             roleOptions.forEach(o => o.nextElementSibling?.classList.remove('selected'));
             opt.nextElementSibling?.classList.add('selected');
-        });
-    });
-
-    /* Password toggle */
-    document.querySelectorAll('.pw-toggle').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const input = btn.closest('.pw-wrap')?.querySelector('input');
-            if (!input) return;
-            const isText = input.type === 'text';
-            input.type = isText ? 'password' : 'text';
-            btn.querySelector('i')?.classList.toggle('fa-eye', isText);
-            btn.querySelector('i')?.classList.toggle('fa-eye-slash', !isText);
         });
     });
 

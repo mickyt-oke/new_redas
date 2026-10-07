@@ -82,7 +82,7 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('lockscreen.unlock') }}">
+            <form method="POST" action="{{ route('lockscreen.unlock') }}" class="needs-validation" novalidate>
                 @csrf
                 <div class="auth-form-group">
                     <label class="form-label-nis" for="passcode">
@@ -97,6 +97,9 @@
                                required 
                                autofocus>
                         <span class="auth-input-icon"><i class="fas fa-key"></i></span>
+                        <button type="button" class="pw-toggle" aria-label="Toggle passcode visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
                     @error('passcode')
                     <div class="inline-error"><i class="fas fa-circle-xmark"></i>{{ $message }}</div>

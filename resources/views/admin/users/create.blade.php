@@ -23,7 +23,7 @@
 
     <div class="redas-card">
         <div class="card-body" style="padding:24px;">
-            <form method="POST" action="{{ route('admin.users.store') }}">
+            <form method="POST" action="{{ route('admin.users.store') }}" class="needs-validation" novalidate>
                 @csrf
 
                 <div class="auth-form-group" style="margin-bottom:18px;">

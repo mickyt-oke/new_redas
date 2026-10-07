@@ -31,7 +31,7 @@
             </div>
         </div>
         <div class="card-body" style="padding:24px;">
-            <form method="POST" action="{{ route('user.profile.update') }}">
+            <form method="POST" action="{{ route('user.profile.update') }}" class="needs-validation" novalidate>
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="section" value="password">
@@ -106,7 +106,7 @@
             @endif
         </div>
         <div class="card-body" style="padding:24px;">
-            <form method="POST" action="{{ route('user.profile.update') }}">
+            <form method="POST" action="{{ route('user.profile.update') }}" class="needs-validation" novalidate>
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="section" value="passcode">
