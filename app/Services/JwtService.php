@@ -12,7 +12,7 @@ class JwtService
         private readonly string $secret,
         private readonly string $issuer = 'nis-redas',
         private readonly int $accessTtlSeconds = 900, // 15 minutes
-        private readonly int $refreshTtlSeconds = 604800 // 7 days
+        private readonly int $refreshTtlSeconds = 2592000 // 30 days
     ) {
     }
 

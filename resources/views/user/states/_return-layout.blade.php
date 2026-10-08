@@ -317,6 +317,10 @@
                 var saved = localStorage.getItem(DRAFT_KEY);
                 if (!saved) return;
                 var data = JSON.parse(saved);
+                if (window.redasDraftIsExpired && window.redasDraftIsExpired(data)) {
+                    localStorage.removeItem(DRAFT_KEY);
+                    return;
+                }
                 var ensureField = makeFieldEnsurer();
                 Object.keys(data).forEach(function (k) {
                     var el = ensureField(k);
@@ -348,6 +352,9 @@
                 fileInputs.forEach(function (f) { f.disabled = false; });
             });
         }
+
+        /* Drop state return drafts older than 30 days. */
+        if (window.redasPruneDrafts) window.redasPruneDrafts(DRAFT_KEY);
 
         /* Restore any saved draft, then let section scripts recompute totals. */
         loadDraft();

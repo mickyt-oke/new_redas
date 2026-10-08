@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -352,6 +353,13 @@ class DashboardController extends Controller
             }
         }
 
+        // Prevent duplicate returns for the same period.
+        if (SubmissionWorkflow::existingSubmissionForPeriod($user, $validated['report_period'], $slug)) {
+            throw ValidationException::withMessages([
+                'report_period' => ['A return for this period has already been submitted. You can edit the existing submission instead.'],
+            ]);
+        }
+
         try {
             SubmissionWorkflow::create($user, array_merge(
                 $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'supporting_documents', 'attachments'])),
@@ -360,6 +368,7 @@ class DashboardController extends Controller
                     'report_period' => $validated['report_period'],
                     'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                    'data_consent' => (bool) $validated['data_consent'],
                 ]
             ));
         } catch (\Throwable $e) {
@@ -483,6 +492,13 @@ class DashboardController extends Controller
             }
         }
 
+        // Prevent duplicate returns for the same period.
+        if (SubmissionWorkflow::existingSubmissionForPeriod($user, $validated['report_period'], $slug)) {
+            throw ValidationException::withMessages([
+                'report_period' => ['A return for this period has already been submitted. You can edit the existing submission instead.'],
+            ]);
+        }
+
         try {
             SubmissionWorkflow::create($user, array_merge(
                 $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'supporting_documents', 'attachments'])),
@@ -491,6 +507,7 @@ class DashboardController extends Controller
                     'report_period' => $validated['report_period'],
                     'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                    'data_consent' => (bool) $validated['data_consent'],
                 ]
             ));
         } catch (\Throwable $e) {
@@ -823,6 +840,7 @@ class DashboardController extends Controller
                     'command_name' => self::commandNameForUser($user) ?? $request->input('command_name'),
                     'reporting_officer' => $user?->name ?? $request->input('reporting_officer'),
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', 'state'),
+                    'data_consent' => $request->boolean('data_consent'),
                 ]
             );
         } else {
@@ -840,6 +858,7 @@ class DashboardController extends Controller
                     'report_period' => $validated['report_period'],
                     'supporting_documents' => $this->storeUploadedFiles($request, 'supporting_documents', $slug),
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
+                    'data_consent' => (bool) $validated['data_consent'],
                 ]
             );
         }

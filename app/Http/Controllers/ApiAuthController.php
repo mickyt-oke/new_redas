@@ -191,7 +191,7 @@ class ApiAuthController extends Controller
             'user_id' => $userId,
             'jti' => $newJti,
             'token_hash' => hash('sha256', $newRefreshJwt),
-            'expires_at' => now()->addSeconds((int) env('JWT_REFRESH_TTL', 604800)),
+            'expires_at' => now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000)),
             'revoked_at' => null,
             'created_ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
@@ -208,15 +208,17 @@ class ApiAuthController extends Controller
             jti: (string) Str::uuid()
         );
 
-        // Set the new refresh token in a Secure, HttpOnly cookie
+        // Set the new refresh token in a Secure, HttpOnly cookie (TTL in minutes)
+        $refreshTtlMinutes = (int) ceil((int) env('JWT_REFRESH_TTL', 2592000) / 60);
+
         return response()->json([
             'access_token' => $accessJwt,
             'token_type' => 'bearer',
             'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
         ])->cookie(
-            'refresh_token', 
-            $newRefreshJwt, 
-            604800, // 7 days in minutes (Laravel cookie expects minutes)
+            'refresh_token',
+            $newRefreshJwt,
+            $refreshTtlMinutes,
             null, null, true, true, false, 'Strict'
         );
     }

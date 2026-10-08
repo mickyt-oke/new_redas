@@ -61,7 +61,7 @@ class StateCombinedFormTest extends TestCase
 
         // The state layout owns consent + attachments; the embedded investigation
         // declaration must be suppressed (exactly one required consent checkbox).
-        $this->assertSame(1, substr_count($response->getContent(), 'name="data_consent"'));
+        $this->assertSame(1, substr_count($response->getContent(), '<input type="checkbox" name="data_consent"'));
         $response->assertSee('name="attachments[]"', false);
         $response->assertSee('name="command_name"', false);
     }
@@ -98,7 +98,35 @@ class StateCombinedFormTest extends TestCase
         $this->assertSame(8, $application->return_data['passport']['staff_strength'][0]['total'] ?? null);
         $this->assertSame(3, $application->return_data['works']['staff_strength'][0]['total'] ?? null);
         $this->assertSame('Border security report', $application->return_data['border']['general']['security'] ?? null);
-        $this->assertSame('1500', $application->return_data['local_revenue_passport'] ?? null);
+        $this->assertSame(1500, $application->return_data['local_revenue_passport'] ?? null);
+    }
+
+    public function test_state_user_cannot_submit_duplicate_return_for_same_period(): void
+    {
+        $this->disableAbac();
+
+        $user = $this->stateUser();
+
+        $this->actingAs($user)->post(route('user.returns.store'), [
+            'command_name' => 'Lagos',
+            'period' => '2026-09',
+            'return_type' => 'monthly',
+            'reporting_officer' => 'Test Officer',
+            'data_consent' => '1',
+        ])->assertRedirect('/user/submissions');
+
+        $this->assertSame(1, Application::count());
+
+        $response = $this->actingAs($user)->post(route('user.returns.store'), [
+            'command_name' => 'Lagos',
+            'period' => '2026-09',
+            'return_type' => 'monthly',
+            'reporting_officer' => 'Test Officer',
+            'data_consent' => '1',
+        ]);
+
+        $response->assertSessionHasErrors(['period']);
+        $this->assertSame(1, Application::count());
     }
 
     public function test_preview_page_renders_entered_values_without_persisting(): void

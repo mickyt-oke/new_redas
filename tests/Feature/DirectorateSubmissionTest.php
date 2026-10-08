@@ -54,7 +54,8 @@ class DirectorateSubmissionTest extends TestCase
         $this->assertSame('hrm', $application->scope_code);
         $this->assertSame('2026-08', $application->return_data['report_period']);
         $this->assertSame('hrm', $application->return_data['directorate_slug']);
-        $this->assertSame('5', $application->return_data['hrm']['nimcos']['total_membership']);
+        $this->assertTrue($application->return_data['data_consent']);
+        $this->assertSame(5, $application->return_data['hrm']['nimcos']['total_membership']);
         $this->assertSame('None', $application->return_data['general_report']['challenges']);
 
         $stored = $application->return_data['supporting_documents'];
@@ -86,6 +87,28 @@ class DirectorateSubmissionTest extends TestCase
 
         $response->assertForbidden();
         $this->assertSame(0, Application::count());
+    }
+
+    public function test_directorate_user_cannot_submit_duplicate_return_for_same_period(): void
+    {
+        $user = $this->directorateUser('HRM');
+
+        $this->actingAs($user)->post(route('user.directorates.store', ['slug' => 'hrm']), [
+            'report_period' => '2026-08',
+            'reporting_officer' => $user->name,
+            'data_consent' => '1',
+        ])->assertRedirect();
+
+        $this->assertSame(1, Application::count());
+
+        $response = $this->actingAs($user)->post(route('user.directorates.store', ['slug' => 'hrm']), [
+            'report_period' => '2026-08',
+            'reporting_officer' => $user->name,
+            'data_consent' => '1',
+        ]);
+
+        $response->assertSessionHasErrors(['report_period']);
+        $this->assertSame(1, Application::count());
     }
 
     public function test_all_directorate_forms_render_successfully(): void

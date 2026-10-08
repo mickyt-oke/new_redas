@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class SpecialCommandController extends Controller
@@ -68,6 +69,13 @@ class SpecialCommandController extends Controller
 
         $user = Auth::user();
         $stateCode = NisFormationService::geoStateForCode($user?->primary_location_code);
+
+        // Prevent duplicate returns for the same period.
+        if (SubmissionWorkflow::existingSubmissionForPeriod($user, $request->input('period'), $stateCode)) {
+            throw ValidationException::withMessages([
+                'period' => ['A return for this period has already been submitted. You can edit the existing submission instead.'],
+            ]);
+        }
 
         $returnData = $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');

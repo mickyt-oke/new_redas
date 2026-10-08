@@ -202,6 +202,8 @@
         });
     }
 
+    if (window.redasPruneDrafts) window.redasPruneDrafts(prefix);
+
     var drafts = [];
     try {
         Object.keys(localStorage).forEach(function (k) {

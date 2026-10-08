@@ -33,6 +33,20 @@ class SubmissionWorkflow
     public const STATUS_REJECTED = 'rejected';
 
     /**
+     * Look up an existing submission by the same user for the same report period
+     * and scope. Used to prevent duplicate returns.
+     */
+    public static function existingSubmissionForPeriod(User $user, string $period, ?string $scopeCode = null): ?Application
+    {
+        return Application::query()
+            ->where('user_id', $user->id)
+            ->where('category', self::categoryForUser($user))
+            ->where('scope_code', $scopeCode ?? self::scopeCodeForUser($user))
+            ->where('return_data->report_period', $period)
+            ->first();
+    }
+
+    /**
      * Create a new submission and place it in the correct initial review queue.
 
      */

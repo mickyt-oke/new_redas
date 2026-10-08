@@ -1,13 +1,11 @@
 <?php
 
 use App\Http\Controllers\ApiAuthController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ApiNotificationController;
+use App\Http\Controllers\ApiOtpController;
 use App\Http\Middleware\JwtAccessTokenMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\ApiNotificationController;
-use App\Http\Controllers\ApiOtpController;
 
 Route::middleware('throttle:api')->group(function () {
     // Public routes

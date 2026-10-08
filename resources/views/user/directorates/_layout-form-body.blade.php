@@ -46,7 +46,7 @@
     </div>
     <div class="card-body">
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:.84rem;color:var(--gray-700);">
-            <input type="checkbox" name="data_consent" value="1" required style="accent-color:var(--nis-600);margin-top:2px;">
+            <input type="checkbox" name="data_consent" value="1" required style="accent-color:var(--nis-600);margin-top:2px;" @checked(old('data_consent') ?? (isset($editing) && ($editing->return_data['data_consent'] ?? false)))>
             <span>
                 I confirm that the information provided is accurate, limited to what is necessary for official NIS reporting,
                 and that I have authority to submit it. I understand that this data will be processed and retained in accordance with

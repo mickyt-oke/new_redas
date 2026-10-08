@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\AdminAuditLogController;
 use App\Http\Controllers\Admin\AdminSettingController;
+use App\Http\Controllers\Admin\ConsolidationController;
 use App\Http\Controllers\Admin\HqAdminController;
+use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\ApiNotificationController;
 use App\Http\Controllers\AuthController;
@@ -12,11 +14,18 @@ use App\Http\Controllers\MfaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionReviewController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\DirectoryController;
 use App\Http\Controllers\Web\SpecialCommandController;
 use App\Http\Controllers\Web\ZonalUserController;
+use App\Http\Middleware\EnsureSpecialCommand;
+use App\Models\Application;
+use App\Services\SubmissionWorkflow;
 use Illuminate\Auth\Middleware\Authenticate;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 
 $homeView = 'welcome';
 
@@ -34,7 +43,7 @@ Route::get('/terms-and-conditions', fn () => view()->exists('legal.terms')
 Route::get('/privacy-policy', fn () => view()->exists('legal.privacy')
     ? view('legal.privacy')
     : redirect('/login'))->name('privacy');
-Route::get('/directory', [\App\Http\Controllers\Web\DirectoryController::class, 'index'])->name('directory');
+Route::get('/directory', [DirectoryController::class, 'index'])->name('directory');
 
 // Pinged periodically by long-running forms to keep the session alive and
 // avoid a 419 (session expired) error while a user is actively filling a form.
@@ -89,7 +98,7 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
     Route::put('/user/returns/{applicationHash}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.returns.update');
     Route::delete('/user/returns/{applicationHash}', [DashboardController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('user.returns.destroy');
 
-    Route::post('/user/returns', function (\Illuminate\Http\Request $request) {
+    Route::post('/user/returns', function (Request $request) {
         $request->validate([
             'command_name' => ['required', 'string', 'max:120'],
             'period' => ['required', 'date_format:Y-m'],
@@ -101,14 +110,23 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
         ]);
 
         $user = Auth::user();
-        $returnData = (new \App\Http\Controllers\Web\DashboardController())->sanitizeReturnData(
+
+        // Prevent duplicate returns for the same period.
+        if (SubmissionWorkflow::existingSubmissionForPeriod($user, $request->input('period'))) {
+            throw ValidationException::withMessages([
+                'period' => ['A return for this period has already been submitted. You can edit the existing submission instead.'],
+            ]);
+        }
+
+        $returnData = (new DashboardController)->sanitizeReturnData(
             $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status'])
         );
         $returnData['report_period'] = $request->input('period');
         // Command/officer identity is server-derived, never trusted from the
         // (readonly, but client-editable) POST body.
-        $returnData['command_name'] = \App\Http\Controllers\Web\DashboardController::commandNameForUser($user) ?? $request->input('command_name');
+        $returnData['command_name'] = DashboardController::commandNameForUser($user) ?? $request->input('command_name');
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
+        $returnData['data_consent'] = $request->boolean('data_consent');
 
         $paths = [];
         foreach ((array) $request->file('attachments', []) as $file) {
@@ -118,7 +136,7 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
         }
         $returnData['attachments'] = $paths;
 
-        \App\Services\SubmissionWorkflow::create(Auth::User(), $returnData);
+        SubmissionWorkflow::create(Auth::User(), $returnData);
 
         return redirect('/user/submissions')
             ->with('status', 'Return submitted successfully and routed to your supervisor for review.');
@@ -141,15 +159,15 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
         $user = Auth::user();
         $archiveView = view()->exists('user.archive.index') ? 'user.archive.index' : 'user.states.archive';
 
-        $completedQuery = \App\Models\Application::query()
+        $completedQuery = Application::query()
             ->with('user')
             ->where('status', 'approved')
             ->latest('updated_at')
             ->limit(50);
 
         // Approvers see completed returns in their scope; officers see their own.
-        if (\App\Services\SubmissionWorkflow::stageForApprover($user) !== null) {
-            $scopeCode = \App\Services\SubmissionWorkflow::scopeCodeForApprover($user);
+        if (SubmissionWorkflow::stageForApprover($user) !== null) {
+            $scopeCode = SubmissionWorkflow::scopeCodeForApprover($user);
             if ($scopeCode !== null) {
                 $completedQuery->where('scope_code', $scopeCode);
             }
@@ -166,7 +184,7 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
         return view($archiveView);
     })->name('user.archive.upload');
 
-    Route::post('/user/archive/upload', function (\Illuminate\Http\Request $request) {
+    Route::post('/user/archive/upload', function (Request $request) {
         $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'doc_type' => ['required', 'string', 'max:50'],
@@ -183,7 +201,7 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
         return view('user.states.reports');
     })->name('user.reports');
 
-    Route::post('/user/reports/generate', function (\Illuminate\Http\Request $request) {
+    Route::post('/user/reports/generate', function (Request $request) {
         $request->validate([
             'report_type' => ['required', 'in:submission_summary,monthly_return,quarterly_return,annual_return,compliance_report,full_export'],
             'date_from' => ['required', 'date'],
@@ -199,7 +217,7 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
 
 Route::middleware([Authenticate::class])->group(function () {
     Route::get('/user/profile', [ProfileController::class, 'edit'])->name('user.profile');
-    Route::patch('/user/profile', [ProfileController::class, 'update'])->middleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('user.profile.update');
+    Route::patch('/user/profile', [ProfileController::class, 'update'])->middleware([ThrottleRequests::class.':60,1'])->name('user.profile.update');
 
     // PDF export of a submitted return — owner or in-scope approver only (checked in controller).
     Route::get('/user/submissions/{applicationHash}/pdf', [DashboardController::class, 'downloadSubmissionPdf'])->middleware('signed')->name('user.submissions.pdf');
@@ -220,7 +238,7 @@ Route::middleware([Authenticate::class, 'access:category=zonal_user,location=zon
 
 // Special command routes — restricted to state_user accounts provisioned to a special command
 Route::middleware([Authenticate::class, 'access:category=state_user,location=state,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
-    Route::middleware([\App\Http\Middleware\EnsureSpecialCommand::class])->group(function () {
+    Route::middleware([EnsureSpecialCommand::class])->group(function () {
         Route::get('/special-commands/dashboard', [SpecialCommandController::class, 'dashboard'])->name('special-commands.dashboard');
         Route::get('/special-commands/returns/create', [SpecialCommandController::class, 'createReturn'])->name('special-commands.returns.create');
         Route::post('/special-commands/returns', [SpecialCommandController::class, 'storeReturn'])->middleware('throttle:60,1')->name('special-commands.returns.store');
@@ -241,16 +259,16 @@ Route::middleware([Authenticate::class, 'access:category=zonal_commander,locatio
     Route::get('/zonal/submissions/{applicationHash}', [SubmissionReviewController::class, 'show'])->name('zonal.submissions.show');
     Route::get('/zonal/submissions/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('zonal.submissions.document');
     Route::get('/zonal/submissions/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('zonal.submissions.download');
-    Route::patch('/zonal/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.approve');
-    Route::patch('/zonal/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('zonal.submissions.reject');
+    Route::patch('/zonal/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', ThrottleRequests::class.':60,1'])->name('zonal.submissions.approve');
+    Route::patch('/zonal/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', ThrottleRequests::class.':60,1'])->name('zonal.submissions.reject');
 });
 
 // Desk / directorate / CGIS desk admin review routes
 Route::middleware([Authenticate::class, 'access:category=desk_admin|directorate_admin|cgis_desk_admin|hq_admin,location=state|directorate|unit|headquarters,role=admin|state|directorate|unit_admin|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/desk-admin/dashboard', [SubmissionReviewController::class, 'index'])->name('user.desk.home');
     Route::get('/desk-admin/reports', [SubmissionReviewController::class, 'reports'])->name('desk.admin.reports');
-    Route::patch('/desk-admin/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.approve');
-    Route::patch('/desk-admin/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1'])->name('desk.admin.submissions.reject');
+    Route::patch('/desk-admin/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', ThrottleRequests::class.':60,1'])->name('desk.admin.submissions.approve');
+    Route::patch('/desk-admin/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', ThrottleRequests::class.':60,1'])->name('desk.admin.submissions.reject');
     Route::get('/desk-admin/submissions/{applicationHash}', [SubmissionReviewController::class, 'show'])->name('desk.admin.submissions.show');
     Route::get('/desk-admin/submissions/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('desk.admin.submissions.download');
     Route::get('/desk-admin/submissions/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('desk.admin.submissions.document');
@@ -320,9 +338,9 @@ Route::middleware([Authenticate::class, 'access:category=state_user|directorate_
 });
 // Super-admin (executive) — view-only dashboard and consolidated returns
 Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
-    Route::get('/superadmin/dashboard', [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
-    Route::get('/superadmin/returns', [\App\Http\Controllers\Admin\SuperAdminController::class, 'returns'])->name('superadmin.returns');
-    Route::get('/superadmin/returns/{applicationHash}', [\App\Http\Controllers\Admin\SuperAdminController::class, 'show'])->name('superadmin.returns.show');
+    Route::get('/superadmin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    Route::get('/superadmin/returns', [SuperAdminController::class, 'returns'])->name('superadmin.returns');
+    Route::get('/superadmin/returns/{applicationHash}', [SuperAdminController::class, 'show'])->name('superadmin.returns.show');
     Route::get('/superadmin/returns/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('superadmin.returns.document');
     Route::get('/superadmin/returns/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('superadmin.returns.download');
 });
@@ -360,7 +378,7 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin|admin,location
     Route::get('/admin/hq/reports', [HqAdminController::class, 'reports'])->name('admin.hq.reports');
     Route::post('/admin/hq/reports/generate', [HqAdminController::class, 'generateReport'])->middleware('throttle:database')->name('admin.hq.reports.generate');
 
-    Route::get('/admin/consolidation', [\App\Http\Controllers\Admin\ConsolidationController::class, 'index'])->name('admin.consolidation');
+    Route::get('/admin/consolidation', [ConsolidationController::class, 'index'])->name('admin.consolidation');
 });
 
 // HQ admin only — final review actions and platform administration
@@ -381,7 +399,6 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin,location=headq
     Route::patch('/admin/users/{userHash}', [UserManagementController::class, 'update'])->middleware(['signed', 'throttle:database'])->name('admin.users.update');
     Route::patch('/admin/users/{userHash}/toggle-status', [UserManagementController::class, 'toggleStatus'])->middleware(['signed', 'throttle:database'])->name('admin.users.toggle_status');
 });
-
 
 // MFA challenge routes (pending login stage)
 Route::middleware(['mfa.pending'])->group(function () {

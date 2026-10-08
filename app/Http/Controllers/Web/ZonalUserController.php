@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class ZonalUserController extends Controller
@@ -65,6 +66,14 @@ class ZonalUserController extends Controller
         $validated = $this->returnValidationRules($request);
 
         $user = Auth::user();
+
+        // Prevent duplicate returns for the same period.
+        if (SubmissionWorkflow::existingSubmissionForPeriod($user, $request->input('period'))) {
+            throw ValidationException::withMessages([
+                'period' => ['A return for this period has already been submitted. You can edit the existing submission instead.'],
+            ]);
+        }
+
         $returnData = $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
         $returnData['command_name'] = $this->commandNameForUser($user);

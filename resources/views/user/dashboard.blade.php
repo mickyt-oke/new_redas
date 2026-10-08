@@ -251,12 +251,18 @@
     var DRAFT_KEY = 'redas_state_draft';
     var resumeUrl = @json(route('user.returns.create'));
 
+    if (window.redasPruneDrafts) window.redasPruneDrafts(DRAFT_KEY);
+
     var saved = null;
     try { saved = localStorage.getItem(DRAFT_KEY); } catch (e) {}
     if (!saved) return;
 
     var data;
     try { data = JSON.parse(saved); } catch (e) { return; }
+    if (window.redasDraftIsExpired && window.redasDraftIsExpired(data)) {
+        try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
+        return;
+    }
 
     function esc(s) {
         return String(s).replace(/[&<>"']/g, function (c) {

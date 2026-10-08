@@ -56,7 +56,7 @@
 <body>
 @php
     $data = is_array($application->return_data) ? $application->return_data : [];
-    $skipKeys = ['directorate_slug', 'cgis_unit_slug', 'data_consent', 'report_period', 'reporting_officer', 'command_name', 'period', 'return_type', 'supporting_documents', 'attachments'];
+    $skipKeys = ['directorate_slug', 'cgis_unit_slug', 'report_period', 'reporting_officer', 'command_name', 'period', 'return_type', 'supporting_documents', 'attachments'];
 
     // State returns carry multiple directorate keys and command/period metadata.
     $isStateReturn = isset($data['command_name']);

@@ -305,9 +305,14 @@
 
         function loadDraft() {
             try {
-                var saved = localStorage.getItem(draftKey());
+                var key = draftKey();
+                var saved = localStorage.getItem(key);
                 if (!saved || !form) return;
                 var data = JSON.parse(saved);
+                if (window.redasDraftIsExpired && window.redasDraftIsExpired(data)) {
+                    localStorage.removeItem(key);
+                    return;
+                }
                 var ensureField = makeFieldEnsurer();
                 Object.keys(data).forEach(function (k) {
                     var el = ensureField(k);
@@ -385,6 +390,9 @@
             var periodField = form ? form.querySelector('[name="report_period"]') : null;
             if (periodField && !periodField.readOnly) periodField.value = requestedDraftPeriod;
         }
+
+        /* Drop drafts older than 30 days for this directorate/CGIS unit. */
+        if (window.redasPruneDrafts) window.redasPruneDrafts('redas_' + slug + '_draft_');
 
         /* Restore any saved draft, then let page scripts recompute totals from the values. */
         loadDraft();
