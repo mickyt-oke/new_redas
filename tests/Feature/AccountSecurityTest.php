@@ -134,6 +134,7 @@ class AccountSecurityTest extends TestCase
 
         $this->actingAs($user)
             ->patch('/user/profile', [
+                'section' => 'password',
                 'current_password' => $this->password,
                 'password' => 'NewPassword456!',
                 'password_confirmation' => 'NewPassword456!',

@@ -188,6 +188,91 @@
                 <span class="link-text">Notifications</span>
             </a>
 
+        @elseif(in_array($category, ['hq_admin', 'admin'], true))
+            <div class="sidebar-section-label">HQ Administration</div>
+
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span class="link-text">Dashboard</span>
+            </a>
+
+            <a href="{{ route('admin.hq.returns') }}" class="sidebar-link {{ request()->is('admin/hq/returns*') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-clipboard-list"></i></span>
+                <span class="link-text">Returns Register</span>
+            </a>
+
+            <a href="{{ route('admin.hq.archive') }}" class="sidebar-link {{ request()->routeIs('admin.hq.archive') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-archive"></i></span>
+                <span class="link-text">Archive</span>
+            </a>
+
+            <a href="{{ route('admin.hq.analytics') }}" class="sidebar-link {{ request()->routeIs('admin.hq.analytics') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-chart-line"></i></span>
+                <span class="link-text">Analytics</span>
+            </a>
+
+            <a href="{{ route('admin.hq.reports') }}" class="sidebar-link {{ request()->routeIs('admin.hq.reports') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-file-export"></i></span>
+                <span class="link-text">Reports</span>
+            </a>
+
+            <a href="{{ route('admin.consolidation') }}" class="sidebar-link {{ request()->routeIs('admin.consolidation') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-layer-group"></i></span>
+                <span class="link-text">Consolidation</span>
+            </a>
+
+            @if($category === 'hq_admin')
+                <div class="sidebar-section-label">HQ Admin Actions</div>
+
+                <a href="{{ route('user.desk.home') }}" class="sidebar-link {{ request()->routeIs('user.desk.home') ? 'active' : '' }}">
+                    <span class="link-icon"><i class="fas fa-th-large"></i></span>
+                    <span class="link-text">Review Dashboard</span>
+                </a>
+
+                <a href="{{ route('admin.submissions') }}" class="sidebar-link {{ request()->is('admin/submissions*') ? 'active' : '' }}">
+                    <span class="link-icon"><i class="fas fa-tasks"></i></span>
+                    <span class="link-text">Final Review Queue</span>
+                </a>
+
+                <a href="{{ route('admin.users') }}" class="sidebar-link {{ request()->is('admin/users*') ? 'active' : '' }}">
+                    <span class="link-icon"><i class="fas fa-users-cog"></i></span>
+                    <span class="link-text">User Management</span>
+                </a>
+
+                <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.index') ? 'active' : '' }}">
+                    <span class="link-icon"><i class="fas fa-cog"></i></span>
+                    <span class="link-text">Settings</span>
+                </a>
+
+                <a href="{{ route('admin.audit-log.index') }}" class="sidebar-link {{ request()->routeIs('admin.audit-log.index') ? 'active' : '' }}">
+                    <span class="link-icon"><i class="fas fa-history"></i></span>
+                    <span class="link-text">Audit Log</span>
+                </a>
+            @endif
+
+            <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-bell"></i></span>
+                <span class="link-text">Notifications</span>
+            </a>
+
+        @elseif($category === 'super_admin')
+            <div class="sidebar-section-label">Executive Portal</div>
+
+            <a href="{{ route('superadmin.dashboard') }}" class="sidebar-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span class="link-text">Dashboard</span>
+            </a>
+
+            <a href="{{ route('superadmin.returns') }}" class="sidebar-link {{ request()->is('superadmin/returns*') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-clipboard-list"></i></span>
+                <span class="link-text">Returns Register</span>
+            </a>
+
+            <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
+                <span class="link-icon"><i class="fas fa-bell"></i></span>
+                <span class="link-text">Notifications</span>
+            </a>
+
         @else
             <div class="sidebar-section-label">Main Menu</div>
 

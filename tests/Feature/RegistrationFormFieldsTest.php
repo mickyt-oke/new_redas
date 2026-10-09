@@ -6,14 +6,10 @@ use Tests\TestCase;
 
 class RegistrationFormFieldsTest extends TestCase
 {
-    public function test_registration_form_exposes_location_and_access_profile_fields(): void
+    public function test_public_registration_form_is_not_available(): void
     {
-        $response = $this->get('/register');
-
-        $response->assertStatus(200);
-        $response->assertSee('Primary Location Code');
-        $response->assertSee('name="geo_state"', false);
-        $response->assertSee('name="user_category"', false);
-        $response->assertSee('name="primary_location_type"', false);
+        // The self-service registration form was removed. /register now redirects
+        // visitors to the login page instead of exposing location/access fields.
+        $this->get('/register')->assertRedirect('/login');
     }
 }

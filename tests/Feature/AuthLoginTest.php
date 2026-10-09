@@ -88,7 +88,7 @@ class AuthLoginTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_login_fails_when_role_does_not_match_user_record(): void
+    public function test_login_ignores_client_supplied_role_and_proceeds_to_mfa(): void
     {
         $user = $this->createUser([
             'name' => 'Role Mismatch Test',
@@ -96,15 +96,16 @@ class AuthLoginTest extends TestCase
             'email' => 'wrongrole@example.com',
         ]);
 
-        $response = $this->from('/login')->post('/login', [
+        // Access profiles are derived from the user record (centralised role
+        // handling), so a stale/mismatched client-supplied role no longer gates
+        // authentication. The credentials are valid, so login proceeds to MFA.
+        $response = $this->post('/login', [
             'login' => $user->service_number,
             'password' => $this->password,
             'role' => 'state',
         ]);
 
-        $response->assertRedirect('/login');
-        $response->assertSessionHasErrors('login');
-        $this->assertGuest();
+        $response->assertRedirect('/mfa/setup');
     }
 
     public function test_state_user_can_access_user_dashboard(): void

@@ -26,7 +26,8 @@ class CheckAccess
         $parsed = $this->parseConstraints($constraints);
 
         if (!$this->passesAccessChecks($user, $parsed)) {
-            abort(403, 'Unauthorized.');
+            return redirect($user->homeRoute())
+                ->with('error', 'This page is not available for your account type.');
         }
 
         return $next($request);
