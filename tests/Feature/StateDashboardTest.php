@@ -56,7 +56,7 @@ class StateDashboardTest extends TestCase
         $response->assertViewHas('approvedSubmissions', 1);
     }
 
-    public function test_non_state_categories_cannot_access_state_dashboard_or_return_routes(): void
+    public function test_non_state_categories_are_redirected_from_state_routes(): void
     {
         $this->disableAbac();
 
@@ -68,15 +68,17 @@ class StateDashboardTest extends TestCase
             'access_level' => 0,
         ]);
 
-        $this->actingAs($directorateUser)->get(route('user.dashboard'))->assertForbidden();
-        $this->actingAs($directorateUser)->get(route('user.returns.create'))->assertForbidden();
+        $directorateHome = route('user.directorates.dashboard');
+
+        $this->actingAs($directorateUser)->get(route('user.dashboard'))->assertRedirect($directorateHome);
+        $this->actingAs($directorateUser)->get(route('user.returns.create'))->assertRedirect($directorateHome);
         $this->actingAs($directorateUser)->post(route('user.returns.store'), [
             'command_name' => 'Lagos',
             'period' => '2026-09',
             'return_type' => 'monthly',
             'reporting_officer' => 'Intruder',
             'data_consent' => '1',
-        ])->assertForbidden();
+        ])->assertRedirect($directorateHome);
 
         $cgisUser = User::factory()->create([
             'role' => 'unit_officer',
@@ -87,7 +89,9 @@ class StateDashboardTest extends TestCase
             'access_level' => 0,
         ]);
 
-        $this->actingAs($cgisUser)->get(route('user.dashboard'))->assertForbidden();
-        $this->actingAs($cgisUser)->get(route('user.returns.create'))->assertForbidden();
+        $cgisHome = route('user.cgis-units.dashboard');
+
+        $this->actingAs($cgisUser)->get(route('user.dashboard'))->assertRedirect($cgisHome);
+        $this->actingAs($cgisUser)->get(route('user.returns.create'))->assertRedirect($cgisHome);
     }
 }

@@ -21,11 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'abac.geo' => \App\Http\Middleware\AbacGeolocationMiddleware::class,
             'mfa.pending' => \App\Http\Middleware\RequireMfaPending::class,
             'lockscreen' => \App\Http\Middleware\LockscreenMiddleware::class,
+            'redirect.access' => \App\Http\Middleware\RedirectIfAccessMismatch::class,
         ]);
 
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\RequirePasswordChange::class,
             \App\Http\Middleware\LockscreenMiddleware::class,
+            \App\Http\Middleware\RedirectIfAccessMismatch::class,
         ]);
 
         // Runs for both web and api requests to flag unusual/blocked traffic.

@@ -50,7 +50,7 @@ class HqAdminDashboardTest extends TestCase
         $this->actingAs($admin)->get(route('admin.hq.reports'))->assertOk()->assertViewIs('admin.headquarters.reports');
     }
 
-    public function test_directorate_admin_cannot_access_hq_dashboard(): void
+    public function test_directorate_admin_is_redirected_from_hq_dashboard(): void
     {
         $this->disableAbac();
 
@@ -63,7 +63,7 @@ class HqAdminDashboardTest extends TestCase
             'access_level' => 3,
         ]);
 
-        $this->actingAs($user)->get(route('admin.dashboard'))->assertForbidden();
+        $this->actingAs($user)->get(route('admin.dashboard'))->assertRedirect(route('user.desk.home'));
     }
 
     public function test_hq_admin_can_view_a_return_detail(): void

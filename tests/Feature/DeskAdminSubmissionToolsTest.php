@@ -227,10 +227,10 @@ class DeskAdminSubmissionToolsTest extends TestCase
         $this->assertStringContainsString((string) $application->id, $response->streamedContent());
     }
 
-    public function test_reports_page_rejects_non_approvers(): void
+    public function test_reports_page_redirects_non_approvers_to_their_dashboard(): void
     {
         $this->disableAbac();
 
-        $this->actingAs($this->officer())->get(route('desk.admin.reports'))->assertForbidden();
+        $this->actingAs($this->officer())->get(route('desk.admin.reports'))->assertRedirect(route('user.dashboard'));
     }
 }

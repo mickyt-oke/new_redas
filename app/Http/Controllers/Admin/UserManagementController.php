@@ -27,6 +27,7 @@ class UserManagementController extends Controller
         'protocol' => 'Protocol Unit',
         'provost' => 'Provost Unit',
         'servicom' => 'SERVICOM Unit',
+
     ];
 
     private function formViewData(): array
@@ -41,12 +42,14 @@ class UserManagementController extends Controller
                 'zonal_commander' => 'Zonal Commander',
                 'cgis_unit_user' => 'CGIS Unit User',
                 'cgis_desk_admin' => 'CGIS Unit Desk Admin',
-                'hq_admin' => 'HQ Admin (Approver)',
+                'hq_admin' => 'HQ Admin',
+                'special_command_user' => 'Special Command User',
                 'admin' => 'National Administrator',
                 'super_admin' => 'Super Admin',
             ],
             'locationTypes' => [
                 'state' => 'State',
+                'special_command' => 'Special Command',
                 'directorate' => 'Directorate',
                 'zonal' => 'Zonal',
                 'unit' => 'CGIS Unit',
@@ -58,9 +61,12 @@ class UserManagementController extends Controller
                 'zone' => 'Zonal User',
                 'zonal_commander' => 'Zonal Commander',
                 'directorate' => 'Directorate User',
+                'directorate_admin' => 'Directorate Admin',
                 'unit_officer' => 'CGIS Unit Officer',
                 'unit_admin' => 'CGIS Unit Desk Admin',
+                'hq_admin' => 'HQ Admin',
                 'zonal' => 'Zonal Commander',
+                'super_admin' => 'Super Admin',
                 'admin' => 'Administrator',
             ],
             'cgisUnits' => self::CGIS_UNITS,

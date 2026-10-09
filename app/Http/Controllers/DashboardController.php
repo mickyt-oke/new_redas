@@ -15,7 +15,7 @@ class DashboardController extends Controller
     {
         $notifications = [
             ['message' => 'Your return has been approved.', 'type' => 'success'],
-            ['message' => 'New submission received from John Doe.', 'type' => 'info'],
+            ['message' => 'New submission received from ', 'type' => 'info'],
             ['message' => 'Your profile has been updated successfully.', 'type' => 'success'],
         ];
 

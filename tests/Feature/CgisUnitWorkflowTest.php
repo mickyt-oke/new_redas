@@ -130,9 +130,9 @@ class CgisUnitWorkflowTest extends TestCase
         $this->assertSame('approved', $application->workflow_stage);
         $this->assertSame('approved', $application->status);
 
-        // General admin and super admin are view-only: no review routes for them
+        // General admin and super admin are view-only: redirected away from review routes
         $this->actingAs($generalAdmin)->patch($this->signedApplicationRoute('admin.submissions.approve', $application))
-            ->assertForbidden();
+            ->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_cgis_desk_admin_cannot_approve_other_units_submission(): void
@@ -179,7 +179,7 @@ class CgisUnitWorkflowTest extends TestCase
         $this->assertSame('resubmitted', collect($application->workflow_path)->last()['action'] ?? null);
     }
 
-    public function test_cgis_routes_are_guarded_for_other_categories(): void
+    public function test_cgis_routes_redirect_other_categories_to_their_home(): void
     {
         $this->disableAbac();
 
@@ -191,9 +191,11 @@ class CgisUnitWorkflowTest extends TestCase
             'access_level' => 0,
         ]);
 
-        $this->actingAs($stateUser)->get('/user/cgis-units/dashboard')->assertForbidden();
-        $this->actingAs($stateUser)->get('/user/cgis-units/actu')->assertForbidden();
-        $this->actingAs($stateUser)->post(route('user.cgis-units.store', 'actu'), [])->assertForbidden();
+        $stateHome = route('user.dashboard');
+
+        $this->actingAs($stateUser)->get('/user/cgis-units/dashboard')->assertRedirect($stateHome);
+        $this->actingAs($stateUser)->get('/user/cgis-units/actu')->assertRedirect($stateHome);
+        $this->actingAs($stateUser)->post(route('user.cgis-units.store', 'actu'), [])->assertRedirect($stateHome);
     }
 
     public function test_cgis_unit_user_is_confined_to_own_unit_form(): void

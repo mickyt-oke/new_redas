@@ -18,39 +18,7 @@
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<aside class="redas-sidebar" id="redasSidebar">
-    <a href="{{ route('user.desk.home') }}" class="sidebar-brand">
-        <img src="{{ asset('assets/images/nis.png') }}" alt="NIS" class="sidebar-brand-logo">
-        <div class="sidebar-brand-text">
-            <span class="sidebar-brand-title">NIS&nbsp;REDAS</span>
-            <span class="sidebar-brand-sub">Desk Admin Portal</span>
-        </div>
-    </a>
-
-    <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Desk Admin Menu</div>
-        <a href="{{ route('user.desk.home') }}" class="sidebar-link {{ request()->routeIs('user.desk.home') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-th-large"></i></span>
-            <span class="link-text">Review Dashboard</span>
-        </a>
-        <a href="{{ route('desk.admin.reports') }}" class="sidebar-link {{ request()->routeIs('desk.admin.reports') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-file-export"></i></span>
-            <span class="link-text">Report Generation</span>
-        </a>
-        {{-- <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-archive"></i></span>
-            <span class="link-text">Archived Documents</span>
-        </a>
-        <a href="{{ route('user.submissions') }}" class="sidebar-link {{ request()->is('user/submissions') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-inbox"></i></span>
-            <span class="link-text">Officer Submissions</span>
-        </a> --}}
-        <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
-            <span class="link-icon"><i class="fas fa-bell"></i></span>
-            <span class="link-text">Notifications</span>
-        </a>
-    </nav>
-</aside>
+@include('partials.sidebar')
 
 <div class="redas-main" id="redasMain">
     <header class="redas-topbar">

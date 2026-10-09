@@ -183,10 +183,10 @@ class WorkflowTest extends TestCase
         $this->actingAs($this->superAdmin())->get(route('superadmin.dashboard'))->assertOk();
         $this->actingAs($this->superAdmin())->get(route('superadmin.returns'))->assertOk();
 
-        // The general admin can open read-only HQ pages but not user management
+        // The general admin can open read-only HQ pages but is redirected from user management
         $this->actingAs($this->generalAdmin())->get(route('admin.dashboard'))->assertOk();
         $this->actingAs($this->generalAdmin())->get(route('admin.consolidation'))->assertOk();
-        $this->actingAs($this->generalAdmin())->get(route('admin.users'))->assertForbidden();
+        $this->actingAs($this->generalAdmin())->get(route('admin.users'))->assertRedirect(route('admin.dashboard'));
     }
 
     public function test_rejection_requires_comment_and_records_history(): void

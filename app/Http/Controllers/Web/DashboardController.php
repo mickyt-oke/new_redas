@@ -76,7 +76,7 @@ class DashboardController extends Controller
      */
     private const CGIS_UNITS = [
         'actu' => [
-            'name' => 'Anti-Corruption and Transparency Unit (ACTU)',
+            'name' => 'Anti-Corruption & Transparency Unit (ACTU)',
             'icon' => 'fas fa-shield-halved',
         ],
         'epms' => [
@@ -88,7 +88,7 @@ class DashboardController extends Controller
             'icon' => 'fas fa-people-arrows',
         ],
         'pro-media' => [
-            'name' => 'Public Relations and Media Unit',
+            'name' => 'Public Relations & Media Unit',
             'icon' => 'fas fa-bullhorn',
         ],
         'protocol' => [

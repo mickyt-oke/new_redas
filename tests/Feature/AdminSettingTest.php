@@ -74,7 +74,7 @@ class AdminSettingTest extends TestCase
         $this->assertSame('test-token', SettingService::get('geolocation_api_token'));
     }
 
-    public function test_non_admin_cannot_access_settings(): void
+    public function test_non_admin_is_redirected_from_settings(): void
     {
         $user = User::factory()->create([
             'role' => 'officer',
@@ -87,7 +87,7 @@ class AdminSettingTest extends TestCase
 
         $response = $this->actingAs($user)->get('/admin/settings');
 
-        $response->assertStatus(403);
+        $response->assertRedirect(route('user.dashboard'));
     }
 
     public function test_guest_cannot_access_settings(): void

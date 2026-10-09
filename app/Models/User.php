@@ -276,4 +276,44 @@ class User extends Authenticatable
 
         return $map[$normalised] ?? null;
     }
+
+    /**
+     * The dashboard URL this user should be redirected to after login or when
+     * they attempt to visit a page outside their role.
+     */
+    public function homeRoute(): string
+    {
+        return match ($this->user_category) {
+            'super_admin' => route('superadmin.dashboard'),
+            'admin', 'hq_admin' => route('admin.dashboard'),
+            'zonal_commander' => route('user.zonal.home'),
+            'desk_admin', 'directorate_admin', 'cgis_desk_admin' => route('user.desk.home'),
+            'directorate_user' => route('user.directorates.dashboard'),
+            'cgis_unit_user' => route('user.cgis-units.dashboard'),
+            'zonal_user' => route('user.zones.dashboard'),
+            'special_command_user' => route('special-commands.dashboard'),
+            default => route('user.dashboard'),
+        };
+    }
+
+    /**
+     * Human-readable portal label for the sidebar brand.
+     */
+    public function portalLabel(): string
+    {
+        return match ($this->user_category) {
+            'super_admin' => 'Executive Portal',
+            'admin' => 'HQ Administration',
+            'hq_admin' => 'HQ Admin Portal',
+            'zonal_commander' => 'Zonal Command Portal',
+            'desk_admin' => 'Desk Admin Portal',
+            'directorate_admin' => 'Directorate Admin Portal',
+            'cgis_desk_admin' => 'CGIS Desk Admin Portal',
+            'directorate_user' => 'Directorate Portal',
+            'cgis_unit_user' => 'CGIS Unit Portal',
+            'zonal_user' => 'Zonal User Portal',
+            'special_command_user' => 'Special Command Portal',
+            default => 'State Officer Portal',
+        };
+    }
 }

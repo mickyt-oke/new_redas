@@ -169,7 +169,7 @@ class MfaController extends Controller
             $request->session()->forget([
                 'mfa.pending_user_id',
                 'mfa.location',
-                'mfa.remember',
+                'mfa.remember', 
                 'mfa.redirect_url',
                 'mfa.setup_verified',
             ]);

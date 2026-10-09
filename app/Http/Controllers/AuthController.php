@@ -285,18 +285,7 @@ class AuthController extends Controller
         return redirect()->route('mfa.setup');
     }
 
-    /**
-     * Handle login button at welcome page
-     * If user is logged in already, prevent login button from being used and redirect to dashboard
-     */
-    public function handleWelcomeLogin(Request $request): RedirectResponse
-    {
-        if (Auth::check()) {
-            return redirect()->route('/dashboard');
-        }
 
-        return redirect()->route('login');
-    }
     /**
      * Complete the login flow after MFA has been verified.
      *
@@ -352,6 +341,15 @@ class AuthController extends Controller
             return true;
         }
         if ($requestedRole === 'zone' && $user->role === 'zone') {
+            return true;
+        }
+        if ($requestedRole === 'special_command_user' && $user->role === 'special_command_user') {
+            return true;
+        }
+        if ($requestedRole === 'special_command' && $user->role === 'special_command') {
+            return true;
+        }
+        if ($requestedRole === 'hq_admin' && $user->role === 'hq_admin') {
             return true;
         }
 
@@ -453,6 +451,7 @@ class AuthController extends Controller
             'super_admin' => '/superadmin/dashboard',
             'admin', 'hq_admin' => '/admin/dashboard',
             'zonal_commander' => '/zonal/dashboard',
+            'special_command_user' => '/special-command/dashboard',
             'desk_admin', 'directorate_admin', 'cgis_desk_admin' => '/desk-admin/dashboard',
             'directorate_user' => '/user/directorates/dashboard',
             'cgis_unit_user' => '/user/cgis-units/dashboard',

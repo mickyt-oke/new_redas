@@ -28,53 +28,38 @@
         </div>
     </a>
 
-    <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Main Menu</div>
+    @php
+        $supervisorCategory = auth()->user()?->user_category;
+        $reviewRoute = $supervisorCategory === 'zonal_commander' ? route('user.zonal.home') : route('user.desk.home');
+    @endphp
 
-        <a href="{{ route('supervisor.dashboard') }}" class="sidebar-link active">
+    <nav class="sidebar-nav">
+        <div class="sidebar-section-label">Supervisor Menu</div>
+
+        <a href="{{ route('supervisor.dashboard') }}" class="sidebar-link {{ request()->routeIs('supervisor.dashboard') || request()->routeIs('supervisor.dashboard.*') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
             <span class="link-text">Dashboard</span>
         </a>
 
-        <a href="{{ url('/supervisor/approvals') }}" class="sidebar-link">
+        <a href="{{ $reviewRoute }}" class="sidebar-link {{ request()->routeIs('user.desk.home') || request()->routeIs('user.zonal.home') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-tasks"></i></span>
-            <span class="link-text">Pending Approvals</span>
-            <span class="link-badge danger">5</span>
+            <span class="link-text">Review Dashboard</span>
         </a>
 
-        <a href="{{ url('/supervisor/formations') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-map-marker-alt"></i></span>
-            <span class="link-text">Formation Status</span>
-        </a>
-
-        <a href="{{ url('/supervisor/reports') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-chart-bar"></i></span>
-            <span class="link-text">Zone Analytics</span>
-        </a>
-
-        <a href="{{ url('/supervisor/notifications') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-bell"></i></span>
-            <span class="link-text">Notifications</span>
-            <span class="link-badge"></span>
-        </a>
-
-        <hr class="sidebar-divider">
-        <div class="sidebar-section-label">Management</div>
-
-        <a href="{{ url('/supervisor/archive') }}" class="sidebar-link">
+        <a href="{{ route('user.archive') }}" class="sidebar-link {{ request()->routeIs('user.archive') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-archive"></i></span>
             <span class="link-text">Document Archive</span>
         </a>
 
-        <a href="{{ url('/supervisor/officers') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-users"></i></span>
-            <span class="link-text">Formation Officers</span>
+        <a href="{{ route('user.notifications') }}" class="sidebar-link {{ request()->is('user/notifications') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-bell"></i></span>
+            <span class="link-text">Notifications</span>
         </a>
 
         <hr class="sidebar-divider">
         <div class="sidebar-section-label">Account</div>
 
-        <a href="{{ url('/supervisor/profile') }}" class="sidebar-link">
+        <a href="{{ route('user.profile') }}" class="sidebar-link {{ request()->routeIs('user.profile') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-user-cog"></i></span>
             <span class="link-text">Profile Settings</span>
         </a>

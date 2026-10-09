@@ -23,7 +23,7 @@ class EmailTemplateSeeder extends Seeder
 <p>Your NIS-REDAS account has been created successfully.</p>
 <p>Please verify your email by clicking the link below:</p>
 <p><a href="{{ magic_link }}">Verify Email</a></p>
-<p> Your default password is: password***</p>
+<p> Your default password is: password123</p>
 <p> Please ensure to change your password after logging in for the first time.</p>
 
 <p>This link expires in {{ expires_in_minutes }} minutes.</p>

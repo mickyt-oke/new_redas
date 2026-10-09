@@ -18,118 +18,7 @@
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<!-- ════════════════════ SIDEBAR ════════════════════ -->
-<aside class="redas-sidebar" id="redasSidebar">
-    <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
-        <img src="{{ asset('assets/images/nis.png') }}" alt="NIS" class="sidebar-brand-logo">
-        <div class="sidebar-brand-text">
-            <span class="sidebar-brand-title">NIS&nbsp;REDAS</span>
-            <span class="sidebar-brand-sub">HQ Administration</span>
-        </div>
-    </a>
-
-    <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Overview</div>
-
-        <a href="{{ route('admin.dashboard') }}" class="sidebar-link active">
-            <span class="link-icon"><i class="fas fa-tachometer-alt"></i></span>
-            <span class="link-text">Nationwide Dashboard</span>
-        </a>
-
-        <a href="{{ url('/admin/analytics') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-chart-area"></i></span>
-            <span class="link-text">Analytics &amp; Reports</span>
-        </a>
-
-        <a href="{{ url('/admin/formations') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-map-marker-alt"></i></span>
-            <span class="link-text">All Formations</span>
-        </a>
-
-        <hr class="sidebar-divider">
-        <div class="sidebar-section-label">Directorates</div>
-
-        @foreach([
-            ['/admin/directorates/hrm',    'fas fa-user-tie',       'Human Resources (HRM)'],
-            ['/admin/directorates/fa',     'fas fa-coins',          'Finance &amp; Accounts'],
-            ['/admin/directorates/bm',     'fas fa-border-all',     'Border Management'],
-            ['/admin/directorates/mg',     'fas fa-plane',          'Migration'],
-            ['/admin/directorates/potd',   'fas fa-passport',       'Passport &amp; OTD'],
-            ['/admin/directorates/vr',     'fas fa-stamp',          'Visa &amp; Residency'],
-            ['/admin/directorates/prs',    'fas fa-chart-bar',      'Planning &amp; Research'],
-            ['/admin/directorates/ic',     'fas fa-search',         'Investigation &amp; Compliance'],
-            ['/admin/directorates/ict',    'fas fa-server',         'ICT / CyberSecurity'],
-            ['/admin/directorates/wl',     'fas fa-tools',          'Works &amp; Logistics'],
-        ] as [$url, $icon, $label])
-        <a href="{{ url($url) }}" class="sidebar-link">
-            <span class="link-icon"><i class="{{ $icon }}"></i></span>
-            <span class="link-text">{{ $label }}</span>
-        </a>
-        @endforeach
-
-        <hr class="sidebar-divider">
-        <div class="sidebar-section-label">Administration</div>
-
-        <a href="{{ url('/admin/users') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-users-cog"></i></span>
-            <span class="link-text">User Management</span>
-            <span class="link-badge info">142</span>
-        </a>
-
-        <a href="{{ url('/admin/archive') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-archive"></i></span>
-            <span class="link-text">Document Archive</span>
-        </a>
-
-        <a href="{{ route('admin.audit-log.index') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-shield-alt"></i></span>
-            <span class="link-text">Audit Log</span>
-        </a>
-
-        <a href="{{ url('/admin/notifications') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-bell"></i></span>
-            <span class="link-text">Notifications</span>
-            <span class="link-badge">7</span>
-        </a>
-
-        <a href="{{ url('/admin/system') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-heartbeat"></i></span>
-            <span class="link-text">System Health</span>
-        </a>
-
-        <a href="{{ route('admin.settings.index') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-cog"></i></span>
-            <span class="link-text">System Settings</span>
-        </a>
-
-        <hr class="sidebar-divider">
-
-        <a href="{{ url('/admin/profile') }}" class="sidebar-link">
-            <span class="link-icon"><i class="fas fa-user-cog"></i></span>
-            <span class="link-text">Profile Settings</span>
-        </a>
-
-        <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="sidebar-link" style="width:100%;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.72);text-align:left;">
-                <span class="link-icon"><i class="fas fa-sign-out-alt"></i></span>
-                <span class="link-text" style="color:rgba(255,100,100,0.85);">Logout</span>
-            </button>
-        </form>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="sidebar-user-card">
-            <div class="sidebar-user-avatar" style="background:var(--color-info);">
-                {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 2)) }}
-            </div>
-            <div class="sidebar-user-info">
-                <div class="sidebar-user-name">{{ auth()->user()->name ?? 'Administrator' }}</div>
-                <div class="sidebar-user-role">ICT Administrator — HQ</div>
-            </div>
-        </div>
-    </div>
-</aside>
+@include('partials.admin-sidebar')
 
 <!-- ════════════════════ MAIN ════════════════════ -->
 <div class="redas-main" id="redasMain">
@@ -182,7 +71,7 @@
                     </div>
                     @endforeach
                     <div style="padding:10px 16px;text-align:center;border-top:1px solid var(--gray-100);">
-                        <a href="{{ url('/admin/notifications') }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all notifications →</a>
+                        <a href="{{ route('user.notifications') }}" style="font-size:.78rem;color:var(--nis-600);font-weight:600;text-decoration:none;">View all notifications →</a>
                     </div>
                 </div>
             </div>
@@ -200,10 +89,12 @@
                     <i class="fas fa-chevron-down" style="font-size:.7rem;color:var(--gray-400);margin-left:4px;"></i>
                 </button>
                 <div id="userMenuDrop" style="display:none;position:absolute;right:0;top:calc(100% + 8px);width:210px;background:white;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);border:1px solid var(--gray-100);z-index:200;overflow:hidden;">
-                    <a href="{{ url('/admin/users') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-users-cog" style="width:16px;color:var(--gray-400);"></i> User Management</a>
-                    <a href="{{ url('/admin/system') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-heartbeat" style="width:16px;color:var(--gray-400);"></i> System Health</a>
-                    <a href="{{ route('admin.audit-log.index') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-shield-alt" style="width:16px;color:var(--gray-400);"></i> Audit Log</a>
-                    <a href="{{ route('admin.settings.index') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-cog" style="width:16px;color:var(--gray-400);"></i> System Settings</a>
+                    <a href="{{ route('user.profile') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-user-cog" style="width:16px;color:var(--gray-400);"></i> Profile</a>
+                    @if(auth()->user()?->user_category === 'hq_admin')
+                        <a href="{{ route('admin.users') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-users-cog" style="width:16px;color:var(--gray-400);"></i> User Management</a>
+                        <a href="{{ route('admin.audit-log.index') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-shield-alt" style="width:16px;color:var(--gray-400);"></i> Audit Log</a>
+                        <a href="{{ route('admin.settings.index') }}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:.84rem;color:var(--gray-700);text-decoration:none;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'"><i class="fas fa-cog" style="width:16px;color:var(--gray-400);"></i> System Settings</a>
+                    @endif
                     <div style="border-top:1px solid var(--gray-100);"></div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
