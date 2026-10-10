@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\User;
+use App\Services\ExecutiveDashboardAggregator;
 use App\Services\SubmissionWorkflow;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -43,7 +44,7 @@ class SuperAdminController extends Controller
 
     public function dashboard(): View
     {
-        abort_unless(auth()->user()?->hasCategory('super_admin'), 403);
+        abort_unless(auth()->user()?->hasCategory('super_admin', 'admin', 'cgis_unit_user', 'cgis_desk_admin'), 403);
 
         $statusCounts = Application::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -148,7 +149,9 @@ class SuperAdminController extends Controller
             ->limit(25)
             ->get();
 
-        return view('super-admin.dashboard', [
+        $executive = app(ExecutiveDashboardAggregator::class)->aggregate();
+
+        return view('super-admin.executive-dashboard', [
             'stats' => $stats,
             'statusChart' => $statusChart,
             'categoryChart' => $categoryChart,
@@ -161,7 +164,16 @@ class SuperAdminController extends Controller
                 'approvals' => $approvals,
             ],
             'latestApproved' => $latestApproved,
+            'executive' => $executive,
         ]);
+    }
+
+    /**
+     * Shared executive view exposed to CGIS administrators.
+     */
+    public function executiveDashboard(): View
+    {
+        return $this->dashboard();
     }
 
     public function returns(Request $request): View

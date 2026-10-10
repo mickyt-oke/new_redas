@@ -342,6 +342,11 @@ Route::middleware([Authenticate::class, 'access:category=super_admin,location=he
     Route::get('/superadmin/returns/{applicationHash}/download', [SubmissionReviewController::class, 'download'])->middleware('signed')->name('superadmin.returns.download');
 });
 
+// CGIS executive dashboard — shared view with Super Admin
+Route::middleware([Authenticate::class, 'access:category=cgis_unit_user|cgis_desk_admin|super_admin|admin,location=unit|headquarters,role=unit_officer|unit_admin|admin|super_admin|minLevel=0', 'abac.geo'])->group(function () {
+    Route::get('/cgis/executive-dashboard', [SuperAdminController::class, 'executiveDashboard'])->name('cgis.executive.dashboard');
+});
+
 // Supervisor dashboards (state and zonal share the same view)
 Route::middleware([Authenticate::class, 'access:category=desk_admin|zonal_commander,location=state|zonal,role=admin|state|zonal|minLevel=1', 'abac.geo'])->group(function () {
     Route::get('/dashboard/state', function () {
