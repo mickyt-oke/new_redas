@@ -20,8 +20,8 @@ class UserManagementController extends Controller
 {
     use ResolvesHashedModels;
     private const CGIS_UNITS = [
-        'actu' => 'Anti-Corruption and Transparency Unit (ACTU)',
-        'epms' => 'Electronic Passport Management System (EPMS)',
+        'actu' => 'Anti-Corruption and Transparency Unit',
+        'epms' => 'Electronic Passport Management System',
         'hostmanship' => 'Hostmanship Unit',
         'pro-media' => 'Public Relations / Media Unit',
         'protocol' => 'Protocol Unit',
@@ -43,29 +43,27 @@ class UserManagementController extends Controller
                 'cgis_unit_user' => 'CGIS Unit User',
                 'cgis_desk_admin' => 'CGIS Unit Desk Admin',
                 'hq_admin' => 'HQ Admin',
-                'special_command_user' => 'Special Command User',
                 'admin' => 'National Administrator',
                 'super_admin' => 'Super Admin',
             ],
             'locationTypes' => [
                 'state' => 'State',
-                'special_command' => 'Special Command',
-                'directorate' => 'Directorate',
                 'zonal' => 'Zonal',
+                'directorate' => 'Directorate',
                 'unit' => 'CGIS Unit',
                 'headquarters' => 'Headquarters',
             ],
             'roles' => [
                 'officer' => 'Officer',
                 'state' => 'State Supervisor',
-                'zone' => 'Zonal User',
+                'desk_admin' => 'State Desk Admin',
                 'zonal_commander' => 'Zonal Commander',
+                'zonal' => 'Zonal Commander',
                 'directorate' => 'Directorate User',
                 'directorate_admin' => 'Directorate Admin',
                 'unit_officer' => 'CGIS Unit Officer',
                 'unit_admin' => 'CGIS Unit Desk Admin',
                 'hq_admin' => 'HQ Admin',
-                'zonal' => 'Zonal Commander',
                 'super_admin' => 'Super Admin',
                 'admin' => 'Administrator',
             ],
@@ -90,9 +88,9 @@ class UserManagementController extends Controller
         return [
             'name' => 'required|string|max:255',
             'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{3}\/\d{4}$/', $uniqueServiceNumber],
-            'role' => 'required|in:admin,zonal,state,officer,directorate,unit_officer,unit_admin',
+            'role' => 'required|in:officer,state,desk_admin,zonal_commander,zonal,directorate,directorate_admin,unit_officer,unit_admin,hq_admin,super_admin,admin',
             'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_user,zonal_commander,cgis_unit_user,cgis_desk_admin,hq_admin,admin,super_admin',
-            'primary_location_type' => 'required|in:state,directorate,zonal,unit,headquarters',
+            'primary_location_type' => 'required|in:state,zonal,directorate,unit,headquarters',
             'formation_code' => 'nullable|string|max:50',
             'primary_location_code' => 'nullable|string|max:50',
             'assigned_cgis_unit_code' => 'nullable|in:'.implode(',', array_keys(self::CGIS_UNITS)),
@@ -257,70 +255,81 @@ class UserManagementController extends Controller
     {
         $map = [
             'state_user' => [
-                'role' => ['officer'],
-                'location' => 'state',
+                'roles' => ['officer'],
+                'locations' => ['state'],
                 'level' => 0,
                 'canonical_role' => 'officer',
+                'canonical_location' => 'state',
             ],
             'desk_admin' => [
-                'role' => ['state'],
-                'location' => 'state',
+                'roles' => ['state', 'desk_admin'],
+                'locations' => ['state'],
                 'level' => 1,
                 'canonical_role' => 'state',
+                'canonical_location' => 'state',
             ],
             'directorate_user' => [
-                'role' => ['directorate'],
-                'location' => 'directorate',
+                'roles' => ['directorate'],
+                'locations' => ['directorate'],
                 'level' => 0,
                 'canonical_role' => 'directorate',
+                'canonical_location' => 'directorate',
             ],
             'directorate_admin' => [
-                'role' => ['admin'],
-                'location' => 'directorate',
+                'roles' => ['admin', 'directorate_admin'],
+                'locations' => ['directorate'],
                 'level' => 3,
                 'canonical_role' => 'admin',
+                'canonical_location' => 'directorate',
             ],
             'zonal_user' => [
-                'role' => ['officer'],
-                'location' => 'zonal',
+                'roles' => ['officer', 'zone_officer', 'zonal'],
+                'locations' => ['zone', 'zonal'],
                 'level' => 0,
                 'canonical_role' => 'officer',
+                'canonical_location' => 'zonal',
             ],
             'zonal_commander' => [
-                'role' => ['zonal'],
-                'location' => 'zonal',
+                'roles' => ['zonal', 'zonal_commander'],
+                'locations' => ['zone', 'zonal'],
                 'level' => 4,
                 'canonical_role' => 'zonal',
+                'canonical_location' => 'zonal',
             ],
             'cgis_unit_user' => [
-                'role' => ['unit_officer'],
-                'location' => 'unit',
+                'roles' => ['unit_officer', 'officer'],
+                'locations' => ['unit'],
                 'level' => 0,
                 'canonical_role' => 'unit_officer',
+                'canonical_location' => 'unit',
             ],
             'cgis_desk_admin' => [
-                'role' => ['unit_admin'],
-                'location' => 'unit',
+                'roles' => ['unit_admin', 'admin'],
+                'locations' => ['unit'],
                 'level' => 2,
                 'canonical_role' => 'unit_admin',
+                'canonical_location' => 'unit',
             ],
             'hq_admin' => [
-                'role' => ['admin'],
-                'location' => 'headquarters',
+                'roles' => ['admin', 'hq_admin'],
+                'locations' => ['headquarters'],
                 'level' => 5,
                 'canonical_role' => 'admin',
+                'canonical_location' => 'headquarters',
             ],
             'admin' => [
-                'role' => ['admin'],
-                'location' => 'headquarters',
+                'roles' => ['admin'],
+                'locations' => ['headquarters'],
                 'level' => 5,
                 'canonical_role' => 'admin',
+                'canonical_location' => 'headquarters',
             ],
             'super_admin' => [
-                'role' => ['admin'],
-                'location' => 'headquarters',
+                'roles' => ['admin', 'super_admin'],
+                'locations' => ['headquarters'],
                 'level' => 6,
                 'canonical_role' => 'admin',
+                'canonical_location' => 'headquarters',
             ],
         ];
 
@@ -330,18 +339,18 @@ class UserManagementController extends Controller
 
         $profile = $map[$category];
 
-        if (! in_array($role, $profile['role'], true)) {
+        if (! in_array($role, $profile['roles'], true)) {
             return null;
         }
 
-        if ($locationType !== $profile['location']) {
+        if (! in_array($locationType, $profile['locations'], true)) {
             return null;
         }
 
         return [
             'role' => $profile['canonical_role'],
             'user_category' => $category,
-            'primary_location_type' => $locationType,
+            'primary_location_type' => $profile['canonical_location'],
             'access_level' => $profile['level'],
         ];
     }

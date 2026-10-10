@@ -451,7 +451,7 @@ class AuthController extends Controller
             'super_admin' => '/superadmin/dashboard',
             'admin', 'hq_admin' => '/admin/dashboard',
             'zonal_commander' => '/zonal/dashboard',
-            'special_command_user' => '/special-command/dashboard',
+            'special_command_user' => '/special-commands/dashboard',
             'desk_admin', 'directorate_admin', 'cgis_desk_admin' => '/desk-admin/dashboard',
             'directorate_user' => '/user/directorates/dashboard',
             'cgis_unit_user' => '/user/cgis-units/dashboard',

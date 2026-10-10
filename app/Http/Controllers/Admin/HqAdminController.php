@@ -145,7 +145,7 @@ class HqAdminController extends Controller
         $application->load(['user:id,name,service_number,email,assigned_cgis_unit_code', 'reviewComments.user']);
 
         $actorIds = collect($application->workflow_path ?? [])->pluck('by')->filter()->unique();
-        $actors = User::query()->whereIn('id', $actorIds, 'and', false)->pluck('name', 'id');
+        $actors = User::query()->whereIn('id', $actorIds)->pluck('name', 'id');
 
         $timeline = collect($application->workflow_path ?? [])->map(function (array $entry) use ($actors) {
             return [

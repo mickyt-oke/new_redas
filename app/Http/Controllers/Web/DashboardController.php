@@ -938,7 +938,7 @@ class DashboardController extends Controller
             }
         }
 
-        $application->delete($user);
+        $application->delete(true);
 
         $redirect = match ($user->user_category) {
             'cgis_unit_user' => redirect()->route('user.cgis-units.dashboard'),

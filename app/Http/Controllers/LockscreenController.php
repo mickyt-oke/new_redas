@@ -88,6 +88,7 @@ class LockscreenController extends Controller
             'directorate_user' => '/user/directorates/dashboard',
             'cgis_unit_user' => '/user/cgis-units/dashboard',
             'state_user' => '/user/dashboard',
+            'special_command_user' => '/special-commands/dashboard',
             'zone_user' => '/user/zones/dashboard',
             default => '/',
         };

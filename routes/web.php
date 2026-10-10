@@ -308,9 +308,6 @@ Route::middleware([Authenticate::class, 'access:category=directorate_user|direct
     Route::put('/user/directorates/submissions/{applicationHash}', [DashboardController::class, 'updateSubmission'])->middleware('throttle:database')->name('user.directorates.submissions.update');
     Route::delete('/user/directorates/submissions/{applicationHash}', [DashboardController::class, 'destroySubmission'])->middleware(['signed', 'throttle:database'])->name('user.directorates.submissions.destroy');
     Route::get('/user/directorates/submissions/{applicationHash}/documents/{collection}/{index}', [DashboardController::class, 'submissionDocument'])->middleware('signed')->name('user.directorates.submissions.document');
-
-    Route::get('/user/directorates/{slug}', [DashboardController::class, 'showDirectorate'])->name('user.directorates.show');
-    Route::post('/user/directorates/{slug}', [DashboardController::class, 'storeDirectorate'])->middleware('throttle:database')->name('user.directorates.store');
 });
 
 // Shared directorate form routes — accessible by both state (officer) and directorate users
