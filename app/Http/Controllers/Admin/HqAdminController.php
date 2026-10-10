@@ -90,6 +90,7 @@ class HqAdminController extends Controller
 
 
         $recentReturns = Application::query()
+            ->select(['id', 'user_id', 'scope_code', 'return_data', 'workflow_stage', 'status', 'created_at'])
             ->with('user:id,name,service_number,assigned_cgis_unit_code')
             ->latest()
             ->limit(10)

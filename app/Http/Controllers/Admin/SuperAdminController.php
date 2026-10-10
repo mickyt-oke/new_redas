@@ -141,6 +141,7 @@ class SuperAdminController extends Controller
         }
 
         $latestApproved = Application::query()
+            ->select(['id', 'user_id', 'category', 'return_data', 'updated_at'])
             ->with('user:id,name,service_number,assigned_cgis_unit_code')
             ->where('status', 'approved')
             ->latest('updated_at')
@@ -260,7 +261,7 @@ class SuperAdminController extends Controller
     {
         $durations = [];
 
-        foreach (Application::query()->where('status', 'approved')->whereNotNull('workflow_path')->cursor() as $application) {
+        foreach (Application::query()->select(['id', 'workflow_path'])->where('status', 'approved')->whereNotNull('workflow_path')->cursor() as $application) {
             $entries = collect($application->workflow_path ?? []);
             $first = $entries->first()['at'] ?? null;
             $last = $entries->last()['at'] ?? null;
