@@ -336,6 +336,7 @@ Route::middleware([Authenticate::class, 'access:category=state_user|directorate_
 // Super-admin (executive) — view-only dashboard and consolidated returns
 Route::middleware([Authenticate::class, 'access:category=super_admin,location=headquarters,role=super_admin|minLevel=6', 'abac.geo'])->group(function () {
     Route::get('/superadmin/dashboard', [SuperAdminController::class, 'dashboard'])->name('superadmin.dashboard');
+    Route::get('/superadmin/data-explorer', [SuperAdminController::class, 'dataExplorer'])->name('superadmin.data-explorer');
     Route::get('/superadmin/returns', [SuperAdminController::class, 'returns'])->name('superadmin.returns');
     Route::get('/superadmin/returns/{applicationHash}', [SuperAdminController::class, 'show'])->name('superadmin.returns.show');
     Route::get('/superadmin/returns/{applicationHash}/documents/{collection}/{index}', [SubmissionReviewController::class, 'document'])->middleware('signed')->name('superadmin.returns.document');
@@ -345,6 +346,7 @@ Route::middleware([Authenticate::class, 'access:category=super_admin,location=he
 // CGIS executive dashboard — shared view with Super Admin
 Route::middleware([Authenticate::class, 'access:category=cgis_unit_user|cgis_desk_admin|super_admin|admin,location=unit|headquarters,role=unit_officer|unit_admin|admin|super_admin|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/cgis/executive-dashboard', [SuperAdminController::class, 'executiveDashboard'])->name('cgis.executive.dashboard');
+    Route::get('/cgis/data-explorer', [SuperAdminController::class, 'cgisDataExplorer'])->name('cgis.data-explorer');
 });
 
 // Supervisor dashboards (state and zonal share the same view)

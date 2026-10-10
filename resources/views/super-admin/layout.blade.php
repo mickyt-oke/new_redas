@@ -34,6 +34,13 @@
             <span class="link-icon"><i class="fas fa-chart-pie"></i></span>
             <span class="link-text">Executive Dashboard</span>
         </a>
+        @php
+            $explorerRoute = auth()->user()?->hasCategory('super_admin') ? route('superadmin.data-explorer') : route('cgis.data-explorer');
+        @endphp
+        <a href="{{ $explorerRoute }}" class="sidebar-link {{ request()->routeIs('superadmin.data-explorer') || request()->routeIs('cgis.data-explorer') ? 'active' : '' }}">
+            <span class="link-icon"><i class="fas fa-search"></i></span>
+            <span class="link-text">Return Data Explorer</span>
+        </a>
         <a href="{{ route('superadmin.returns') }}" class="sidebar-link {{ request()->routeIs('superadmin.returns*') ? 'active' : '' }}">
             <span class="link-icon"><i class="fas fa-folder-open"></i></span>
             <span class="link-text">All Returns</span>

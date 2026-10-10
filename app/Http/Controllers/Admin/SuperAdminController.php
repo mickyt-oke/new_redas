@@ -7,8 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\User;
 use App\Services\ExecutiveDashboardAggregator;
+use App\Services\ReturnDataExplorerService;
 use App\Services\SubmissionWorkflow;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -174,6 +176,65 @@ class SuperAdminController extends Controller
     public function executiveDashboard(): View
     {
         return $this->dashboard();
+    }
+
+    /**
+     * Searchable data explorer for return_data records.
+     */
+    public function dataExplorer(Request $request, ReturnDataExplorerService $service): View|Response
+    {
+        abort_unless(auth()->user()?->hasCategory('super_admin', 'admin', 'cgis_unit_user', 'cgis_desk_admin'), 403);
+
+        $filters = $request->validate([
+            'category' => ['nullable', 'in:state,directorate,cgis,zonal'],
+            'scope_code' => ['nullable', 'string', 'max:60'],
+            'zonal_code' => ['nullable', 'string', 'max:10'],
+            'status' => ['nullable', 'in:pending,approved,returned,rejected'],
+            'period_from' => ['nullable', 'date_format:Y-m'],
+            'period_to' => ['nullable', 'date_format:Y-m', 'after_or_equal:period_from'],
+            'search' => ['nullable', 'string', 'max:120'],
+            'field_path' => ['nullable', 'string', 'max:120'],
+            'field_operator' => ['nullable', 'in:=,!=,>,<,>=,<=,contains'],
+            'field_value' => ['nullable', 'string', 'max:120'],
+            'group_by' => ['nullable', 'in:formation,zone,state,directorate,category,status'],
+            'sum_path' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        if ($request->input('export') === 'csv') {
+            $records = $service->fetchForExport($filters);
+            $filename = 'return-data-explorer-' . now()->format('Y-m-d-His') . '.csv';
+
+            return response()->make($service->toCsv($records), 200, [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ]);
+        }
+
+        $result = $service->search($filters);
+        $summary = $service->summarise($result['records'], $result['filters']['group_by']);
+        $aggregations = $service->aggregate(
+            $result['records'],
+            $result['filters']['group_by'],
+            $result['filters']['sum_path'] ?: null
+        );
+
+        return view('super-admin.data-explorer', [
+            'records' => $result['records'],
+            'paginator' => $result['paginator'],
+            'filters' => $result['filters'],
+            'summary' => $summary,
+            'aggregations' => $aggregations,
+            'groupBy' => $result['filters']['group_by'],
+            'stageLabels' => self::STAGE_LABELS,
+        ]);
+    }
+
+    /**
+     * CGIS route alias for the data explorer.
+     */
+    public function cgisDataExplorer(Request $request, ReturnDataExplorerService $service): View|Response
+    {
+        return $this->dataExplorer($request, $service);
     }
 
     public function returns(Request $request): View
