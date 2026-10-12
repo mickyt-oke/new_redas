@@ -136,7 +136,7 @@ class GeolocationService
         $normalized = self::normalizeStateName($name);
 
         $code = PrimaryLocationCode::query()
-            ->whereRaw('LOWER(location_name) = ?', [$normalized])
+            ->whereRaw('LOWER(location_name) = ?', [$normalized], 'and')
             ->value('code');
 
         return $code ? strtoupper($code) : null;
@@ -150,6 +150,17 @@ class GeolocationService
         return PrimaryLocationCode::query()
             ->where('code', strtoupper($code))
             ->value('location_name');
+    }
+
+    public static function specialCommandCodeFromName(string $name): ?string
+    {
+        $normalized = strtolower(trim($name));
+
+        $code = PrimaryLocationCode::query()
+            ->whereRaw('LOWER(location_name) = ?', [$normalized], 'and')
+            ->value('code');
+
+        return $code ? strtoupper($code) : null;
     }
 
     /**

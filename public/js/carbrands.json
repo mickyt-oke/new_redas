@@ -37,6 +37,9 @@
 }, {
 	"name": "BEIJING AUTOMOBILE WORKS"
 }, {
+	"name": "BEICI FOTON MINI (BUS)"
+},
+{
 	"name": "BENTLEY"
 }, {
 	"name": "BMW"
@@ -224,7 +227,17 @@
 	"name": "IMPERIA"
 }, {
 	"name": "INFINITI"
-}, {
+},
+{
+    "name": "Innoson Jeep"
+},
+{
+	"name": "Innoson Van"
+},
+{
+	"name": "Innoson Hilux"
+},
+{
 	"name": "IVM"
 }, {
 	"name": "INVICTA"

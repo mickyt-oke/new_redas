@@ -14,6 +14,7 @@ class ExecutiveDashboardTest extends TestCase
 
     public function test_super_admin_can_view_executive_dashboard(): void
     {
+        /** @var User $superAdmin */
         $superAdmin = User::factory()->create([
             'user_category' => 'super_admin',
             'role' => 'admin',
@@ -33,6 +34,7 @@ class ExecutiveDashboardTest extends TestCase
 
     public function test_cgis_user_can_view_executive_dashboard(): void
     {
+        /** @var User $cgisUser */
         $cgisUser = User::factory()->create([
             'user_category' => 'cgis_unit_user',
             'role' => 'unit_officer',
@@ -167,5 +169,66 @@ class ExecutiveDashboardTest extends TestCase
         $this->assertSame(90, $result['borders']['land']['male']);
         $this->assertSame(50, $result['borders']['land']['female']);
         $this->assertSame(80, $result['borders']['land_by_state']['Lagos']['arrivals']);
+    }
+
+    public function test_aggregator_groups_compliance_by_formation_and_period(): void
+    {
+        $stateUser = User::factory()->create([
+            'user_category' => 'state_user',
+            'role' => 'officer',
+            'primary_location_type' => 'state',
+            'primary_location_code' => 'LA',
+            'geo_state' => 'LA',
+            'is_enabled' => true,
+        ]);
+
+        $directorateUser = User::factory()->create([
+            'user_category' => 'directorate_user',
+            'role' => 'directorate',
+            'primary_location_type' => 'directorate',
+            'primary_location_code' => 'ict',
+            'assigned_directorate_code' => 'ict',
+            'is_enabled' => true,
+        ]);
+
+        Application::factory()->create([
+            'user_id' => $stateUser->id,
+            'category' => 'state',
+            'scope_code' => 'LA',
+            'status' => 'approved',
+            'return_data' => ['report_period' => '2026-07'],
+        ]);
+
+        Application::factory()->create([
+            'user_id' => $stateUser->id,
+            'category' => 'state',
+            'scope_code' => 'LA',
+            'status' => 'pending',
+            'return_data' => ['report_period' => '2026-07'],
+        ]);
+
+        Application::factory()->create([
+            'user_id' => $directorateUser->id,
+            'category' => 'directorate',
+            'scope_code' => 'ict',
+            'status' => 'returned',
+            'return_data' => ['report_period' => '2026-08'],
+        ]);
+
+        $result = app(ExecutiveDashboardAggregator::class)->aggregate();
+        $compliance = $result['compliance'];
+
+        $this->assertSame(2, $compliance['LA']['total']);
+        $this->assertSame(1, $compliance['LA']['approved']);
+        $this->assertSame(1, $compliance['LA']['pending']);
+        $this->assertSame('state', $compliance['LA']['category']);
+        $this->assertSame('LA', $compliance['LA']['scope_code']);
+        $this->assertSame(1, $compliance['LA']['periods']['2026-07']['approved']);
+        $this->assertSame(1, $compliance['LA']['periods']['2026-07']['pending']);
+
+        $this->assertSame(1, $compliance['ICT']['total']);
+        $this->assertSame(1, $compliance['ICT']['returned']);
+        $this->assertSame('ict', $compliance['ICT']['scope_code']);
+        $this->assertSame(1, $compliance['ICT']['periods']['2026-08']['returned']);
     }
 }

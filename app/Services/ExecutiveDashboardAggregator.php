@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Application;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Aggregate key nationwide indicators from the nested return_data JSON stored
@@ -74,6 +75,7 @@ class ExecutiveDashboardAggregator
      */
     public function aggregate(?\Closure $scope = null): array
     {
+        /** @var Builder<Application> $query */
         $query = Application::query()
             ->select(['id', 'category', 'scope_code', 'zonal_code', 'return_data', 'status', 'created_at']);
 
@@ -86,7 +88,12 @@ class ExecutiveDashboardAggregator
         $borders = $this->initialBorders();
         $compliance = [];
 
-        foreach ($query->cursor() as $application) {
+        // cursor() streams hydrated Application models (Query\Builder::cursor()'s
+        // generic says stdClass, so pin the element type for static analysis).
+        /** @var \Illuminate\Support\LazyCollection<int, Application> $applications */
+        $applications = $query->cursor();
+
+        foreach ($applications as $application) {
             $data = $application->return_data ?? [];
 
             $this->aggregatePersonnel($data, $personnel);

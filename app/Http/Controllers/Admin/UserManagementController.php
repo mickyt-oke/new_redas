@@ -35,6 +35,7 @@ class UserManagementController extends Controller
         return [
             'categories' => [
                 'state_user' => 'State User',
+                'special_command_user' => 'Special Command User',
                 'desk_admin' => 'State Desk Admin',
                 'directorate_user' => 'Directorate User',
                 'directorate_admin' => 'Directorate Admin',
@@ -56,6 +57,7 @@ class UserManagementController extends Controller
             'roles' => [
                 'officer' => 'Officer',
                 'state' => 'State Supervisor',
+                'special_command_user' => 'Special Command User',
                 'desk_admin' => 'State Desk Admin',
                 'zonal_commander' => 'Zonal Commander',
                 'zonal' => 'Zonal Commander',
