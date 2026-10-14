@@ -6,19 +6,14 @@ window.axios.defaults.withCredentials = true; // Required to send/receive HttpOn
 
 /**
  * JWT Session Management
+ *
+ * Access tokens are deliberately kept in memory only (never localStorage or
+ * sessionStorage) to mitigate XSS theft. The refresh token lives in a Secure,
+ * HttpOnly cookie so the session can survive browser/PWA restarts.
  */
-const AUTH_TOKEN_KEY = 'redas_access_token';
+const REFRESH_URL = '/api/refresh';
 
-// Request Interceptor: Attach Access Token
-window.axios.interceptors.request.use(config => {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-}, error => Promise.reject(error));
-
-// Response Interceptor: Handle 401s and Silent Refresh
+let accessToken = null;
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -30,6 +25,15 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
+// Request Interceptor: Attach Access Token
+window.axios.interceptors.request.use(config => {
+    if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+}, error => Promise.reject(error));
+
+// Response Interceptor: Handle 401s and Silent Refresh
 window.axios.interceptors.response.use(
     response => response,
     async error => {
@@ -37,9 +41,9 @@ window.axios.interceptors.response.use(
 
         // Only attempt refresh if it's a 401 and not already a refresh attempt
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (originalRequest.url === '/api/auth/refresh') {
+            if (originalRequest.url === REFRESH_URL) {
                 // Refresh token itself is expired or invalid -> Force Logout
-                localStorage.removeItem(AUTH_TOKEN_KEY);
+                accessToken = null;
                 window.location.href = '/login';
                 return Promise.reject(error);
             }
@@ -61,19 +65,19 @@ window.axios.interceptors.response.use(
 
             try {
                 // Call the refresh endpoint (browser sends HttpOnly cookie automatically)
-                const { data } = await window.axios.post('/api/auth/refresh');
+                const { data } = await window.axios.post(REFRESH_URL);
                 const newToken = data.access_token;
 
-                localStorage.setItem(AUTH_TOKEN_KEY, newToken);
+                accessToken = newToken;
                 window.axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-                
+
                 processQueue(null, newToken);
-                
+
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 return window.axios(originalRequest);
             } catch (refreshError) {
                 processQueue(refreshError, null);
-                localStorage.removeItem(AUTH_TOKEN_KEY);
+                accessToken = null;
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             } finally {
@@ -84,3 +88,65 @@ window.axios.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+/**
+ * Restore the session on app start / PWA launch. If a refresh token cookie is
+ * present, the server will issue a new access token and the user can continue
+ * without re-entering credentials.
+ */
+function restoreSession() {
+    return window.axios.post(REFRESH_URL)
+        .then(({ data }) => {
+            if (data.access_token) {
+                accessToken = data.access_token;
+                window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            }
+            return data;
+        })
+        .catch(error => {
+            // No valid refresh cookie: clear any stale token and remain logged out.
+            accessToken = null;
+            return Promise.reject(error);
+        });
+}
+
+/**
+ * Proactive refresh: request a new access token shortly before the current one
+ * expires (default 14 minutes). This keeps the PWA session alive during active
+ * use without waiting for a 401.
+ */
+const accessTokenTtlMs = 15 * 60 * 1000; // mirrors JWT_ACCESS_TTL=900s
+const proactiveRefreshMs = Math.max(30 * 1000, accessTokenTtlMs - 60 * 1000);
+
+function scheduleProactiveRefresh() {
+    setInterval(() => {
+        if (!accessToken) return;
+        window.axios.post(REFRESH_URL)
+            .then(({ data }) => {
+                if (data.access_token) {
+                    accessToken = data.access_token;
+                    window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                }
+            })
+            .catch(() => {
+                accessToken = null;
+            });
+    }, proactiveRefreshMs);
+}
+
+// Expose helpers for PWA/inline usage.
+window.REDAS_AUTH = {
+    restoreSession,
+    setToken: token => { accessToken = token; },
+    getToken: () => accessToken,
+    clearToken: () => { accessToken = null; },
+};
+
+// Attempt to restore the session on startup if the PWA was launched from a
+// previous authenticated session. This is a "best effort" call: failure simply
+// means the user must log in.
+if (document.cookie.includes('refresh_token=')) {
+    restoreSession().catch(() => {});
+}
+
+scheduleProactiveRefresh();

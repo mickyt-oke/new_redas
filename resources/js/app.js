@@ -652,22 +652,31 @@ function showToast(message, type = 'info') {
 // (POST /lockscreen/lock) and every following request is redirected to the
 // lockscreen until the user enters their passcode. After EXPIRE_TIMEOUT the
 // session is fully logged out.
-const LOCK_TIMEOUT = 5 * 60 * 1000;    // 5 minutes  → lock the session
-const EXPIRE_TIMEOUT = 15 * 60 * 1000; // 15 minutes → full logout
+const LOCK_TIMEOUT = 5 * 60 * 1000;              // 5 minutes  → lock the session
+const EXPIRE_TIMEOUT = 15 * 60 * 1000;           // 15 minutes → full logout
+const WARNING_TIMEOUT = LOCK_TIMEOUT - 60 * 1000; // 4 minutes  → show warning
 const LOCK_POLL_INTERVAL = 1000;
 
 const LOCKS_URL = '/lockscreen';
 const LOCK_URL = '/lockscreen/lock';
 const LOGOUT_URL = '/logout';
+const KEEP_ALIVE_URL = '/session/keep-alive';
 
 let lastActivity = Date.now();
 let isLocking = false;
+let warningModal = null;
+let warningTimer = null;
 
 // The lockscreen itself must never trigger another lock.
 const onLockscreenPage = () => window.location.pathname.startsWith(LOCKS_URL);
+const onAuthPage = () => document.body.classList.contains('auth-page');
+const onDashboardPage = () => document.body.classList.contains('redas-dashboard');
+
+const idleTimerActive = () => onDashboardPage() && ! onLockscreenPage() && ! onAuthPage();
 
 const resetActivity = () => {
     lastActivity = Date.now();
+    hideInactivityWarning();
 };
 
 ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(eventName => {
@@ -678,9 +687,143 @@ function csrfToken() {
     return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 }
 
+function formatCountdown(ms) {
+    const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function createInactivityWarningModal() {
+    if (document.getElementById('redas-inactivity-warning')) {
+        return document.getElementById('redas-inactivity-warning');
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.id = 'redas-inactivity-warning';
+    wrapper.setAttribute('role', 'dialog');
+    wrapper.setAttribute('aria-modal', 'true');
+    wrapper.setAttribute('aria-labelledby', 'redas-inactivity-title');
+    wrapper.style.cssText = `
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(2px);
+        opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    `;
+
+    wrapper.innerHTML = `
+        <div style="
+            width: min(92vw, 420px); background: #fff; border-radius: 16px;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.18); padding: 28px;
+            text-align: center; transform: translateY(10px); transition: transform .25s ease;
+        ">
+            <div style="width:64px;height:64px;border-radius:50%;background:#fef3c7;color:#b45309;
+                        display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;">
+                <i class="fas fa-hourglass-half"></i>
+            </div>
+            <h2 id="redas-inactivity-title" style="margin:0 0 8px;font-size:1.25rem;font-weight:700;color:#0f172a;">
+                Session Inactivity Warning
+            </h2>
+            <p style="margin:0 0 20px;color:#475569;font-size:.95rem;line-height:1.5;">
+                You have been inactive for a while. Your screen will lock in
+                <strong id="redas-inactivity-countdown" style="color:#b45309;font-size:1.1rem;">1:00</strong>
+                to protect your session.
+            </p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                <button type="button" id="redas-stay-active" class="btn-auth" style="min-width:150px;">
+                    <i class="fas fa-user-shield"></i>
+                    <span class="btn-text">Stay Logged In</span>
+                </button>
+                <button type="button" id="redas-logout-now" style="
+                    min-width:120px; padding: 10px 18px; border-radius: 10px; border: 1px solid #cbd5e1;
+                    background: #f8fafc; color: #475569; font-weight: 600; cursor: pointer;
+                ">
+                    Logout Now
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(wrapper);
+
+    wrapper.querySelector('#redas-stay-active').addEventListener('click', () => {
+        resetActivity();
+        fetch(KEEP_ALIVE_URL, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken(),
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
+        }).catch(() => {});
+    });
+
+    wrapper.querySelector('#redas-logout-now').addEventListener('click', () => {
+        hideInactivityWarning();
+        logoutSession();
+    });
+
+    wrapper.addEventListener('click', (e) => {
+        if (e.target === wrapper) e.stopPropagation();
+    });
+
+    return wrapper;
+}
+
+function showInactivityWarning() {
+    if (warningModal) return;
+    warningModal = createInactivityWarningModal();
+    warningModal.style.opacity = '1';
+    warningModal.style.pointerEvents = 'auto';
+    warningModal.querySelector('div').style.transform = 'translateY(0)';
+
+    const countdownEl = document.getElementById('redas-inactivity-countdown');
+
+    warningTimer = setInterval(() => {
+        const idleTime = Date.now() - lastActivity;
+        const remaining = LOCK_TIMEOUT - idleTime;
+
+        if (remaining <= 0) {
+            clearInterval(warningTimer);
+            warningTimer = null;
+            hideInactivityWarning();
+            lockSession();
+            return;
+        }
+
+        countdownEl.textContent = formatCountdown(remaining);
+    }, 250);
+}
+
+function hideInactivityWarning() {
+    if (!warningModal) return;
+    warningModal.style.opacity = '0';
+    warningModal.style.pointerEvents = 'none';
+    warningModal.querySelector('div').style.transform = 'translateY(10px)';
+
+    if (warningTimer) {
+        clearInterval(warningTimer);
+        warningTimer = null;
+    }
+
+    // Allow transition to finish before clearing the reference so it can be recreated.
+    setTimeout(() => {
+        if (warningModal && warningModal.style.opacity === '0') {
+            warningModal.remove();
+            warningModal = null;
+        }
+    }, 300);
+}
+
 function lockSession() {
     if (isLocking || onLockscreenPage()) return;
     isLocking = true;
+    hideInactivityWarning();
+
+    // Remember when the full session will expire so the lockscreen can count down.
+    try {
+        sessionStorage.setItem('redas_session_expires_at', String(Date.now() + (EXPIRE_TIMEOUT - LOCK_TIMEOUT)));
+    } catch (e) {}
 
     fetch(LOCK_URL, {
         method: 'POST',
@@ -714,7 +857,7 @@ function logoutSession() {
 }
 
 setInterval(() => {
-    if (onLockscreenPage()) return;
+    if (! idleTimerActive()) return;
 
     const idleTime = Date.now() - lastActivity;
 
@@ -725,6 +868,11 @@ setInterval(() => {
 
     if (idleTime >= LOCK_TIMEOUT) {
         lockSession();
+        return;
+    }
+
+    if (idleTime >= WARNING_TIMEOUT && !warningModal) {
+        showInactivityWarning();
     }
 }, LOCK_POLL_INTERVAL);
 

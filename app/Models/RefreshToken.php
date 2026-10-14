@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RefreshToken extends Model
 {
+    use Prunable;
+
     protected $table = 'refresh_tokens';
 
     protected $fillable = [
@@ -27,5 +31,14 @@ class RefreshToken extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Prune refresh tokens that have expired or been revoked.
+     */
+    public function prunable(): Builder
+    {
+        return static::where('expires_at', '<', now()->subDays(30))
+            ->orWhereNotNull('revoked_at');
     }
 }

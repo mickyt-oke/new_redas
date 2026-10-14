@@ -108,4 +108,62 @@ class OtpApiTest extends TestCase
         $this->assertNotNull($otp);
         $this->assertNotNull($otp->consumed_at);
     }
+
+    public function test_otp_verify_locks_account_after_max_attempts(): void
+    {
+        $user = $this->createUser();
+        $this->seedOtpTemplates();
+
+        $knownOtp = '1234';
+        OtpCode::query()->create([
+            'user_id' => $user->id,
+            'purpose' => 'login',
+            'code_hash' => hash('sha256', $knownOtp),
+            'expires_at' => now()->addMinutes(5),
+            'attempts' => 0,
+            'consumed_at' => null,
+        ]);
+
+        $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
+
+        for ($i = 0; $i < $maxAttempts - 1; $i++) {
+            $this->postJson('/api/otp/verify', [
+                'login' => $user->email,
+                'purpose' => 'login',
+                'otp' => '0000',
+            ])->assertStatus(401);
+        }
+
+        $lockoutResponse = $this->postJson('/api/otp/verify', [
+            'login' => $user->email,
+            'purpose' => 'login',
+            'otp' => '0000',
+        ]);
+        $lockoutResponse->assertStatus(403);
+        $lockoutResponse->assertJsonPath('message', 'Account temporarily locked due to too many failed verification attempts.');
+        $lockoutResponse->assertJsonPath('retry_after_seconds', fn (int $seconds) => $seconds > 0);
+
+        $user->refresh();
+        $this->assertNotNull($user->otp_locked_until);
+        $this->assertTrue($user->otp_locked_until->isFuture());
+    }
+
+    public function test_otp_request_is_blocked_when_account_is_otp_locked(): void
+    {
+        $user = User::factory()->create([
+            'service_number' => 'NIS/AA/1234',
+            'role' => 'officer',
+            'email' => 'user@example.com',
+            'otp_locked_until' => now()->addMinutes(15),
+        ]);
+        $this->seedOtpTemplates();
+
+        $response = $this->postJson('/api/otp/request', [
+            'login' => $user->email,
+            'purpose' => 'login',
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJsonPath('message', 'Account temporarily locked due to too many failed verification attempts.');
+    }
 }

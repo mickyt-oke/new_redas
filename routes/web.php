@@ -410,6 +410,8 @@ Route::middleware(['mfa.pending'])->group(function () {
     Route::post('/mfa/setup', [MfaController::class, 'verifySetup'])->name('mfa.setup.verify');
     Route::get('/mfa/challenge', [MfaController::class, 'challenge'])->name('mfa.challenge');
     Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])->name('mfa.challenge.verify');
+    Route::get('/mfa/recovery', [MfaController::class, 'recovery'])->name('mfa.recovery');
+    Route::post('/mfa/recovery', [MfaController::class, 'verifyRecovery'])->name('mfa.recovery.verify');
     Route::post('/mfa/complete', [MfaController::class, 'complete'])->name('mfa.complete');
     Route::post('/mfa/cancel', [MfaController::class, 'cancel'])->name('mfa.cancel');
 });

@@ -42,6 +42,14 @@ class JwtAccessTokenMiddleware
             return response()->json(['message' => 'TOKEN_REVOKED'], 401);
         }
 
+        if ($user->is_enabled === false) {
+            return response()->json(['message' => 'ACCOUNT_DISABLED'], 401);
+        }
+
+        if (! $user->email_verified_at) {
+            return response()->json(['message' => 'EMAIL_NOT_VERIFIED'], 401);
+        }
+
         Auth::setUser($user);
 
         return $next($request);

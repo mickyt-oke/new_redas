@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 
 class OtpCode extends Model
 {
+    use Prunable;
+
     protected $table = 'otp_codes';
 
     protected $fillable = [
@@ -22,4 +26,12 @@ class OtpCode extends Model
         'consumed_at' => 'datetime',
         'attempts' => 'integer',
     ];
+
+    /**
+     * Prune OTP codes that expired more than a day ago.
+     */
+    public function prunable(): Builder
+    {
+        return static::where('expires_at', '<', now()->subDays(1));
+    }
 }

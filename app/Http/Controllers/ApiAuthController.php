@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OtpCode;
 use App\Models\RefreshToken;
 use App\Models\User;
 use App\Services\JwtService;
+use App\Services\Messaging\ResendMailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -56,6 +58,12 @@ class ApiAuthController extends Controller
             ], 401);
         }
 
+        if ($user->is_enabled === false) {
+            return response()->json([
+                'message' => 'ACCOUNT_DISABLED',
+            ], 403);
+        }
+
         // Gate login behind email verification
         if (! $user->email_verified_at) {
             return response()->json([
@@ -70,7 +78,7 @@ class ApiAuthController extends Controller
         $otp = str_pad((string) $codeInt, 4, '0', STR_PAD_LEFT);
         $codeHash = hash('sha256', $otp);
 
-        \App\Models\OtpCode::create([
+        OtpCode::create([
             'user_id' => $user->id,
             'purpose' => 'login',
             'code_hash' => $codeHash,
@@ -79,7 +87,7 @@ class ApiAuthController extends Controller
             'consumed_at' => null,
         ]);
 
-        $mailer = new \App\Services\Messaging\ResendMailService();
+        $mailer = new ResendMailService;
 
         try {
             $mailer->sendFromTemplate(
@@ -93,7 +101,7 @@ class ApiAuthController extends Controller
                 $user->name
             );
         } catch (Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Login OTP email delivery failed', [
+            Log::error('Login OTP email delivery failed', [
                 'user_id' => $user->id,
                 'error' => $e->getMessage(),
             ]);
@@ -225,9 +233,12 @@ class ApiAuthController extends Controller
 
     public function logout(Request $request): Response
     {
-        $refreshTokenJwt = (string) $request->input('refresh_token');
+        // The refresh token is stored in a Secure, HttpOnly cookie; it is never
+        // available to JavaScript in the request body.
+        $refreshTokenJwt = (string) $request->cookie('refresh_token');
         if (! $refreshTokenJwt) {
-            return response()->json(['message' => 'OK'], 200);
+            return response()->json(['message' => 'OK'], 200)
+                ->withoutCookie('refresh_token');
         }
 
         try {
@@ -258,4 +269,3 @@ class ApiAuthController extends Controller
         return response()->json(['message' => 'Logged out'], 200);
     }
 }
-

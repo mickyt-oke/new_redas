@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -43,6 +44,8 @@ class User extends Authenticatable
         'mfa_verified_at',
         'mfa_backup_codes',
         'mfa_last_used_at',
+        'otp_failed_attempts',
+        'otp_locked_until',
     ];
 
     /**
@@ -73,6 +76,8 @@ class User extends Authenticatable
         'mfa_last_used_at' => 'datetime',
         'mfa_secret' => 'encrypted',
         'mfa_backup_codes' => 'encrypted:array',
+        'otp_failed_attempts' => 'integer',
+        'otp_locked_until' => 'datetime',
     ];
 
     public const ACCESS_CATEGORIES = [

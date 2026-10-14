@@ -1218,32 +1218,6 @@
         return !isNaN(savedAt) && (Date.now() - savedAt > maxAgeDays * 24 * 60 * 60 * 1000);
     };
 
-    /* ── JWT access-token refresh poller for API/SPA clients ──
-       If a refresh_token cookie is present, silently refresh the access token
-       every 15 minutes so it never expires during active use. */
-    (function () {
-        function getCookie(name) {
-            var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
-            return match ? decodeURIComponent(match[1]) : null;
-        }
-
-        if (!getCookie('refresh_token')) return;
-
-        function refreshAccessToken() {
-            fetch('/api/refresh', { method: 'POST', credentials: 'same-origin' })
-                .then(function (r) { if (!r.ok) throw new Error('refresh failed'); return r.json(); })
-                .then(function (data) {
-                    if (data.access_token) {
-                        try { sessionStorage.setItem('redas_access_token', data.access_token); } catch (e) {}
-                    }
-                })
-                .catch(function () {});
-        }
-
-        refreshAccessToken();
-        setInterval(refreshAccessToken, 15 * 60 * 1000);
-    })();
-
 </script>
 </body>
 

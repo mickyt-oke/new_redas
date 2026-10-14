@@ -6,11 +6,10 @@ use App\Models\Application;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
- * Search, aggregate and export return_data records for the executive
- * data-explorer. All filters are read-only; the service never mutates data.
+ * Search, aggregate, score and export return_data records for the executive
+ * data-explorer. All operations are read-only.
  */
 class ReturnDataExplorerService
 {
@@ -31,6 +30,15 @@ class ReturnDataExplorerService
     ];
 
     private const ALLOWED_OPERATORS = ['=', '!=', '>', '<', '>=', '<=', 'contains'];
+
+    private const ALLOWED_RECORD_SORTS = [
+        'id', 'category', 'scope_code', 'zonal_code', 'status', 'created_at',
+        'report_period', 'reporting_officer', 'command_name',
+    ];
+
+    private const ALLOWED_AGGREGATION_SORTS = [
+        'label', 'total', 'approved', 'pending', 'returned', 'rejected', 'sum',
+    ];
 
     /**
      * Search applications and return paginated + raw collections plus the
@@ -61,6 +69,9 @@ class ReturnDataExplorerService
             $filters['field_operator'] ?? '',
             $filters['field_value'] ?? ''
         );
+
+        // Apply user-selected sorting on the filtered record set.
+        $records = $this->applySorting($records, $filters['sort_by'], $filters['sort_direction']);
 
         return [
             'paginator' => $paginator,
@@ -122,7 +133,7 @@ class ReturnDataExplorerService
      * Group records by the requested key and return counts plus a numeric sum
      * when a field path is supplied.
      */
-    public function aggregate(Collection $records, string $groupBy, ?string $sumPath = null): Collection
+    public function aggregate(Collection $records, string $groupBy, ?string $sumPath = null, string $sortBy = 'total', string $direction = 'desc'): Collection
     {
         $grouped = $records->groupBy(function (Application $application) use ($groupBy) {
             return match ($groupBy) {
@@ -135,7 +146,7 @@ class ReturnDataExplorerService
             };
         });
 
-        return $grouped->map(function (Collection $items, string $key) use ($sumPath) {
+        $aggregated = $grouped->map(function (Collection $items, string $key) use ($sumPath) {
             $row = [
                 'label' => $key,
                 'total' => $items->count(),
@@ -151,13 +162,58 @@ class ReturnDataExplorerService
             }
 
             return $row;
-        })->sortByDesc('total')->values();
+        });
+
+        return $this->sortAggregation($aggregated, $sortBy, $direction)->values();
     }
 
     /**
-     * Convert a collection of records to a CSV string.
+     * Build a national scorecard for a numeric path across the current filtered
+     * record set. Supports wildcard paths such as border.land.*.*.arrival_male.
+     *
+     * @return array{path: string, label: string, total: float, average: float, count: int, max: array|null, min: array|null, top_formations: Collection}
      */
-    public function toCsv(Collection $records): string
+    public function scorecard(Collection $records, string $path, ?string $label = null): array
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return $this->emptyScorecard($path, $label);
+        }
+
+        // Per-formation totals.
+        $formationTotals = $records->mapToGroups(function (Application $application) use ($path) {
+            $value = $this->sumAtPath($application->return_data ?? [], $path);
+
+            return [$this->formationLabel($application) => $value];
+        })->map(fn (Collection $values) => $values->sum())->filter(fn ($value) => $value != 0);
+
+        $total = $formationTotals->sum();
+        $count = $formationTotals->count();
+
+        if ($count === 0) {
+            return $this->emptyScorecard($path, $label);
+        }
+
+        $maxLabel = $formationTotals->sortDesc()->keys()->first();
+        $minLabel = $formationTotals->sort()->keys()->first();
+
+        return [
+            'path' => $path,
+            'label' => $label ?? $path,
+            'total' => $total,
+            'average' => round($total / $count, 2),
+            'count' => $count,
+            'max' => ['label' => $maxLabel, 'value' => $formationTotals[$maxLabel]],
+            'min' => ['label' => $minLabel, 'value' => $formationTotals[$minLabel]],
+            'top_formations' => $formationTotals->sortDesc()->take(10),
+        ];
+    }
+
+    /**
+     * Convert a collection of records to a CSV string, optionally including a
+     * scorecard summary header.
+     */
+    public function toCsv(Collection $records, ?array $scorecard = null, ?string $sumPath = null): string
     {
         $headers = [
             'Return ID',
@@ -172,12 +228,27 @@ class ReturnDataExplorerService
             'Updated At',
         ];
 
+        if ($sumPath) {
+            $headers[] = 'Metric Value (' . $sumPath . ')';
+        }
+
         $output = fopen('php://temp', 'r+');
+
+        if ($scorecard) {
+            fputcsv($output, ['National Scorecard']);
+            fputcsv($output, ['Metric', $scorecard['label'] ?? $scorecard['path'] ?? '']);
+            fputcsv($output, ['Total', $scorecard['total']]);
+            fputcsv($output, ['Average Per Formation', $scorecard['average']]);
+            fputcsv($output, ['Formations Reporting', $scorecard['count']]);
+            fputcsv($output, ['Top Formation', ($scorecard['max']['label'] ?? '') . ' (' . ($scorecard['max']['value'] ?? 0) . ')']);
+            fputcsv($output, []);
+        }
+
         fputcsv($output, $headers);
 
         foreach ($records as $application) {
             $data = $application->return_data ?? [];
-            fputcsv($output, [
+            $row = [
                 $application->id,
                 $application->category,
                 $application->scope_code,
@@ -188,7 +259,13 @@ class ReturnDataExplorerService
                 $data['command_name'] ?? '',
                 $application->created_at?->toDateTimeString() ?? '',
                 $application->updated_at?->toDateTimeString() ?? '',
-            ]);
+            ];
+
+            if ($sumPath) {
+                $row[] = $this->sumAtPath($data, $sumPath);
+            }
+
+            fputcsv($output, $row);
         }
 
         rewind($output);
@@ -295,12 +372,74 @@ class ReturnDataExplorerService
     }
 
     /**
+     * Sort a collection of records by a column or nested return_data path.
+     */
+    private function applySorting(Collection $records, string $sortBy, string $direction): Collection
+    {
+        if (! in_array($sortBy, self::ALLOWED_RECORD_SORTS, true)) {
+            return $records;
+        }
+
+        $multiplier = strtolower($direction) === 'asc' ? 1 : -1;
+
+        return $records->sort(function ($a, $b) use ($sortBy, $multiplier) {
+            $valueA = $this->sortValue($a, $sortBy);
+            $valueB = $this->sortValue($b, $sortBy);
+
+            if (is_numeric($valueA) && is_numeric($valueB)) {
+                return ($valueA <=> $valueB) * $multiplier;
+            }
+
+            return strnatcasecmp((string) $valueA, (string) $valueB) * $multiplier;
+        })->values();
+    }
+
+    /**
+     * Resolve a sortable value from an application model.
+     */
+    private function sortValue(Application $application, string $sortBy): mixed
+    {
+        return match ($sortBy) {
+            'id' => $application->id,
+            'category' => $application->category,
+            'scope_code' => $application->scope_code,
+            'zonal_code' => $application->zonal_code,
+            'status' => $application->status,
+            'created_at' => $application->created_at?->timestamp ?? 0,
+            'report_period' => data_get($application->return_data, 'report_period', ''),
+            'reporting_officer' => data_get($application->return_data, 'reporting_officer', ''),
+            'command_name' => data_get($application->return_data, 'command_name', ''),
+            default => '',
+        };
+    }
+
+    /**
+     * Sort an aggregation collection by column and direction.
+     */
+    private function sortAggregation(Collection $aggregated, string $sortBy, string $direction): Collection
+    {
+        if (! in_array($sortBy, self::ALLOWED_AGGREGATION_SORTS, true)) {
+            $sortBy = 'total';
+        }
+
+        $descending = strtolower($direction) !== 'asc';
+
+        if ($sortBy === 'label') {
+            return $aggregated->sortBy('label', SORT_NATURAL, $descending);
+        }
+
+        return $aggregated->sortBy($sortBy, SORT_REGULAR, $descending);
+    }
+
+    /**
      * Normalise and whitelist user-supplied filters.
      */
     private function normaliseFilters(array $filters): array
     {
         $category = strtolower(trim((string) ($filters['category'] ?? '')));
         $status = strtolower(trim((string) ($filters['status'] ?? '')));
+        $sortBy = strtolower(trim((string) ($filters['sort_by'] ?? '')));
+        $sortDirection = strtolower(trim((string) ($filters['sort_direction'] ?? '')));
 
         return [
             'category' => in_array($category, self::ALLOWED_CATEGORIES, true) ? $category : '',
@@ -319,6 +458,15 @@ class ReturnDataExplorerService
                 ? $filters['group_by']
                 : 'formation',
             'sum_path' => trim((string) ($filters['sum_path'] ?? '')),
+            'sort_by' => in_array($sortBy, self::ALLOWED_RECORD_SORTS, true) ? $sortBy : 'created_at',
+            'sort_direction' => in_array($sortDirection, ['asc', 'desc'], true) ? $sortDirection : 'desc',
+            'agg_sort_by' => in_array(strtolower(trim((string) ($filters['agg_sort_by'] ?? ''))), self::ALLOWED_AGGREGATION_SORTS, true)
+                ? strtolower(trim((string) ($filters['agg_sort_by'] ?? '')))
+                : 'total',
+            'agg_sort_direction' => in_array(strtolower(trim((string) ($filters['agg_sort_direction'] ?? ''))), ['asc', 'desc'], true)
+                ? strtolower(trim((string) ($filters['agg_sort_direction'] ?? '')))
+                : 'desc',
+            'dictionary_key' => trim((string) ($filters['dictionary_key'] ?? '')),
         ];
     }
 
@@ -339,6 +487,69 @@ class ReturnDataExplorerService
         $value = data_get($data, $path);
 
         return is_numeric($value) ? (float) $value : 0;
+    }
+
+    /**
+     * Sum a numeric value at a path, supporting `*` wildcards for arrays.
+     */
+    private function sumAtPath(array $data, string $path): float
+    {
+        if (! str_contains($path, '*')) {
+            $value = data_get($data, $path);
+
+            return is_numeric($value) ? (float) $value : 0;
+        }
+
+        return $this->sumWildcardPath($data, explode('.', $path));
+    }
+
+    /**
+     * Recursively sum numeric values matching a wildcard path.
+     */
+    private function sumWildcardPath(mixed $node, array $segments): float
+    {
+        if ($node === null) {
+            return 0;
+        }
+
+        $segment = array_shift($segments);
+
+        if ($segment === null) {
+            return is_numeric($node) ? (float) $node : 0;
+        }
+
+        if ($segment === '*') {
+            if (! is_array($node)) {
+                return 0;
+            }
+
+            $total = 0;
+            foreach ($node as $child) {
+                $total += $this->sumWildcardPath($child, $segments);
+            }
+
+            return $total;
+        }
+
+        if (is_array($node) && array_key_exists($segment, $node)) {
+            return $this->sumWildcardPath($node[$segment], $segments);
+        }
+
+        return 0;
+    }
+
+    private function emptyScorecard(string $path, ?string $label): array
+    {
+        return [
+            'path' => $path,
+            'label' => $label ?? $path,
+            'total' => 0,
+            'average' => 0,
+            'count' => 0,
+            'max' => null,
+            'min' => null,
+            'top_formations' => collect(),
+        ];
     }
 
     private function formationLabel(Application $application): string

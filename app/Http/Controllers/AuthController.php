@@ -272,6 +272,13 @@ class AuthController extends Controller
 
         RateLimiter::clear($throttleKey);
 
+        if ($user->failed_attempts !== 0 || $user->lockout_until !== null) {
+            $user->forceFill([
+                'failed_attempts' => 0,
+                'lockout_until' => null,
+            ])->save();
+        }
+
         // Stage 2: require MFA before the session is fully authenticated.
         $request->session()->put('mfa.pending_user_id', $user->id);
         $request->session()->put('mfa.location', $location);
@@ -285,11 +292,10 @@ class AuthController extends Controller
         return redirect()->route('mfa.setup');
     }
 
-
     /**
      * Complete the login flow after MFA has been verified.
      *
-     * @param array{country:string,state:string,state_code:string,provider:string} $location
+     * @param  array{country:string,state:string,state_code:string,provider:string}  $location
      */
     public function completeLogin(Request $request, User $user, array $location, bool $remember): RedirectResponse
     {
@@ -371,7 +377,6 @@ class AuthController extends Controller
 
         return false;
     }
-
 
     /**
      * Check ABAC geolocation policy for a user attempting to log in.

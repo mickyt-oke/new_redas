@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\GeolocationService;
 use App\Services\MfaService;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
@@ -141,6 +142,48 @@ class MfaController extends Controller
     }
 
     /**
+     * Show the recovery-code form for users who have lost their MFA device.
+     */
+    public function recovery(Request $request): View|RedirectResponse
+    {
+        $user = $this->pendingUser($request);
+
+        if (! $user->isMfaEnabled()) {
+            return redirect()->route('mfa.setup');
+        }
+
+        return view('mfa.recovery', [
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Verify a single-use backup/recovery code and complete login.
+     */
+    public function verifyRecovery(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'code' => 'required|string|max:255',
+        ]);
+
+        $user = $this->pendingUser($request);
+        $code = (string) $request->input('code');
+
+        if (! $this->mfaService->verifyCode($user, $code)) {
+            return back()->withErrors([
+                'code' => 'The recovery code is invalid or has already been used.',
+            ]);
+        }
+
+        return $this->authController->completeLogin(
+            $request,
+            $user,
+            $this->locationFor($request, $user),
+            (bool) $request->session()->get('mfa.remember', false)
+        );
+    }
+
+    /**
      * Cancel the pending MFA flow and return to the login page.
      */
     public function cancel(Request $request): RedirectResponse
@@ -169,7 +212,7 @@ class MfaController extends Controller
             $request->session()->forget([
                 'mfa.pending_user_id',
                 'mfa.location',
-                'mfa.remember', 
+                'mfa.remember',
                 'mfa.redirect_url',
                 'mfa.setup_verified',
             ]);
@@ -193,6 +236,6 @@ class MfaController extends Controller
             return $location;
         }
 
-        return \App\Services\GeolocationService::resolve($request->ip() ?? '0.0.0.0');
+        return GeolocationService::resolve($request->ip() ?? '0.0.0.0');
     }
 }

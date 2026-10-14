@@ -121,6 +121,12 @@
                 </button>
             </form>
 
+            <div style="margin-top:20px;text-align:center;font-size:.875rem;">
+                <a href="{{ route('mfa.recovery') }}" style="color:var(--nis-600);text-decoration:none;">
+                    <i class="fas fa-life-ring me-1"></i> Lost your device? Use a recovery code
+                </a>
+            </div>
+
         </div>
     </main>
 </div>

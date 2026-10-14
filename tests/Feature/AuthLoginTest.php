@@ -145,4 +145,19 @@ class AuthLoginTest extends TestCase
         $response = $this->actingAs($user)->get('/admin/dashboard');
         $response->assertOk();
     }
+
+    public function test_successful_login_resets_failed_attempts_and_lockout(): void
+    {
+        $user = $this->createUser([
+            'failed_attempts' => 3,
+            'lockout_until' => now()->addMinutes(5),
+        ]);
+
+        $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/setup');
+        $this->completeMfaSetup($user);
+
+        $user->refresh();
+        $this->assertSame(0, (int) $user->failed_attempts);
+        $this->assertNull($user->lockout_until);
+    }
 }

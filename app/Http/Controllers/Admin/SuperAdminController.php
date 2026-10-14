@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\User;
 use App\Services\ExecutiveDashboardAggregator;
+use App\Services\ReturnDataDictionary;
 use App\Services\ReturnDataExplorerService;
 use App\Services\SubmissionWorkflow;
 use Illuminate\Http\Request;
@@ -198,14 +199,38 @@ class SuperAdminController extends Controller
             'field_value' => ['nullable', 'string', 'max:120'],
             'group_by' => ['nullable', 'in:formation,zone,state,directorate,category,status'],
             'sum_path' => ['nullable', 'string', 'max:120'],
+            'sort_by' => ['nullable', 'string', 'max:40'],
+            'sort_direction' => ['nullable', 'in:asc,desc'],
+            'agg_sort_by' => ['nullable', 'string', 'max:40'],
+            'agg_sort_direction' => ['nullable', 'in:asc,desc'],
+            'dictionary_key' => ['nullable', 'string', 'max:60'],
         ]);
 
-        if ($request->input('export') === 'csv') {
-            $records = $service->fetchForExport($filters);
-            $filename = 'return-data-explorer-' . now()->format('Y-m-d-His') . '.csv';
+        // If a dictionary entry was selected, pre-fill the filter path and the
+        // aggregation (scorecard) path. The aggregate_path may use wildcards
+        // for nationwide scoring while the concrete path is used for filtering.
+        $dictionaryEntry = null;
+        if (! empty($filters['dictionary_key'])) {
+            $dictionaryEntry = ReturnDataDictionary::find($filters['dictionary_key']);
+            if ($dictionaryEntry) {
+                $filters['field_path'] = $dictionaryEntry['path'];
+                $filters['field_operator'] = $dictionaryEntry['data_type'] === 'numeric' ? '>' : 'contains';
+                $filters['field_value'] = $dictionaryEntry['data_type'] === 'numeric' ? '0' : '';
+                $filters['sum_path'] = $dictionaryEntry['aggregate_path'] ?? $dictionaryEntry['path'];
+            }
+        }
 
-            return response()->make($service->toCsv($records), 200, [
-                'Content-Type' => 'text/csv',
+        $scorePath = $filters['sum_path'] ?? '';
+        $scoreLabel = $dictionaryEntry['label'] ?? $scorePath;
+
+        if ($request->input('export') === 'csv' || $request->input('export') === 'excel') {
+            $records = $service->fetchForExport($filters);
+            $scorecard = $scorePath !== '' ? $service->scorecard($records, $scorePath, $scoreLabel) : null;
+            $extension = $request->input('export') === 'excel' ? 'xls' : 'csv';
+            $filename = 'return-data-explorer-' . now()->format('Y-m-d-His') . '.' . $extension;
+
+            return response()->make($service->toCsv($records, $scorecard, $scorePath ?: null), 200, [
+                'Content-Type' => 'text/csv; charset=utf-8',
                 'Content-Disposition' => "attachment; filename=\"{$filename}\"",
             ]);
         }
@@ -215,8 +240,12 @@ class SuperAdminController extends Controller
         $aggregations = $service->aggregate(
             $result['records'],
             $result['filters']['group_by'],
-            $result['filters']['sum_path'] ?: null
+            $result['filters']['sum_path'] ?: null,
+            $result['filters']['agg_sort_by'],
+            $result['filters']['agg_sort_direction']
         );
+
+        $scorecard = $scorePath !== '' ? $service->scorecard($result['records'], $scorePath, $scoreLabel) : null;
 
         return view('super-admin.data-explorer', [
             'records' => $result['records'],
@@ -225,6 +254,9 @@ class SuperAdminController extends Controller
             'summary' => $summary,
             'aggregations' => $aggregations,
             'groupBy' => $result['filters']['group_by'],
+            'scorecard' => $scorecard,
+            'dictionary' => ReturnDataDictionary::byCategory(),
+            'dictionaryEntry' => $dictionaryEntry,
             'stageLabels' => self::STAGE_LABELS,
         ]);
     }

@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\OtpCode;
+use App\Models\RefreshToken;
 use App\Models\User;
+use App\Services\JwtService;
 use App\Services\Messaging\ResendMailService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use App\Services\JwtService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ApiOtpController extends Controller
@@ -46,8 +48,11 @@ class ApiOtpController extends Controller
             ]);
         }
 
+        if ($this->otpLockedUntil($user)?->isFuture()) {
+            return $this->otpLockedResponse($user);
+        }
+
         $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300); // 5 minutes default
-        $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
 
         // Exactly 4 digits, including leading zeros (e.g. 0007)
         $codeInt = random_int(0, 9999);
@@ -70,7 +75,7 @@ class ApiOtpController extends Controller
             : 'otp_login';
 
         try {
-            $mailer = new ResendMailService();
+            $mailer = new ResendMailService;
             $mailer->sendFromTemplate(
                 $templateKey,
                 [
@@ -128,6 +133,14 @@ class ApiOtpController extends Controller
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
 
+        if ($user->is_enabled === false) {
+            return response()->json(['message' => 'ACCOUNT_DISABLED'], 403);
+        }
+
+        if ($this->otpLockedUntil($user)?->isFuture()) {
+            return $this->otpLockedResponse($user);
+        }
+
         $codeHash = hash('sha256', $otpInput);
 
         /** @var OtpCode|null $otp */
@@ -154,11 +167,11 @@ class ApiOtpController extends Controller
                 $latest->increment('attempts');
             }
 
-            Log::warning('Invalid OTP attempt', [
-                'user_id' => $user->id,
-                'purpose' => $purpose,
-                'ip' => $request->ip(),
-            ]);
+            $this->recordFailedOtpAttempt($user, $purpose, $request->ip());
+
+            if ($this->otpLockedUntil($user)?->isFuture()) {
+                return $this->otpLockedResponse($user);
+            }
 
             return response()->json(['message' => 'OTP_INVALID'], 401);
         }
@@ -178,6 +191,8 @@ class ApiOtpController extends Controller
         $otp->attempts = (int) $otp->attempts + 1;
         $otp->save();
 
+        $this->resetOtpLockout($user);
+
         if ($purpose === 'login') {
             // No API password-change flow exists yet, so a pending forced
             // change must be completed on the web portal before a mobile/API
@@ -189,9 +204,9 @@ class ApiOtpController extends Controller
             }
 
             // Issue JWTs only after 2FA OTP verification
-            $jti = (string) \Illuminate\Support\Str::uuid();
+            $jti = (string) Str::uuid();
 
-            $refreshToken = new \App\Models\RefreshToken([
+            $refreshToken = new RefreshToken([
                 'user_id' => $user->id,
                 'jti' => $jti,
                 'token_hash' => '', // set below
@@ -213,8 +228,10 @@ class ApiOtpController extends Controller
             $accessJwt = JwtService::fromEnv()->issueAccessToken(
                 userId: $user->id,
                 role: $user->role,
-                jti: (string) \Illuminate\Support\Str::uuid()
+                jti: (string) Str::uuid()
             );
+
+            $refreshTtlMinutes = (int) ceil((int) env('JWT_REFRESH_TTL', 2592000) / 60);
 
             return response()->json([
                 'message' => 'OTP verified successfully.',
@@ -225,7 +242,7 @@ class ApiOtpController extends Controller
             ], 200)->cookie(
                 'refresh_token',
                 $refreshJwt,
-                604800, // 7 days in minutes
+                $refreshTtlMinutes,
                 null, null, true, true, false, 'Strict'
             );
         }
@@ -235,5 +252,71 @@ class ApiOtpController extends Controller
             'message' => 'OTP verified successfully.',
             'user_id' => $user->id,
         ], 200);
+    }
+
+    /**
+     * Return the user's OTP lockout timestamp, if any.
+     */
+    private function otpLockedUntil(User $user): ?Carbon
+    {
+        return $user->otp_locked_until;
+    }
+
+    /**
+     * Build the standardized OTP lockout JSON response.
+     */
+    private function otpLockedResponse(User $user): JsonResponse
+    {
+        $seconds = (int) now()->diffInSeconds($user->otp_locked_until);
+
+        return response()->json([
+            'message' => 'Account temporarily locked due to too many failed verification attempts.',
+            'retry_after_seconds' => max(0, $seconds),
+        ], 403);
+    }
+
+    /**
+     * Record a failed OTP verification attempt and lock the account if the
+     * threshold has been reached.
+     */
+    private function recordFailedOtpAttempt(User $user, string $purpose, ?string $ip): void
+    {
+        $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
+        $lockoutMinutes = (int) env('OTP_LOCKOUT_MINUTES', 15);
+
+        $attempts = (int) $user->otp_failed_attempts + 1;
+
+        if ($attempts >= $maxAttempts) {
+            $user->forceFill([
+                'otp_failed_attempts' => 0,
+                'otp_locked_until' => Carbon::now()->addMinutes($lockoutMinutes),
+            ])->save();
+
+            Log::warning('OTP account locked after max attempts', [
+                'user_id' => $user->id,
+                'purpose' => $purpose,
+                'ip' => $ip,
+                'otp_locked_until' => $user->otp_locked_until,
+            ]);
+
+            return;
+        }
+
+        $user->forceFill([
+            'otp_failed_attempts' => $attempts,
+        ])->save();
+    }
+
+    /**
+     * Clear any OTP lockout state after a successful verification.
+     */
+    private function resetOtpLockout(User $user): void
+    {
+        if ($user->otp_failed_attempts !== 0 || $user->otp_locked_until !== null) {
+            $user->forceFill([
+                'otp_failed_attempts' => 0,
+                'otp_locked_until' => null,
+            ])->save();
+        }
     }
 }

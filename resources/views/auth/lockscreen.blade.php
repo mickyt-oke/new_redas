@@ -75,6 +75,10 @@
             <h1 class="lockscreen-title">Session Locked</h1>
             <p class="lockscreen-subtitle">Please enter your passcode to unlock your session</p>
 
+            <div id="lockscreen-expiry" style="display:none; background:#fff7ed; border:1px solid #fdba74; color:#9a3412; border-radius:10px; padding:10px 14px; font-size:.85rem; margin-bottom:18px; font-weight:600;">
+                <i class="fas fa-clock"></i> <span id="lockscreen-expiry-text">Session expires soon</span>
+            </div>
+
             @if($errors->any())
             <div style="background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:var(--radius-md);padding:12px 16px;font-size:.875rem;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;text-align:left;">
                 <i class="fas fa-exclamation-circle" style="margin-top:2px;flex-shrink:0;"></i>
@@ -113,5 +117,51 @@
             </form>
         </main>
     </div>
+
+    <script>
+        (function () {
+            const expiryKey = 'redas_session_expires_at';
+            const expiresAt = parseInt(sessionStorage.getItem(expiryKey) || '0', 10);
+            const container = document.getElementById('lockscreen-expiry');
+            const textEl = document.getElementById('lockscreen-expiry-text');
+
+            if (!expiresAt || Date.now() >= expiresAt) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+
+            function pad(n) { return n.toString().padStart(2, '0'); }
+
+            function update() {
+                const remaining = Math.max(0, expiresAt - Date.now());
+                const totalSeconds = Math.ceil(remaining / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+
+                textEl.textContent = 'Session expires in ' + pad(minutes) + ':' + pad(seconds);
+
+                if (remaining <= 0) {
+                    clearInterval(timer);
+                    sessionStorage.removeItem(expiryKey);
+                    // Auto-logout when the full session window elapses.
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/logout';
+                    const token = document.createElement('input');
+                    token.type = 'hidden';
+                    token.name = '_token';
+                    token.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                    form.appendChild(token);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+
+            const timer = setInterval(update, 1000);
+            update();
+        })();
+    </script>
 </body>
 </html>

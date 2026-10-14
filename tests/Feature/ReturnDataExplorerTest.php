@@ -182,4 +182,124 @@ class ReturnDataExplorerTest extends TestCase
         $response->assertSee('Return ID');
         $response->assertSee('John Doe');
     }
+
+    public function test_data_dictionary_is_available_on_explorer(): void
+    {
+        $superAdmin = User::factory()->create([
+            'user_category' => 'super_admin',
+            'role' => 'admin',
+            'primary_location_type' => 'headquarters',
+            'primary_location_code' => 'HQ',
+            'access_level' => 6,
+            'is_enabled' => true,
+            'email_verified_at' => now(),
+        ]);
+
+        $response = $this->actingAs($superAdmin)->get(route('superadmin.data-explorer'));
+
+        $response->assertOk();
+        $response->assertViewHas('dictionary');
+        $response->assertSee('Data Dictionary');
+    }
+
+    public function test_dictionary_selection_pre_fills_filter_and_scorecard(): void
+    {
+        $superAdmin = User::factory()->create([
+            'user_category' => 'super_admin',
+            'role' => 'admin',
+            'primary_location_type' => 'headquarters',
+            'primary_location_code' => 'HQ',
+            'access_level' => 6,
+            'is_enabled' => true,
+            'email_verified_at' => now(),
+        ]);
+
+        $user = User::factory()->create();
+
+        Application::factory()->create([
+            'user_id' => $user->id,
+            'category' => 'state',
+            'scope_code' => 'LA',
+            'return_data' => ['hrm' => ['cadre' => ['comptroller' => ['male' => 10, 'female' => 5]]]],
+        ]);
+
+        Application::factory()->create([
+            'user_id' => $user->id,
+            'category' => 'state',
+            'scope_code' => 'AB',
+            'return_data' => ['hrm' => ['cadre' => ['comptroller' => ['male' => 20, 'female' => 8]]]],
+        ]);
+
+        $response = $this->actingAs($superAdmin)->get(route('superadmin.data-explorer', ['dictionary_key' => 'hrm_cadre_comptroller_male']));
+
+        $response->assertOk();
+        $response->assertViewHas('scorecard', fn ($scorecard) => $scorecard['total'] == 30);
+        $response->assertSee('National Scorecard');
+    }
+
+    public function test_records_can_be_sorted_by_reporting_officer(): void
+    {
+        $superAdmin = User::factory()->create([
+            'user_category' => 'super_admin',
+            'role' => 'admin',
+            'primary_location_type' => 'headquarters',
+            'primary_location_code' => 'HQ',
+            'access_level' => 6,
+            'is_enabled' => true,
+            'email_verified_at' => now(),
+        ]);
+
+        $user = User::factory()->create();
+
+        Application::factory()->create([
+            'user_id' => $user->id,
+            'category' => 'state',
+            'scope_code' => 'LA',
+            'return_data' => ['reporting_officer' => 'Zara Okafor'],
+        ]);
+
+        Application::factory()->create([
+            'user_id' => $user->id,
+            'category' => 'state',
+            'scope_code' => 'AB',
+            'return_data' => ['reporting_officer' => 'Abdul Bello'],
+        ]);
+
+        $response = $this->actingAs($superAdmin)->get(route('superadmin.data-explorer', ['sort_by' => 'reporting_officer', 'sort_direction' => 'asc']));
+
+        $response->assertOk();
+        $response->assertViewHas('records', fn ($records) => $records->first()->return_data['reporting_officer'] === 'Abdul Bello');
+    }
+
+    public function test_excel_export_returns_downloadable_response(): void
+    {
+        $superAdmin = User::factory()->create([
+            'user_category' => 'super_admin',
+            'role' => 'admin',
+            'primary_location_type' => 'headquarters',
+            'primary_location_code' => 'HQ',
+            'access_level' => 6,
+            'is_enabled' => true,
+            'email_verified_at' => now(),
+        ]);
+
+        $user = User::factory()->create();
+
+        Application::factory()->create([
+            'user_id' => $user->id,
+            'category' => 'state',
+            'scope_code' => 'LA',
+            'return_data' => [
+                'report_period' => '2026-01',
+                'reporting_officer' => 'John Doe',
+                'command_name' => 'Lagos Command',
+            ],
+        ]);
+
+        $response = $this->actingAs($superAdmin)->get(route('superadmin.data-explorer', ['export' => 'excel']));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=utf-8');
+        $response->assertSee('Return ID');
+    }
 }

@@ -2,6 +2,27 @@
 
 @section('title', 'Return Data Explorer')
 
+@php
+$currentRoute = request()->routeIs('cgis.data-explorer') ? 'cgis.data-explorer' : 'superadmin.data-explorer';
+
+$sortColumns = ['id', 'category', 'scope_code', 'report_period', 'reporting_officer', 'command_name', 'status', 'created_at'];
+$sortUrls = [];
+$sortIcons = [];
+foreach ($sortColumns as $col) {
+    $direction = ($filters['sort_by'] ?? '') === $col && ($filters['sort_direction'] ?? 'desc') === 'desc' ? 'asc' : 'desc';
+    $sortUrls[$col] = route($currentRoute, array_merge(request()->except(['sort_by', 'sort_direction']), ['sort_by' => $col, 'sort_direction' => $direction]));
+    if (($filters['sort_by'] ?? '') !== $col) {
+        $sortIcons[$col] = '<i class="fas fa-sort" style="color:var(--gray-300);"></i>';
+    } else {
+        $sortIcons[$col] = ($filters['sort_direction'] ?? 'desc') === 'desc'
+            ? '<i class="fas fa-sort-down" style="color:var(--nis-600);"></i>'
+            : '<i class="fas fa-sort-up" style="color:var(--nis-600);"></i>';
+    }
+}
+$csvUrl = route($currentRoute, array_merge(request()->all(), ['export' => 'csv']));
+$excelUrl = route($currentRoute, array_merge(request()->all(), ['export' => 'excel']));
+@endphp
+
 @push('styles')
 <style>
 .explorer-page-header {
@@ -127,6 +148,14 @@
     color: var(--nis-700);
     margin: 0 0 14px;
 }
+.explorer-section-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
 .explorer-tabs {
     display: flex;
     flex-wrap: wrap;
@@ -166,6 +195,14 @@
     color: var(--gray-700);
     white-space: nowrap;
 }
+.explorer-table th a {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.explorer-table th a:hover { color: var(--nis-600); }
 .explorer-table tr:hover td { background: var(--gray-50); }
 .explorer-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .explorer-table .status {
@@ -199,25 +236,185 @@
     font-weight: 600;
     margin: 2px 4px 2px 0;
 }
+
+/* Data dictionary */
+.dictionary-frame {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg, 14px);
+    padding: 18px;
+    margin-bottom: 20px;
+}
+.dictionary-title {
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--nis-700);
+    margin: 0 0 12px;
+}
+.dictionary-category {
+    margin-bottom: 14px;
+}
+.dictionary-category-title {
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.dictionary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.dictionary-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-700);
+    font-size: .75rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .2s;
+}
+.dictionary-chip:hover { background: var(--nis-50); border-color: var(--nis-300); color: var(--nis-700); }
+.dictionary-chip.active { background: var(--nis-600); border-color: var(--nis-600); color: #fff; }
+.dictionary-chip-score { font-size: .65rem; opacity: .8; }
+
+/* Scorecard */
+.scorecard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.scorecard-item {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius-md, 8px);
+    padding: 14px;
+    text-align: center;
+}
+.scorecard-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--nis-700);
+    line-height: 1;
+}
+.scorecard-label {
+    font-size: .7rem;
+    color: var(--gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 6px;
+}
+.scorecard-rank-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.scorecard-rank-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: .8rem;
+}
+.scorecard-rank-list li:last-child { border-bottom: none; }
+.scorecard-rank-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--gray-100);
+    border-radius: 999px;
+    margin: 0 10px;
+    overflow: hidden;
+}
+.scorecard-rbar-fill {
+    height: 100%;
+    background: var(--nis-500);
+    border-radius: 999px;
+}
+
+/* Toolbar */
+.explorer-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.btn-toolbar {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: var(--radius-md, 8px);
+    border: 1px solid var(--gray-300);
+    background: #fff;
+    color: var(--gray-700);
+    font-size: .75rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s;
+}
+.btn-toolbar:hover { background: var(--gray-50); border-color: var(--nis-400); color: var(--nis-700); }
+
+@media print {
+    .redas-sidebar, .redas-topbar, .explorer-filter-frame, .explorer-page-header, .explorer-toolbar, .explorer-pagination, .dictionary-frame, .btn-breakdown, .btn-toolbar { display: none !important; }
+    .redas-main { margin-left: 0 !important; padding: 0 !important; }
+    .explorer-results-frame, .explorer-summary-grid, .scorecard-grid { break-inside: avoid; page-break-inside: avoid; }
+    body { background: #fff; }
+}
 </style>
 @endpush
 
 @section('content')
 
-<main class="redas-content">
+<main class="redas-content" id="explorerReport">
     <div class="explorer-page-header">
         <div>
             <h1 class="page-title">Return Data Explorer</h1>
-            <p class="page-subtitle">Query and aggregate return data across all formations, zones and states.</p>
+            <p class="page-subtitle">Query, sort and aggregate return data across all formations, zones and states.</p>
         </div>
         <a href="{{ route('superadmin.dashboard') }}" class="btn-nis btn-nis-light">
             <i class="fas fa-chart-pie"></i> Dashboard
         </a>
     </div>
 
+    {{-- Data Dictionary --}}
+    <div class="dictionary-frame">
+        <h3 class="dictionary-title"><i class="fas fa-book"></i> Data Dictionary — Predefined Search Criteria</h3>
+        @foreach($dictionary as $category)
+            <div class="dictionary-category">
+                <div class="dictionary-category-title">{{ $category['label'] }}</div>
+                <div class="dictionary-chips">
+                    @foreach($category['entries'] as $entry)
+                        <a href="{{ route($currentRoute, array_merge(request()->except(['dictionary_key', 'field_path', 'field_operator', 'field_value', 'sum_path', 'page']), ['dictionary_key' => $entry['key']])) }}"
+                           class="dictionary-chip {{ ($dictionaryEntry['key'] ?? '') === $entry['key'] ? 'active' : '' }}"
+                           title="{{ $entry['path'] }}">
+                            {{ $entry['label'] }}
+                            <span class="dictionary-chip-score"><i class="fas fa-chart-bar"></i></span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endforeach
+        @if($dictionaryEntry)
+            <div style="margin-top:10px;font-size:.78rem;color:var(--gray-600);">
+                <strong>Selected:</strong> {{ $dictionaryEntry['label'] }} — <code>{{ $dictionaryEntry['aggregate_path'] ?? $dictionaryEntry['path'] }}</code>
+            </div>
+        @endif
+    </div>
+
     {{-- Filters --}}
     <div class="explorer-filter-frame">
-        <form method="GET" action="{{ request()->routeIs('cgis.data-explorer') ? route('cgis.data-explorer') : route('superadmin.data-explorer') }}">
+        <form method="GET" action="{{ route($currentRoute) }}">
             <div class="explorer-filter-grid">
                 <div class="explorer-filter-field">
                     <label for="category">Formation Category</label>
@@ -304,12 +501,15 @@
                 </div>
             </div>
 
+            <input type="hidden" name="sort_by" value="{{ $filters['sort_by'] ?? 'created_at' }}">
+            <input type="hidden" name="sort_direction" value="{{ $filters['sort_direction'] ?? 'desc' }}">
+            @if($filters['dictionary_key'] ?? false)
+                <input type="hidden" name="dictionary_key" value="{{ $filters['dictionary_key'] }}">
+            @endif
+
             <div class="explorer-filter-actions">
                 <button type="submit" class="btn-nis btn-nis-primary"><i class="fas fa-search"></i> Search</button>
-                <a href="{{ request()->routeIs('cgis.data-explorer') ? route('cgis.data-explorer') : route('superadmin.data-explorer') }}" class="btn-nis btn-nis-outline">Reset</a>
-                <button type="submit" name="export" value="csv" class="btn-nis btn-nis-outline" style="margin-left:auto;">
-                    <i class="fas fa-file-csv"></i> Export CSV
-                </button>
+                <a href="{{ route($currentRoute) }}" class="btn-nis btn-nis-outline">Reset</a>
             </div>
         </form>
     </div>
@@ -342,9 +542,84 @@
         </div>
     </div>
 
+    {{-- National Scorecard --}}
+    @if($scorecard && $scorecard['count'] > 0)
+        <div class="explorer-results-frame">
+            <div class="explorer-section-header">
+                <h3 class="explorer-section-title" style="margin:0;"><i class="fas fa-trophy"></i> National Scorecard — {{ $scorecard['label'] }}</h3>
+                <div class="explorer-toolbar">
+                    <button type="button" class="btn-toolbar" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+                    <button type="button" class="btn-toolbar" onclick="copyScorecardToClipboard()"><i class="fas fa-copy"></i> Copy</button>
+                    <a href="{{ $csvUrl }}" class="btn-toolbar"><i class="fas fa-file-csv"></i> CSV</a>
+                    <a href="{{ $excelUrl }}" class="btn-toolbar"><i class="fas fa-file-excel"></i> Excel</a>
+                </div>
+            </div>
+            <div class="scorecard-grid">
+                <div class="scorecard-item">
+                    <div class="scorecard-value">{{ number_format($scorecard['total']) }}</div>
+                    <div class="scorecard-label">National Total</div>
+                </div>
+                <div class="scorecard-item">
+                    <div class="scorecard-value">{{ number_format($scorecard['average'], 2) }}</div>
+                    <div class="scorecard-label">Average Per Formation</div>
+                </div>
+                <div class="scorecard-item">
+                    <div class="scorecard-value">{{ number_format($scorecard['count']) }}</div>
+                    <div class="scorecard-label">Formations Reporting</div>
+                </div>
+                <div class="scorecard-item">
+                    <div class="scorecard-value">{{ $scorecard['max']['label'] ?? '—' }}</div>
+                    <div class="scorecard-label">Top: {{ number_format($scorecard['max']['value'] ?? 0) }}</div>
+                </div>
+                <div class="scorecard-item">
+                    <div class="scorecard-value">{{ $scorecard['min']['label'] ?? '—' }}</div>
+                    <div class="scorecard-label">Lowest: {{ number_format($scorecard['min']['value'] ?? 0) }}</div>
+                </div>
+            </div>
+            @if($scorecard['top_formations']->isNotEmpty())
+                @php $maxValue = $scorecard['top_formations']->max(); @endphp
+                <h4 class="explorer-section-title" style="font-size:.75rem;margin-top:6px;">Top Formations</h4>
+                <ul class="scorecard-rank-list" id="scorecardRankList">
+                    @foreach($scorecard['top_formations'] as $label => $value)
+                        <li>
+                            <span>{{ $label }}</span>
+                            <div class="scorecard-rank-bar"><div class="scorecard-rbar-fill" style="width:{{ $maxValue > 0 ? round(($value / $maxValue) * 100, 1) : 0 }}%;"></div></div>
+                            <span class="num" style="font-weight:700;">{{ number_format($value) }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div>
+    @endif
+
     {{-- Aggregations --}}
     <div class="explorer-results-frame">
-        <h3 class="explorer-section-title">Aggregated Reports — By {{ ucfirst($groupBy) }}</h3>
+        <div class="explorer-section-header">
+            <h3 class="explorer-section-title" style="margin:0;">Aggregated Reports — By {{ ucfirst($groupBy) }}</h3>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <label for="agg_sort_by" style="font-size:.72rem;font-weight:600;color:var(--gray-600);">Sort by</label>
+                <form method="GET" action="{{ route($currentRoute) }}" id="aggSortForm">
+                    @foreach(request()->except(['agg_sort_by', 'agg_sort_direction']) as $key => $value)
+                        @if(is_array($value))
+                            @foreach($value as $subValue)
+                                <input type="hidden" name="{{ $key }}[]" value="{{ $subValue }}">
+                            @endforeach
+                        @else
+                            <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                        @endif
+                    @endforeach
+                    <select id="agg_sort_by" name="agg_sort_by" onchange="document.getElementById('aggSortForm').submit()" style="padding:5px 8px;border-radius:6px;border:1px solid var(--gray-300);font-size:.75rem;">
+                        @foreach(['label' => 'Name', 'total' => 'Total', 'approved' => 'Approved', 'pending' => 'Pending', 'returned' => 'Returned', 'rejected' => 'Rejected', 'sum' => 'Metric Sum'] as $key => $label)
+                            <option value="{{ $key }}" {{ ($filters['agg_sort_by'] ?? 'total') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <select name="agg_sort_direction" onchange="document.getElementById('aggSortForm').submit()" style="padding:5px 8px;border-radius:6px;border:1px solid var(--gray-300);font-size:.75rem;">
+                        <option value="desc" {{ ($filters['agg_sort_direction'] ?? 'desc') === 'desc' ? 'selected' : '' }}>Desc</option>
+                        <option value="asc" {{ ($filters['agg_sort_direction'] ?? '') === 'asc' ? 'selected' : '' }}>Asc</option>
+                    </select>
+                </form>
+            </div>
+        </div>
         @if($aggregations->isEmpty())
             <div class="explorer-empty">
                 <div><i class="fas fa-chart-bar"></i></div>
@@ -352,7 +627,7 @@
             </div>
         @else
             <div class="explorer-table-wrap">
-                <table class="explorer-table">
+                <table class="explorer-table" id="aggregationTable">
                     <thead>
                         <tr>
                             <th>{{ ucfirst($groupBy) }}</th>
@@ -388,7 +663,14 @@
 
     {{-- Matching Records --}}
     <div class="explorer-results-frame">
-        <h3 class="explorer-section-title">Matching Records</h3>
+        <div class="explorer-section-header">
+            <h3 class="explorer-section-title" style="margin:0;">Matching Records</h3>
+            <div class="explorer-toolbar">
+                <button type="button" class="btn-toolbar" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+                <a href="{{ $csvUrl }}" class="btn-toolbar"><i class="fas fa-file-csv"></i> CSV</a>
+                <a href="{{ $excelUrl }}" class="btn-toolbar"><i class="fas fa-file-excel"></i> Excel</a>
+            </div>
+        </div>
         @if($records->isEmpty())
             <div class="explorer-empty">
                 <div><i class="fas fa-inbox"></i></div>
@@ -399,13 +681,14 @@
                 <table class="explorer-table">
                     <thead>
                         <tr>
-                            <th>Return ID</th>
-                            <th>Formation</th>
-                            <th>Period</th>
-                            <th>Reporting Officer</th>
-                            <th>Command</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
+                            <th><a href="{{ $sortUrls['id'] }}">Return ID {!! $sortIcons['id'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['category'] }}">Category {!! $sortIcons['category'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['scope_code'] }}">Formation {!! $sortIcons['scope_code'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['report_period'] }}">Period {!! $sortIcons['report_period'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['reporting_officer'] }}">Reporting Officer {!! $sortIcons['reporting_officer'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['command_name'] }}">Command {!! $sortIcons['command_name'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['status'] }}">Status {!! $sortIcons['status'] !!}</a></th>
+                            <th><a href="{{ $sortUrls['created_at'] }}">Submitted {!! $sortIcons['created_at'] !!}</a></th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -414,8 +697,8 @@
                             @php $data = $application->return_data ?? []; @endphp
                             <tr>
                                 <td>#{{ $application->id }}</td>
+                                <td>{{ ucfirst($application->category) }}</td>
                                 <td>
-                                    <span class="field-chip">{{ ucfirst($application->category) }}</span>
                                     {{ strtoupper($application->scope_code) }}
                                     @if($application->zonal_code)
                                         <span class="field-chip">Zone {{ strtoupper($application->zonal_code) }}</span>
@@ -446,3 +729,26 @@
 </main>
 
 @endsection
+
+@push('scripts')
+<script>
+    function copyScorecardToClipboard() {
+        const list = document.getElementById('scorecardRankList');
+        if (!list) return;
+
+        const rows = [];
+        list.querySelectorAll('li').forEach(li => {
+            const label = li.querySelector('span:first-child')?.innerText || '';
+            const value = li.querySelector('span:last-child')?.innerText || '';
+            rows.push(label + '\t' + value);
+        });
+
+        const text = 'National Scorecard\n' + rows.join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Scorecard copied to clipboard');
+        }).catch(() => {
+            alert('Could not copy automatically. Please select and copy manually.');
+        });
+    }
+</script>
+@endpush

@@ -141,6 +141,46 @@ class MfaFlowTest extends TestCase
         $this->assertNotContains($backupCodes[0], $user->mfa_backup_codes);
     }
 
+    public function test_enabled_user_can_use_recovery_route_with_backup_code(): void
+    {
+        $backupCodes = ['AABBCCDD', '11223344'];
+        $user = $this->createUser([
+            'mfa_secret' => app(MfaService::class)->generateSecret(),
+            'mfa_enabled' => true,
+            'mfa_verified_at' => now(),
+            'mfa_backup_codes' => $backupCodes,
+        ]);
+
+        $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
+
+        $this->get('/mfa/recovery')->assertOk();
+
+        $response = $this->post('/mfa/recovery', ['code' => $backupCodes[0]]);
+        $response->assertRedirect('/user/dashboard');
+        $this->assertAuthenticatedAs($user);
+
+        $user->refresh();
+        $this->assertCount(1, $user->mfa_backup_codes);
+        $this->assertNotContains($backupCodes[0], $user->mfa_backup_codes);
+    }
+
+    public function test_recovery_route_rejects_invalid_backup_code(): void
+    {
+        $user = $this->createUser([
+            'mfa_secret' => app(MfaService::class)->generateSecret(),
+            'mfa_enabled' => true,
+            'mfa_verified_at' => now(),
+            'mfa_backup_codes' => ['AABBCCDD'],
+        ]);
+
+        $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
+
+        $response = $this->post('/mfa/recovery', ['code' => 'INVALID']);
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('code');
+        $this->assertGuest();
+    }
+
     public function test_setup_rejects_invalid_totp_code(): void
     {
         $user = $this->createUser();
