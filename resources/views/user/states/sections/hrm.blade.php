@@ -81,7 +81,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
     <div class="entry-tabs-wrap" style="margin-bottom:0;">
         <div class="entry-tabs" id="entryTabs">
             @php $tabs = [
-                ['cadre','fas fa-users','1. Cadre'],
+                // ['cadre','fas fa-users','1. Cadre'],
                 ['rank','fas fa-star','2. Rank'],
                 ['training','fas fa-chalkboard-teacher','3. Training'],
                 ['records','fas fa-folder-open','4. Records'],
@@ -117,9 +117,9 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
 </div>
 
 <div class="tab-content">
-    
+
     <!-- TAB 1: Service Personnel Strength by Cadre -->
-    <div class="tab-panel active" id="tab-hrm-cadre">
+    {{-- <div class="tab-panel active" id="tab-hrm-cadre">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -160,7 +160,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div>
+    </div> --}}
 
     <!-- TAB 2: Personnel Strength by Rank -->
     <div class="tab-panel" id="tab-hrm-rank">
@@ -168,7 +168,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-star"></i></div>
-                    2. Personnel Strength by Rank
+                    Personnel Strength by Rank
                 </div>
             </div>
             <div class="card-body">
@@ -206,13 +206,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div>
 
-    <!-- TAB 3: Personnel Strength by Zones and Command -->
+    <!-- Personnel Strength by Zones and Command -->
     {{-- <div class="tab-panel" id="tab-hrm-zones">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-map-marker-alt"></i></div>
-                    3. Personnel Strength by Zones and Command
+                    Personnel Strength by Zones and Command
                 </div>
             </div>
             <div class="card-body">
@@ -276,13 +276,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div> --}}
 
-    {{-- <!-- TAB 4: Gender Distribution by Cadre -->
+    {{-- <!--  Gender Distribution by Cadre -->
     <div class="tab-panel" id="tab-hrm-gender-cadre">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-venus-mars"></i></div>
-                    4. Gender Distribution by Cadre
+                    Gender Distribution by Cadre
                 </div>
             </div>
             <div class="card-body">
@@ -336,13 +336,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div> --}}
 
-    {{-- <!-- TAB 5: Gender Distribution by Zone -->
+    {{-- <!--  Gender Distribution by Zone -->
     <div class="tab-panel" id="tab-hrm-gender-zone">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-globe"></i></div>
-                    5. Gender Distribution by Zone
+                    Gender Distribution by Zone
                 </div>
             </div>
             <div class="card-body">
@@ -389,13 +389,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div> --}}
 
-    <!-- TAB 6: Gender Distribution by Rank -->
+    <!-- Gender Distribution by Rank -->
     {{-- <div class="tab-panel" id="tab-hrm-gender-rank">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-user-tag"></i></div>
-                    6. Gender Distribution by Rank
+                    Gender Distribution by Rank
                 </div>
             </div>
             <div class="card-body">
@@ -433,13 +433,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div> --}}
 
-    <!-- TAB 7: Training and Staff Development -->
+    <!--Training and Staff Development -->
     <div class="tab-panel" id="tab-hrm-training">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-chalkboard-teacher"></i></div>
-                    7. Training and Staff Development
+                    Training and Staff Development
                 </div>
             </div>
             <div class="card-body">
@@ -477,13 +477,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div>
 
-    <!-- TAB 8: Records Unit (Statistics) -->
+    <!-- Records Unit (Statistics) -->
     <div class="tab-panel" id="tab-hrm-records">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-folder-open"></i></div>
-                    8. Records Unit (Statistics)
+                   Records Unit (Statistics)
                 </div>
             </div>
             <div class="card-body">
@@ -520,13 +520,13 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div>
 
-    <!-- TAB 9: Registry Activities (Statistics) -->
+    <!-- Registry Activities (Statistics) -->
     <div class="tab-panel" id="tab-hrm-registry">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-envelope"></i></div>
-                    9. Registry Activities (Statistics)
+                   Registry Activities (Statistics)
                 </div>
             </div>
             <div class="card-body">
@@ -563,13 +563,14 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         </div>
     </div>
 
-    <!-- TAB 10: Appointment, Promotion and Upgrading (APU) -->
+    <!-- Appointment, Promotion and Upgrading (APU) -->
+    <! --  List ranks in dropdown -->
     {{-- <div class="tab-panel" id="tab-hrm-apu">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-user-plus"></i></div>
-                    10. Appointment, Promotion and Upgrading (APU)
+                     Appointment, Promotion & Upgrading (APU)
                 </div>
             </div>
             <div class="card-body">
@@ -583,14 +584,6 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
                                 <td>1</td>
                                 <td><select name="hrm[apu][0][rank]" class="ni">
                                     <option value="">Select Rank</option>
-                                    <option value="Private">Private</option>
-                                    <option value="Corporal">Corporal</option>
-                                    <option value="Sergeant">Sergeant</option>
-                                    <option value="Lieutenant">Lieutenant</option>
-                                    <option value="Captain">Captain</option>
-                                    <option value="Major">Major</option>
-                                    <option value="Colonel">Colonel</option>
-                                    <option value="General">General</option>
                                 </select></td>
                                 <td><input type="number" name="hrm[apu][0][total]" class="ni hrm-apu-total" min="0" placeholder="0" value="{{ old('hrm.apu.0.total') }}"></td>
                                 <td><button type="button" class="btn-nis btn-ghost btn-sm hrm-remove-row" style="color:var(--color-danger);padding:2px 6px;"><i class="fas fa-times"></i></button></td>

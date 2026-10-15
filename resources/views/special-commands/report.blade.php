@@ -12,7 +12,7 @@
         in_array($status, ['rejected', 'queried', 'returned'], true) => 'status-returned',
         default => 'status-pending',
     };
-
+// Return sections as provisioned
     $sections = \App\Services\PreviewRenderer::buildSections($data, [
         'skipKeys' => $skipKeys,
         'sectionLabels' => [

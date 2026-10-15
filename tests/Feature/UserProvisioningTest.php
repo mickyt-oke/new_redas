@@ -91,4 +91,58 @@ class UserProvisioningTest extends TestCase
             'geo_state' => 'LA',
         ]);
     }
+
+    public function test_admin_can_provision_fct_state_command_user(): void
+    {
+        $admin = $this->hqAdmin();
+
+        $response = $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'FCT Officer',
+            'service_number' => 'NIS/FCT/1234',
+            'role' => 'officer',
+            'user_category' => 'state_user',
+            'primary_location_type' => 'state',
+            'formation_code' => 'FC',
+            'email' => 'fct@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'is_enabled' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.users'));
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'fct@example.com',
+            'primary_location_code' => 'FC',
+            'geo_state' => 'FC',
+        ]);
+    }
+
+    public function test_admin_can_provision_special_command_user_with_long_state_name(): void
+    {
+        $admin = $this->hqAdmin();
+
+        $response = $this->actingAs($admin)->post(route('admin.users.store'), [
+            'name' => 'Mfum Officer',
+            'service_number' => 'NIS/MFM/1234',
+            'role' => 'officer',
+            'user_category' => 'state_user',
+            'primary_location_type' => 'state',
+            'formation_code' => 'MFUM',
+            'email' => 'mfum@example.com',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'is_enabled' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.users'));
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'mfum@example.com',
+            'primary_location_code' => 'MFUM',
+            'geo_state' => 'CR',
+        ]);
+    }
 }

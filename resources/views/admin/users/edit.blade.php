@@ -106,8 +106,6 @@
                     <small class="text-muted">Required for CGIS Unit User and CGIS Unit Desk Admin accounts.</small>
                 </div>
 
-                <input type="hidden" name="geo_state" id="geoStateInput" value="{{ old('geo_state', $user->geo_state) }}">
-
                 <div class="auth-form-group" style="margin-bottom:18px;display:flex;align-items:center;gap:12px;">
                     <label class="switch">
                         <input type="checkbox" name="is_enabled" value="1" {{ old('is_enabled', $user->is_enabled) ? 'checked' : '' }}>
@@ -149,7 +147,6 @@
     var formationGroup = document.getElementById('formationGroup');
     var formationSelect = document.getElementById('formationSelect');
     var locationCodeGroup = document.getElementById('locationCodeGroup');
-    var geoStateInput = document.getElementById('geoStateInput');
 
     var zonalOffices = @json($zonalOffices);
     var stateCommands = @json($stateCommands);
@@ -174,9 +171,6 @@
             var option = formationSelect.querySelector('option[value="' + CSS.escape(selectedFormation) + '"]');
             if (option) {
                 option.selected = true;
-                if (option.dataset.geoState) {
-                    geoStateInput.value = option.dataset.geoState;
-                }
             }
         }
     }
@@ -189,7 +183,6 @@
             var option = document.createElement('option');
             option.value = item.code;
             option.textContent = item.label;
-            option.dataset.geoState = item.state || '';
             if (item.code === selectedFormation) option.selected = true;
             optgroup.appendChild(option);
         });
@@ -213,13 +206,6 @@
 
     if (categorySelect) categorySelect.addEventListener('change', updateForm);
     if (locationSelect) locationSelect.addEventListener('change', updateForm);
-
-    formationSelect.addEventListener('change', function () {
-        var selected = formationSelect.options[formationSelect.selectedIndex];
-        if (selected && selected.dataset.geoState) {
-            geoStateInput.value = selected.dataset.geoState;
-        }
-    });
 
     updateForm();
 })();

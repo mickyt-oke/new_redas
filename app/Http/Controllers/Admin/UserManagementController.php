@@ -29,6 +29,12 @@ class UserManagementController extends Controller
         'servicom' => 'SERVICOM Unit',
 
     ];
+    private const ZONAL_OFFICES = [
+        'north' => 'Northern Zonal Office',
+        'south' => 'Southern Zonal Office',
+        'east' => 'Eastern Zonal Office',
+        'west' => 'Western Zonal Office',
+    ];
 
     private function formViewData(): array
     {
@@ -96,7 +102,6 @@ class UserManagementController extends Controller
             'formation_code' => 'nullable|string|max:50',
             'primary_location_code' => 'nullable|string|max:50',
             'assigned_cgis_unit_code' => 'nullable|in:'.implode(',', array_keys(self::CGIS_UNITS)),
-            'geo_state' => 'nullable|string|max:10',
             'email' => ['required', 'string', 'email', 'max:255', $uniqueEmail],
             'password' => $user === null ? 'required|string|min:8|confirmed' : 'nullable|string|min:8|confirmed',
             'is_enabled' => 'sometimes|boolean',
