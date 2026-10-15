@@ -81,7 +81,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
     <div class="entry-tabs-wrap" style="margin-bottom:0;">
         <div class="entry-tabs" id="entryTabs">
             @php $tabs = [
-                // ['cadre','fas fa-users','1. Cadre'],
+                ['cadre','fas fa-users','1. Cadre'],
                 ['rank','fas fa-star','2. Rank'],
                 ['training','fas fa-chalkboard-teacher','3. Training'],
                 ['records','fas fa-folder-open','4. Records'],
@@ -119,7 +119,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
 <div class="tab-content">
 
     <!-- TAB 1: Service Personnel Strength by Cadre -->
-    {{-- <div class="tab-panel active" id="tab-hrm-cadre">
+    <div class="tab-panel active" id="tab-hrm-cadre">
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
@@ -160,7 +160,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             </div>
             <button type="button" class="btn-nis btn-primary-nis hrm-next-btn">Next <i class="fas fa-arrow-right"></i></button>
         </div>
-    </div> --}}
+    </div>
 
     <!-- TAB 2: Personnel Strength by Rank -->
     <div class="tab-panel" id="tab-hrm-rank">
@@ -614,7 +614,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-user-check"></i></div>
-                    11. Recruitment (if any)
+                    Recruitment (if any)
                 </div>
             </div>
             <div class="card-body">
@@ -656,7 +656,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-chart-line"></i></div>
-                    12. Career Progression
+                    Career Progression
                 </div>
             </div>
             <div class="card-body">
@@ -698,7 +698,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-medal"></i></div>
-                    13. Officer Promotion (Stats)
+                    Officer Promotion (Stats)
                 </div>
             </div>
             <div class="card-body">
@@ -740,7 +740,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-exchange-alt"></i></div>
-                    14. Upgrading and Conversion
+                    Upgrading and Conversion
                 </div>
             </div>
             <div class="card-body">
@@ -782,7 +782,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-arrow-up"></i></div>
-                    15. Upgrading
+                    Upgrading
                 </div>
             </div>
             <div class="card-body">
@@ -825,7 +825,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-clipboard-check"></i></div>
-                    16. Promotion/Eligibility
+                    Promotion/Eligibility
                 </div>
             </div>
             <div class="card-body">
@@ -866,8 +866,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
         <div class="redas-card" style="margin-bottom:14px;">
             <div class="card-head">
                 <div class="card-head-title">
-                    <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-book-reader"></i></div>
-                    17. Permission to Study
+                    Permission to Study
                 </div>
             </div>
             <div class="card-body">
@@ -905,7 +904,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-hand-holding-usd"></i></div>
-                    18. Pension
+                    Pension
                 </div>
             </div>
             <div class="card-body">
@@ -955,7 +954,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-gavel"></i></div>
-                    19. Discipline and Award
+                    Discipline and Award
                 </div>
             </div>
             <div class="card-body">
@@ -1009,7 +1008,7 @@ $specialCommands = ['MMIA Lagos','NAIA Abuja','MAKIA Kano','PHIA Port Harcourt',
             <div class="card-head">
                 <div class="card-head-title">
                     <div class="card-head-icon" style="background:#eff6ff;color:#1d4ed8;"><i class="fas fa-credit-card"></i></div>
-                    20. NIMCOS
+                    NIMCOS
                 </div>
             </div>
             <div class="card-body">
