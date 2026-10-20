@@ -14,12 +14,22 @@ class JwtAccessTokenMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $token = null;
+
         $header = (string) $request->header('Authorization', '');
-        if (! str_starts_with($header, 'Bearer ')) {
-            return response()->json(['message' => 'TOKEN_INVALID'], 401);
+        if (str_starts_with($header, 'Bearer ')) {
+            $token = trim(substr($header, 7));
         }
 
-        $token = trim(substr($header, 7));
+        // Fallback to the Secure/HttpOnly cookie so browser/PWA requests can
+        // authenticate without exposing the token to JavaScript.
+        if (! $token) {
+            $token = (string) $request->cookie('access_token');
+        }
+
+        if (! $token) {
+            return response()->json(['message' => 'TOKEN_INVALID'], 401);
+        }
 
         try {
             $jwt = JwtService::fromEnv();

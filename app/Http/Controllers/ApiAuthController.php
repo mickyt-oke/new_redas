@@ -27,6 +27,14 @@ class ApiAuthController extends Controller
         return $this->jwt()->decode($token);
     }
 
+    /**
+     * Build a Secure/HttpOnly/Strict SameSite auth cookie.
+     */
+    private function authCookie(string $name, string $value, int $ttlMinutes): \Symfony\Component\HttpFoundation\Cookie
+    {
+        return cookie($name, $value, $ttlMinutes, '/', null, true, true, false, 'Strict');
+    }
+
     public function login(Request $request): Response
     {
         $validator = Validator::make($request->all(), [
@@ -216,19 +224,20 @@ class ApiAuthController extends Controller
             jti: (string) Str::uuid()
         );
 
-        // Set the new refresh token in a Secure, HttpOnly cookie (TTL in minutes)
+        // Set both tokens in Secure, HttpOnly cookies (TTL in minutes)
+        $accessTtlMinutes = (int) ceil((int) env('JWT_ACCESS_TTL', 900) / 60);
         $refreshTtlMinutes = (int) ceil((int) env('JWT_REFRESH_TTL', 2592000) / 60);
+        $refreshExpiresAt = now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000));
 
         return response()->json([
             'access_token' => $accessJwt,
             'token_type' => 'bearer',
             'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-        ])->cookie(
-            'refresh_token',
-            $newRefreshJwt,
-            $refreshTtlMinutes,
-            null, null, true, true, false, 'Strict'
-        );
+            'refresh_expires_in' => (int) env('JWT_REFRESH_TTL', 2592000),
+            'refresh_expires_at' => $refreshExpiresAt->toDateTimeString(),
+        ])
+            ->withCookie($this->authCookie('access_token', $accessJwt, $accessTtlMinutes))
+            ->withCookie($this->authCookie('refresh_token', $newRefreshJwt, $refreshTtlMinutes));
     }
 
     public function logout(Request $request): Response
@@ -238,6 +247,7 @@ class ApiAuthController extends Controller
         $refreshTokenJwt = (string) $request->cookie('refresh_token');
         if (! $refreshTokenJwt) {
             return response()->json(['message' => 'OK'], 200)
+                ->withoutCookie('access_token')
                 ->withoutCookie('refresh_token');
         }
 
@@ -266,6 +276,8 @@ class ApiAuthController extends Controller
             ->where('token_hash', $hash)
             ->update(['revoked_at' => now()]);
 
-        return response()->json(['message' => 'Logged out'], 200);
+        return response()->json(['message' => 'Logged out'], 200)
+            ->withoutCookie('access_token')
+            ->withoutCookie('refresh_token');
     }
 }

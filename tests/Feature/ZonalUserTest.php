@@ -159,4 +159,25 @@ class ZonalUserTest extends TestCase
         $application->refresh();
         $this->assertSame('hq_review', $application->workflow_stage);
     }
+
+    public function test_zonal_create_return_page_renders(): void
+    {
+        $user = $this->zonalUser();
+
+        $response = $this->actingAs($user)->get(route('user.zones.returns.create'));
+
+        $response->assertOk();
+        $response->assertSee('Zonal Command Return');
+    }
+
+    public function test_zonal_preview_renders_without_persistence(): void
+    {
+        $user = $this->zonalUser();
+
+        $response = $this->actingAs($user)->post(route('user.zones.returns.preview'), $this->validReturnData());
+
+        $response->assertOk();
+        $response->assertSee('ZONAL COMMAND RETURN');
+        $this->assertSame(0, Application::query()->count());
+    }
 }

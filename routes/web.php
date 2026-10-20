@@ -227,6 +227,7 @@ Route::middleware([Authenticate::class])->group(function () {
 Route::middleware([Authenticate::class, 'access:category=zonal_user,location=zonal,role=user|officer|minLevel=0', 'abac.geo'])->group(function () {
     Route::get('/user/zones/dashboard', [ZonalUserController::class, 'dashboard'])->name('user.zones.dashboard');
     Route::get('/user/zones/returns/create', [ZonalUserController::class, 'createReturn'])->name('user.zones.returns.create');
+    Route::post('/user/zones/returns/preview', [ZonalUserController::class, 'previewReturn'])->middleware('throttle:60,1')->name('user.zones.returns.preview');
     Route::post('/user/zones/returns', [ZonalUserController::class, 'storeReturn'])->middleware('throttle:60,1')->name('user.zones.returns.store');
     Route::get('/user/zones/returns', [ZonalUserController::class, 'submissions'])->name('user.zones.returns.index');
     Route::get('/user/zones/returns/{applicationHash}', [ZonalUserController::class, 'showSubmission'])->name('user.zones.returns.show');

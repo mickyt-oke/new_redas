@@ -12,10 +12,25 @@ window.axios.defaults.withCredentials = true; // Required to send/receive HttpOn
  * HttpOnly cookie so the session can survive browser/PWA restarts.
  */
 const REFRESH_URL = '/api/refresh';
+const REFRESH_EXPIRY_KEY = 'redas_refresh_expires_at';
 
 let accessToken = null;
 let isRefreshing = false;
 let failedQueue = [];
+
+function storeRefreshExpiry(data) {
+    if (data && data.refresh_expires_at) {
+        try {
+            sessionStorage.setItem(REFRESH_EXPIRY_KEY, String(new Date(data.refresh_expires_at).getTime()));
+        } catch (e) {}
+    }
+}
+
+function clearRefreshExpiry() {
+    try {
+        sessionStorage.removeItem(REFRESH_EXPIRY_KEY);
+    } catch (e) {}
+}
 
 const processQueue = (error, token = null) => {
     failedQueue.forEach(prom => {
@@ -68,6 +83,7 @@ window.axios.interceptors.response.use(
                 const { data } = await window.axios.post(REFRESH_URL);
                 const newToken = data.access_token;
 
+                storeRefreshExpiry(data);
                 accessToken = newToken;
                 window.axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
@@ -78,6 +94,7 @@ window.axios.interceptors.response.use(
             } catch (refreshError) {
                 processQueue(refreshError, null);
                 accessToken = null;
+                clearRefreshExpiry();
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             } finally {
@@ -101,11 +118,13 @@ function restoreSession() {
                 accessToken = data.access_token;
                 window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
             }
+            storeRefreshExpiry(data);
             return data;
         })
         .catch(error => {
             // No valid refresh cookie: clear any stale token and remain logged out.
             accessToken = null;
+            clearRefreshExpiry();
             return Promise.reject(error);
         });
 }
@@ -127,9 +146,11 @@ function scheduleProactiveRefresh() {
                     accessToken = data.access_token;
                     window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
                 }
+                storeRefreshExpiry(data);
             })
             .catch(() => {
                 accessToken = null;
+                clearRefreshExpiry();
             });
     }, proactiveRefreshMs);
 }
@@ -139,7 +160,10 @@ window.REDAS_AUTH = {
     restoreSession,
     setToken: token => { accessToken = token; },
     getToken: () => accessToken,
-    clearToken: () => { accessToken = null; },
+    clearToken: () => {
+        accessToken = null;
+        clearRefreshExpiry();
+    },
 };
 
 // Attempt to restore the session on startup if the PWA was launched from a

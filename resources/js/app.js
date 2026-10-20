@@ -657,6 +657,16 @@ const EXPIRE_TIMEOUT = 15 * 60 * 1000;           // 15 minutes → full logout
 const WARNING_TIMEOUT = LOCK_TIMEOUT - 60 * 1000; // 4 minutes  → show warning
 const LOCK_POLL_INTERVAL = 1000;
 
+function sessionExpiryMs() {
+    try {
+        const refreshExpiresAt = parseInt(sessionStorage.getItem('redas_refresh_expires_at') || '0', 10);
+        if (refreshExpiresAt > Date.now()) {
+            return refreshExpiresAt - Date.now();
+        }
+    } catch (e) {}
+    return EXPIRE_TIMEOUT - LOCK_TIMEOUT;
+}
+
 const LOCKS_URL = '/lockscreen';
 const LOCK_URL = '/lockscreen/lock';
 const LOGOUT_URL = '/logout';
@@ -689,8 +699,17 @@ function csrfToken() {
 
 function formatCountdown(ms) {
     const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
-    const minutes = Math.floor(totalSeconds / 60);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
+
+    if (days > 0) {
+        return `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
+    }
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
@@ -821,8 +840,9 @@ function lockSession() {
     hideInactivityWarning();
 
     // Remember when the full session will expire so the lockscreen can count down.
+    // If the PWA has a valid refresh token, keep the session alive until it expires.
     try {
-        sessionStorage.setItem('redas_session_expires_at', String(Date.now() + (EXPIRE_TIMEOUT - LOCK_TIMEOUT)));
+        sessionStorage.setItem('redas_session_expires_at', String(Date.now() + sessionExpiryMs()));
     } catch (e) {}
 
     fetch(LOCK_URL, {

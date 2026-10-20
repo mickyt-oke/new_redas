@@ -120,8 +120,18 @@
 
     <script>
         (function () {
-            const expiryKey = 'redas_session_expires_at';
-            const expiresAt = parseInt(sessionStorage.getItem(expiryKey) || '0', 10);
+            const sessionKey = 'redas_session_expires_at';
+            const refreshKey = 'redas_refresh_expires_at';
+            let expiresAt = parseInt(sessionStorage.getItem(sessionKey) || '0', 10);
+
+            if (!expiresAt) {
+                const refreshExpiresAt = parseInt(sessionStorage.getItem(refreshKey) || '0', 10);
+                if (refreshExpiresAt > Date.now()) {
+                    expiresAt = refreshExpiresAt;
+                    try { sessionStorage.setItem(sessionKey, String(expiresAt)); } catch (e) {}
+                }
+            }
+
             const container = document.getElementById('lockscreen-expiry');
             const textEl = document.getElementById('lockscreen-expiry-text');
 
@@ -144,7 +154,8 @@
 
                 if (remaining <= 0) {
                     clearInterval(timer);
-                    sessionStorage.removeItem(expiryKey);
+                    sessionStorage.removeItem(sessionKey);
+                    sessionStorage.removeItem(refreshKey);
                     // Auto-logout when the full session window elapses.
                     const form = document.createElement('form');
                     form.method = 'POST';

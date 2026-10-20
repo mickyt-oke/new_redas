@@ -17,6 +17,14 @@ use Illuminate\Validation\ValidationException;
 
 class ApiOtpController extends Controller
 {
+    /**
+     * Build a Secure/HttpOnly/Strict SameSite auth cookie.
+     */
+    private function authCookie(string $name, string $value, int $ttlMinutes): \Symfony\Component\HttpFoundation\Cookie
+    {
+        return cookie($name, $value, $ttlMinutes, '/', null, true, true, false, 'Strict');
+    }
+
     public function request(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -231,7 +239,9 @@ class ApiOtpController extends Controller
                 jti: (string) Str::uuid()
             );
 
+            $accessTtlMinutes = (int) ceil((int) env('JWT_ACCESS_TTL', 900) / 60);
             $refreshTtlMinutes = (int) ceil((int) env('JWT_REFRESH_TTL', 2592000) / 60);
+            $refreshExpiresAt = now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000));
 
             return response()->json([
                 'message' => 'OTP verified successfully.',
@@ -239,12 +249,11 @@ class ApiOtpController extends Controller
                 'access_token' => $accessJwt,
                 'token_type' => 'bearer',
                 'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-            ], 200)->cookie(
-                'refresh_token',
-                $refreshJwt,
-                $refreshTtlMinutes,
-                null, null, true, true, false, 'Strict'
-            );
+                'refresh_expires_in' => (int) env('JWT_REFRESH_TTL', 2592000),
+                'refresh_expires_at' => $refreshExpiresAt->toDateTimeString(),
+            ], 200)
+                ->withCookie($this->authCookie('access_token', $accessJwt, $accessTtlMinutes))
+                ->withCookie($this->authCookie('refresh_token', $refreshJwt, $refreshTtlMinutes));
         }
 
         // verify_email (and other purposes) currently just consume OTP

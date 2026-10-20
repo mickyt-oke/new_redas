@@ -204,6 +204,18 @@ class ZonalUserController extends Controller
             ->with('status', 'Return updated and resubmitted successfully.');
     }
 
+    public function previewReturn(Request $request): View
+    {
+        $previewData = $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status']);
+        $user = Auth::user();
+
+        return view('user.zones.preview', [
+            'previewData' => $previewData,
+            'user' => $user,
+            'commandName' => NisFormationService::commandNameForUser($user),
+        ]);
+    }
+
     public function submissionDocument(Request $request, string $applicationHash, string $collection, int $index)
     {
         $application = $this->resolveApplication($applicationHash);
@@ -270,11 +282,6 @@ class ZonalUserController extends Controller
             'data_consent' => ['required', 'accepted'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
-            'personnel' => ['nullable', 'array'],
-            'operations' => ['nullable', 'array'],
-            'logistics' => ['nullable', 'array'],
-            'finance' => ['nullable', 'array'],
-            'challenges' => ['nullable', 'array'],
         ]);
     }
 

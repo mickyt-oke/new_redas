@@ -2,6 +2,35 @@
 
 use Illuminate\Support\Str;
 
+$redisSslOptions = [];
+if (env('REDIS_SSL', false)) {
+    $redisSslOptions = [
+        'verify_peer' => env('REDIS_SSL_VERIFY_PEER', true),
+        'verify_peer_name' => env('REDIS_SSL_VERIFY_PEER_NAME', true),
+        'allow_self_signed' => env('REDIS_SSL_ALLOW_SELF_SIGNED', false),
+    ];
+
+    if (env('REDIS_SSL_CAFILE')) {
+        $redisSslOptions['cafile'] = env('REDIS_SSL_CAFILE');
+    }
+}
+
+$redisConnection = [
+    'url' => env('REDIS_URL'),
+    'host' => env('REDIS_HOST', 'major-fowl-127024.upstash.io'),
+    'username' => env('REDIS_USERNAME'),
+    'password' => env('REDIS_PASSWORD'),
+    'port' => env('REDIS_PORT', '6379'),
+    'max_retries' => env('REDIS_MAX_RETRIES', 3),
+    'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+    'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+    'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+];
+
+if ($redisSslOptions !== []) {
+    $redisConnection['ssl'] = $redisSslOptions;
+}
+
 return [
 
     /*
@@ -11,8 +40,8 @@ return [
     |
     | Here you may specify which of the database connections below you wish
     | to use as your default connection for database operations. This is
-    | the connection which will be utilized unless another connection
-    | is explicitly specified when you execute a query / statement.
+    | the connection which will be utilized unless another connection is
+    | explicitly specified when you execute a query / statement.
     |
     */
 
@@ -152,31 +181,13 @@ return [
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 
-        'default' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
+        'default' => array_merge($redisConnection, [
             'database' => env('REDIS_DB', '0'),
-            'max_retries' => env('REDIS_MAX_RETRIES', 3),
-            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
-            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
-            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
-        ],
+        ]),
 
-        'cache' => [
-            'url' => env('REDIS_URL'),
-            'host' => env('REDIS_HOST', '127.0.0.1'),
-            'username' => env('REDIS_USERNAME'),
-            'password' => env('REDIS_PASSWORD'),
-            'port' => env('REDIS_PORT', '6379'),
+        'cache' => array_merge($redisConnection, [
             'database' => env('REDIS_CACHE_DB', '1'),
-            'max_retries' => env('REDIS_MAX_RETRIES', 3),
-            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
-            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
-            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
-        ],
+        ]),
 
     ],
 
