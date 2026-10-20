@@ -87,9 +87,11 @@ Middleware aliases (`bootstrap/app.php`):
 | `abac.geo` | `AbacGeolocationMiddleware` | Per-request geolocation enforcement: resolved IP state vs `User::requiredGeoState()` (explicit `geo_state` or state `primary_location_code`; directorate and CGIS-unit users exempt). Session-cached 5 min/IP. Violations → audit log + HTTP 403. |
 | `mfa.pending` | `RequireMfaPending` | Requires valid `mfa.pending_user_id` session, else redirect to login. |
 
-All protected web groups stack `auth` + `access:…` + `abac.geo`. The canonical category → (role, location, level 0–7) map is `AuthController::normalizeAccessProfile()` (mirrored in `Admin\UserManagementController`). Recognized categories (`User::ACCESS_CATEGORIES`): `state_user`, `desk_admin`, `directorate_user`, `directorate_admin`, `zonal_commander`, `cgis_unit_user`, `cgis_desk_admin`, `hq_admin`, `admin`, `super_admin`.
+All protected web groups stack `auth` + `access:…` + `abac.geo`. The canonical category → (role, location, level 0–7) map is `AuthController::normalizeAccessProfile()` (mirrored in `Admin\UserManagementController`). Recognized categories (`User::ACCESS_CATEGORIES`): `state_user`, `desk_admin`, `zonal_user`, `directorate_user`, `directorate_admin`, `zonal_commander`, `cgis_unit_user`, `cgis_desk_admin`, `hq_admin`, `admin`, `super_admin`.
 
-HQ tiers: `hq_admin` (level 5) is the final approver of all returns and owns `/admin/submissions` approve/reject, settings, audit log, and user management; `admin` (level 5) is view-only over the read-only `/admin/*` pages (dashboard, returns, archive, analytics, reports, `/admin/consolidation`); `super_admin` (level 6) is a strictly view-only executive dashboard (`/superadmin/*`). Both `hq_admin` and `admin` map to canonical role `admin` (the `CheckAccess` legacy-alias map includes `hq_admin → admin`).
+Canonical roles (`User::ROLE_TYPES`): `user`, `officer`, `admin`, `state`, `zonal`, `directorate`, `unit_officer`, `unit_admin`, `hq_admin`, `super_admin`.
+
+HQ tiers: `hq_admin` (level 5) is the final approver of all returns and owns `/admin/submissions` approve/reject, settings, audit log, and user management; `admin` (level 5) is view-only over the read-only `/admin/*` pages (dashboard, returns, archive, analytics, reports, `/admin/consolidation`); `super_admin` (level 6) is a strictly view-only executive dashboard (`/superadmin/*`). `CheckAccess` treats `hq_admin` and `super_admin` as legacy role aliases that fall back to the canonical `admin` role; `executive` is a legacy alias for `cgis` and is not exposed in the UI.
 
 ## 5. Service layer contracts
 
@@ -137,7 +139,7 @@ Note: ip-api.com default endpoint is plain HTTP — prefer ipapi.co (HTTPS) or a
 
 ## 10. Required environment variables
 
-No `.env.example` ships with the repo (gap). Beyond stock Laravel vars (`APP_KEY`, `APP_URL`, `DB_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER`, `MAIL_*`):
+`.env.example` now ships at the repo root covering app, DB, session/cache/queue, Redis, Resend mail, JWT, OTP, Sanctum and filesystem variables. Beyond stock Laravel vars (`APP_KEY`, `APP_URL`, `DB_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER`, `MAIL_*`):
 
 | Variable | Default | Used by |
 |---|---|---|
@@ -170,3 +172,4 @@ ABAC/geolocation knobs are DB `settings` (seeded: `abac_enabled=true`, `abac_loc
 8. ~~`Application::admin()` relation references a non-existent `admin_id` column (dead relation)~~ **Resolved** — the relation was removed and replaced by `Application::reviewComments()` (hasMany `ApplicationComment`).
 9. The `2026_08_13` migration for directorate/formation/zone/HQ/CGIS-unit tables is empty — those tables were never created.
 10. `users` ↔ location lookups enforced only in application code (no FKs).
+11. ~~No `.env.example` in repo~~ **Resolved** — `.env.example` now ships at repo root with app, DB, session/cache/queue, Redis, Resend mail, JWT, OTP, Sanctum and filesystem variables.

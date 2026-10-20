@@ -46,7 +46,20 @@
 
 Shared authenticated routes (all roles): `GET /user/submissions/{application}/pdf` (owner or in-scope approver), notifications (+api), archive, reports (stub), profile.
 
-### 1.4 Directorate users (`access:category=directorate_user|directorate_admin` — state users also allowed on form routes)
+### 1.4 Zonal user / officer (`access:category=zonal_user,location=zonal,role=user|officer|minLevel=0` + `abac.geo`)
+
+| Route | Handler / view |
+|---|---|
+| `GET /user/zones/dashboard` | `Web\ZonalUserController@dashboard` — zonal command metrics and submission list |
+| `GET /user/zones/returns/create` | `Web\ZonalUserController@createReturn` — zonal return form |
+| `POST /user/zones/returns` | `Web\ZonalUserController@storeReturn` — create zonal return |
+| `GET /user/zones/returns` | `Web\ZonalUserController@submissions` — own submission list |
+| `GET /user/zones/returns/{applicationHash}` | `Web\ZonalUserController@showSubmission` — owner-only detail |
+| `GET /user/zones/returns/{applicationHash}/edit`, `PUT /user/zones/returns/{applicationHash}` | owner edit/resubmit (while not approved) |
+| `DELETE /user/zones/returns/{applicationHash}` | owner delete (while not approved) |
+| `GET /user/zones/returns/{applicationHash}/documents/{collection}/{index}` | owner document streaming |
+
+### 1.5 Directorate users (`access:category=directorate_user|directorate_admin` — state users also allowed on form routes)
 
 | Route | Handler |
 |---|---|
@@ -55,7 +68,7 @@ Shared authenticated routes (all roles): `GET /user/submissions/{application}/pd
 | `GET /user/directorates/submissions/{application}` (+ `/print`, `/edit`, `PUT update`, `DELETE`, `/documents/{collection}/{index}`) | owner-only view/print/edit/resubmit/delete |
 | `GET /user/directorate/{id}` | legacy numeric redirect (1→hrm … 10→works-logistics) |
 
-### 1.5 CGIS unit users (`access:category=cgis_unit_user,location=unit|headquarters,role=user|officer|unit_officer`)
+### 1.6 CGIS unit users (`access:category=cgis_unit_user,location=unit|headquarters,role=user|officer|unit_officer`)
 
 | Route | Handler |
 |---|---|
@@ -63,7 +76,7 @@ Shared authenticated routes (all roles): `GET /user/submissions/{application}/pd
 | `GET|POST /user/cgis-units/{slug}` | 7 CGIS unit return forms (`actu`, `epms`, `hostmanship`, `pro-media`, `protocol`, `provost`, `servicom`); store validates period/officer/consent/uploads ≤ 20 MB |
 | `GET /user/cgis-units/submissions/{application}` (+ `/print`, `/edit`, `PUT update`, `DELETE`, `/documents/{collection}/{index}`) | owner-only view/print/edit/resubmit/delete |
 
-### 1.6 Approvers (all render the shared `desk-admin.dashboard` queue)
+### 1.7 Approvers (all render the shared `desk-admin.dashboard` queue)
 
 | Group | Guard | Routes |
 |---|---|---|
@@ -72,7 +85,7 @@ Shared authenticated routes (all roles): `GET /user/submissions/{application}/pd
 | HQ admin | `access:category=hq_admin,location=headquarters,minLevel=5` | `GET /admin/submissions` + approve/reject (stage `hq_review` → `approved`, **final**) |
 | Supervisor | `desk_admin\|zonal_commander` | `GET /dashboard/state`, `/dashboard/zonal`, `/supervisor/dashboard` (redirect by category) |
 
-### 1.7 HQ area (`/admin`, `/superadmin`)
+### 1.8 HQ area (`/admin`, `/superadmin`)
 
 Read-only routes — shared by `hq_admin` and the view-only `admin` (`access:category=hq_admin|admin,location=headquarters,minLevel=5`):
 
@@ -101,7 +114,7 @@ Super admin — executive, strictly view-only (`access:category=super_admin,loca
 | `GET /superadmin/dashboard` | `Admin\SuperAdminController@dashboard` — Chart.js KPIs/charts |
 | `GET /superadmin/returns`, `/superadmin/returns/{application}` (+ `/documents/…`) | returns register + detail |
 
-### 1.8 JSON API (`throttle:api`)
+### 1.9 JSON API (`throttle:api`)
 
 | Route | Handler | Auth |
 |---|---|---|
@@ -131,7 +144,7 @@ flowchart TD
     I --> J[Redirect by user_category]
 ```
 
-Landing pages by category: state_user → `/user/dashboard`; desk_admin / directorate_admin / cgis_desk_admin → `/desk-admin/dashboard`; directorate_user → `/user/directorates/dashboard`; cgis_unit_user → `/user/cgis-units/dashboard`; zonal_commander → `/zonal/dashboard`; hq_admin / admin → `/admin/dashboard`; super_admin → `/superadmin/dashboard`.
+Landing pages by category: state_user → `/user/dashboard`; desk_admin / directorate_admin / cgis_desk_admin → `/desk-admin/dashboard`; directorate_user → `/user/directorates/dashboard`; cgis_unit_user → `/user/cgis-units/dashboard`; zonal_user → `/user/zones/dashboard`; zonal_commander → `/zonal/dashboard`; hq_admin / admin → `/admin/dashboard`; super_admin → `/superadmin/dashboard`.
 
 ## 3. Returns approval state machine
 
@@ -190,7 +203,7 @@ sequenceDiagram
 2. Review queue at `/admin/submissions` (stage `hq_review`) → approve finalizes the return (`approved`), reject returns it to the originator.
 3. Return register at `/admin/hq/returns` — filter by formation/category/status/stage/period/search; drill into a return to see the full workflow timeline and comment history.
 4. Analytics at `/admin/hq/analytics`; consolidated Excel reports at `/admin/hq/reports` (quarterly/biannual/annual, generation audited); consolidation view at `/admin/consolidation`.
-5. User management at `/admin/users` — create/edit access profiles, enable/disable, trigger verification email.
+5. User management at `/admin/users` — create/edit users, assign category, canonical role, primary location type, and scope code; the form derives `assigned_state_code`, `assigned_zonal_command_code`, `assigned_directorate_code`, or `assigned_cgis_unit_code` as appropriate. Enable/disable accounts and trigger verification email.
 6. Tune ABAC/geolocation at `/admin/settings`; inspect security events at `/admin/audit-log`.
 7. The view-only `admin` category shares the read-only pages (dashboard, returns, archive, analytics, reports, consolidation) but has no approve/reject, settings, audit-log, or user-management access. The `super_admin` executive monitors KPIs and charts at `/superadmin/dashboard` and browses the returns register at `/superadmin/returns`; approved returns appear in `/admin/hq/archive`.
 

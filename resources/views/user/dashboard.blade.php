@@ -246,7 +246,7 @@
 {{-- A saved state return draft lives in the browser's localStorage under a single
      key (redas_state_draft, written by the combined return form). Surface it here
      so the officer can resume or discard it without opening the form first. --}}
-<script>
+<script nonce="{{ csp_nonce() }}">
 (function () {
     var DRAFT_KEY = 'redas_state_draft';
     var resumeUrl = @json(route('user.returns.create'));

@@ -50,14 +50,14 @@ class ZonalUserController extends Controller
             'pendingSubmissions' => $pendingSubmissions,
             'approvedSubmissions' => $approvedSubmissions,
             'queriedSubmissions' => $queriedSubmissions,
-            'commandName' => $this->commandNameForUser($user),
+            'commandName' => NisFormationService::commandNameForUser($user),
         ]);
     }
 
     public function createReturn(): View
     {
         return view('user.zones.create-return', [
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -76,7 +76,7 @@ class ZonalUserController extends Controller
 
         $returnData = $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
-        $returnData['command_name'] = $this->commandNameForUser($user);
+        $returnData['command_name'] = NisFormationService::commandNameForUser($user);
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
         $returnData['attachments'] = $this->storeUploadedFiles($request, 'attachments');
 
@@ -123,7 +123,7 @@ class ZonalUserController extends Controller
 
         return view('user.zones.show', [
             'application' => $application,
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -140,7 +140,7 @@ class ZonalUserController extends Controller
 
         return view('user.zones.create-return', [
             'editing' => $application,
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -161,7 +161,7 @@ class ZonalUserController extends Controller
 
         $returnData = $this->sanitizeReturnData($request->except(['_token', '_method', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
-        $returnData['command_name'] = $this->commandNameForUser($user);
+        $returnData['command_name'] = NisFormationService::commandNameForUser($user);
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
         $returnData['attachments'] = $request->hasFile('attachments')
             ? $this->storeUploadedFiles($request, 'attachments')
@@ -258,19 +258,6 @@ class ZonalUserController extends Controller
 
         return redirect()->route('user.zones.returns.index')
             ->with('status', 'Return deleted successfully.');
-    }
-
-    public static function commandNameForUser(?User $user): ?string
-    {
-        $code = $user?->primary_location_code;
-
-        if ($code === null || $code === '') {
-            return null;
-        }
-
-        $label = NisFormationService::labelForCode($code);
-
-        return $label ?? strtoupper((string) $code);
     }
 
     private function returnValidationRules(Request $request): array

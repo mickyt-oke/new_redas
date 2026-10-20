@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Models\Application;
 use App\Models\User;
+use App\Services\NisFormationService;
 use App\Services\ReportPdfService;
 use App\Services\SubmissionWorkflow;
 use Illuminate\Http\RedirectResponse;
@@ -319,7 +320,9 @@ class SubmissionReviewController extends Controller
             $applicationScope = $application->scope_code;
 
             if ($user->user_category === 'zonal_commander') {
-                $applicationScope = $application->zonal_code ?: $application->scope_code;
+                $applicationScope = NisFormationService::normalizeZoneCode($application->zonal_code)
+                    ?: NisFormationService::normalizeZoneCode($application->scope_code)
+                    ?: $application->scope_code;
             }
 
             if ($applicationScope !== $scopeCode) {

@@ -12,7 +12,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @laravelPWA
 
-    <style>
+    <style nonce="{{ csp_nonce() }}">
         .auth-form-group {
             margin-bottom: 16px;
         }

@@ -111,6 +111,7 @@ class User extends Authenticatable
         'directorate',
         'unit_officer',
         'unit_admin',
+        'hq_admin',
         'super_admin',
     ];
 

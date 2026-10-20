@@ -42,6 +42,7 @@ The system models access on three axes: **user_category** (functional role), **p
 |---|---|---|
 | `state_user` | 0 | Officer at a state command; submits state returns. |
 | `desk_admin` | 1–2 | State supervisor; first review of state returns; stamps zonal routing. |
+| `zonal_user` | 0 | Officer at a zonal command; submits zonal returns. |
 | `directorate_user` | 0 | Officer in one of the 10 HQ directorates; submits directorate returns. |
 | `directorate_admin` | 3 | First-line approver of directorate returns. |
 | `zonal_commander` | 4 | Approves state returns at the zonal command stage. |
@@ -50,7 +51,7 @@ The system models access on three axes: **user_category** (functional role), **p
 | `hq_admin` | 5 | Headquarters approver/administrator: **final approver of all returns** (state, directorate, and CGIS paths all end at the `hq_review` stage). Owns the `/admin/submissions` review queue (approve/reject), user management, settings, audit log, consolidated reports, analytics, archive. |
 | `admin` | 5 | General administrator, **view-only**: read access to all returns of any status/category/location plus the consolidation page (`/admin/consolidation`). No approve/reject, no user management. |
 | `super_admin` | 6 | Executive, strictly view-only: visual dashboard (`/superadmin/dashboard`, Chart.js KPIs/charts) and returns register/detail (`/superadmin/returns`). No other operations. |
-| `executive` / `cgis` | 7 | Recognized by the code (executive dashboard), not yet exposed in user management UI. |
+| `executive` / `cgis` | — | Legacy aliases recognized only by the `CheckAccess` middleware (`executive → cgis`), not assignable through user management. |
 
 **Directorate forms (10):** HRM, PRS, Finance, Investigation, Passport, Visa, Migration, Border, ICT, Works & Logistics.
 **CGIS units (7):** ACTU, EPMS, Hostmanship, PRO/Media, Protocol, Provost, SERVICOM — each with its own dashboard and return form under `/user/cgis-units/`.
@@ -109,7 +110,7 @@ The system models access on three axes: **user_category** (functional role), **p
 | FR-HQ-4 | Archive of approved returns. |
 | FR-HQ-5 | Analytics: per-directorate bar chart, status doughnut, 12-month trend, average stage turnaround. |
 | FR-HQ-6 | Consolidated Excel reports (quarterly / biannual / annual), generation audit-logged. |
-| FR-HQ-7 | User management: create/edit users, assign access profile (category, location, scope codes), enable/disable accounts, trigger email verification. |
+| FR-HQ-7 | User management (`/admin/users`): create/edit users, assign category, canonical role, primary location type, and formation/scope code; the form derives operational-scope fields (`assigned_state_code` + `assigned_zonal_command_code` for state/desk users, `assigned_zonal_command_code` for zonal users/commanders, `assigned_directorate_code` for directorate users/admins, `assigned_cgis_unit_code` for CGIS unit users/admins). Special-command users are provisioned as `state_user` with a special-command `primary_location_code`. Enable/disable accounts and trigger email verification. |
 | FR-HQ-8 | System settings: ABAC toggles (enabled, location enforcement, HQ bypass), allowed countries, geolocation provider (ip-api / ipapi), cache TTL, fallback state, API token. |
 | FR-HQ-9 | Audit log viewer: filter by date, user, action, status, entity, JSON search. |
 | FR-HQ-10 | Consolidation page (`/admin/consolidation`): consolidated cross-formation view of returns. Read-only admin pages (dashboard, register, archive, analytics, reports, consolidation) are shared with the view-only `admin` category; approve/reject, settings, audit log, and user management require `hq_admin`. |
@@ -172,6 +173,6 @@ Delivered: full auth stack (web MFA, API OTP+JWT), submission workflow end-to-en
 | G5 | `otp_login` / `otp_verify_email` email templates are referenced but not seeded | Must exist in `email_templates` or API mail send throws. |
 | G6 | `NisData` model/table unused | Legacy HR-stats placeholder; decide to implement or drop. |
 | G7 | Sanctum installed but unused alongside custom JWT | Consolidate on one API token system. |
-| G8 | No `.env.example` in repo | Document required env vars (see TRD §10). |
+| G8 | ~~No `.env.example` in repo~~ **Resolved** | `.env.example` now ships at repo root with app, DB, session/cache/queue, Redis, Resend mail, JWT, OTP, Sanctum and filesystem variables. |
 | G9 | Edit-prefill doesn't repopulate pre-namespacing submissions | Submissions created before the state/directorate form namespacing (e.g. bare `staff_strength` vs `passport[staff_strength]`) won't prefill the renamed fields when edited; new submissions round-trip correctly. |
 | G9 | Legacy/dead code: root `DashboardController`, `AdminDashController`, vestigial `register` view | Cleanup candidates. |

@@ -326,4 +326,32 @@ class WorkflowTest extends TestCase
             'title' => 'Return returned for correction',
         ]);
     }
+
+    public function test_state_return_is_routed_to_correct_zone_without_desk_admin_assignment(): void
+    {
+        $this->disableAbac();
+
+        $user = $this->stateUser('LA');
+        $deskAdmin = User::factory()->create([
+            'role' => 'state',
+            'user_category' => 'desk_admin',
+            'primary_location_type' => 'state',
+            'primary_location_code' => 'LA',
+            'access_level' => 1,
+        ]);
+        $commander = $this->zonalCommander('ZONE-A');
+
+        $application = SubmissionWorkflow::create($user, ['report_period' => '2025-05']);
+        $this->assertSame('desk_review', $application->workflow_stage);
+
+        $this->actingAs($deskAdmin)->patch($this->signedApplicationRoute('desk.admin.submissions.approve', $application));
+        $application->refresh();
+
+        $this->assertSame('zonal_review', $application->workflow_stage);
+        $this->assertSame('ZONE-A', $application->zonal_code);
+
+        $this->actingAs($commander)->get(route('user.zonal.home'))->assertOk();
+        $this->actingAs($commander)->patch($this->signedApplicationRoute('zonal.submissions.approve', $application));
+        $this->assertSame('hq_review', $application->fresh()->workflow_stage);
+    }
 }

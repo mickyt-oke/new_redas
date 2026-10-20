@@ -72,7 +72,7 @@ class UserCategorySeeder extends Seeder
                 'email' => 'zonal.user@nis.gov.ng',
                 'service_number' => 'NIS/ZU/005',
                 'user_category' => 'zonal_user',
-                'role' => 'user',
+                'role' => 'officer',
                 'primary_location_type' => 'zonal',
                 'primary_location_code' => 'ZONE-A',
                 'access_level' => 0,

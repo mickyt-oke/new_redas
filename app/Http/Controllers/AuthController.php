@@ -342,10 +342,6 @@ class AuthController extends Controller
         if ($requestedRole === 'super_admin') {
             return $user->user_category === 'super_admin' && $user->role === 'admin';
         }
-
-        if ($requestedRole === 'user' && $user->role === 'officer') {
-            return true;
-        }
         if ($requestedRole === 'zone' && $user->role === 'zone') {
             return true;
         }

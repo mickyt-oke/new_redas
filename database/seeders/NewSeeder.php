@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Services\NisFormationService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -100,7 +101,7 @@ class NewSeeder extends Seeder
                 'email_verified_at' => $now,
             ]);
 
-            $zoneCode = $zones[$index % count($zones)]['code'];
+            $zoneCode = NisFormationService::zoneForState($state['code']);
 
             $this->createUser([
                 'name' => $state['name'].' Desk Admin',

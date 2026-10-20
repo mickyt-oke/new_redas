@@ -9,6 +9,7 @@ use App\Models\Application;
 use App\Models\ApplicationComment;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\NisFormationService;
 use Illuminate\Support\Facades\URL;
 
 class SubmissionWorkflow
@@ -150,7 +151,9 @@ class SubmissionWorkflow
             $user->user_category === 'desk_admin' => $user->primary_location_code ?: $user->assigned_state_code ?: null,
             $user->user_category === 'directorate_admin' => $user->directorateSlug(),
             $user->user_category === 'cgis_desk_admin' => $user->cgisUnitSlug(),
-            $user->user_category === 'zonal_commander' => $user->primary_location_code ?: $user->assigned_zonal_command_code ?: null,
+            $user->user_category === 'zonal_commander' => NisFormationService::normalizeZoneCode(
+                $user->primary_location_code ?: $user->assigned_zonal_command_code ?: null
+            ),
             default => null,
         };
     }
@@ -176,10 +179,10 @@ class SubmissionWorkflow
         if ($scopeCode !== null) {
             if ($user->user_category === 'zonal_commander') {
                 $query->where(function ($q) use ($scopeCode) {
-                    $q->where('zonal_code', $scopeCode)
+                    $q->whereRaw("UPPER(REPLACE(zonal_code, '_', '-')) = ?", [$scopeCode])
                         ->orWhere(function ($inner) use ($scopeCode) {
                             $inner->whereNull('zonal_code')
-                                ->where('scope_code', $scopeCode);
+                                ->whereRaw("UPPER(REPLACE(scope_code, '_', '-')) = ?", [$scopeCode]);
                         });
                 });
             } else {
@@ -216,7 +219,9 @@ class SubmissionWorkflow
         // When a desk admin releases a state submission, tag it with the zonal command
         // it should be routed to so the correct zonal commander sees it.
         if ($actor->user_category === 'desk_admin') {
-            $zonalCode = $actor->assigned_zonal_command_code ?: null;
+            $zonalCode = NisFormationService::zoneForState($application->scope_code)
+                ?: NisFormationService::normalizeZoneCode($actor->assigned_zonal_command_code);
+
             if ($zonalCode !== null) {
                 $update['zonal_code'] = $zonalCode;
             }
@@ -322,13 +327,15 @@ class SubmissionWorkflow
                         ->orWhere('assigned_state_code', $application->scope_code));
                 break;
             case self::STAGE_ZONAL_REVIEW:
-                $zone = $application->zonal_code ?: $application->scope_code ?: null;
+                $zone = NisFormationService::normalizeZoneCode($application->zonal_code)
+                    ?: NisFormationService::normalizeZoneCode($application->scope_code)
+                    ?: null;
                 if ($zone === null) {
                     return;
                 }
                 $query->where('user_category', 'zonal_commander')
-                    ->where(fn ($q) => $q->where('primary_location_code', $zone)
-                        ->orWhere('assigned_zonal_command_code', $zone));
+                    ->where(fn ($q) => $q->whereRaw("UPPER(REPLACE(primary_location_code, '_', '-')) = ?", [$zone])
+                        ->orWhereRaw("UPPER(REPLACE(assigned_zonal_command_code, '_', '-')) = ?", [$zone]));
                 break;
             case self::STAGE_DIRECTORATE_REVIEW:
                 $query->where('user_category', 'directorate_admin');
@@ -346,8 +353,14 @@ class SubmissionWorkflow
         $ref = 'RET-' . str_pad((string) $application->id, 5, '0', STR_PAD_LEFT);
 
         foreach ($query->get() as $approver) {
-            if (self::scopeCodeForApprover($approver) !== null
-                && self::scopeCodeForApprover($approver) !== ($approver->user_category === 'zonal_commander' ? ($application->zonal_code ?: $application->scope_code) : $application->scope_code)) {
+            $approverScope = self::scopeCodeForApprover($approver);
+            $expectedScope = $approver->user_category === 'zonal_commander'
+                ? (NisFormationService::normalizeZoneCode($application->zonal_code)
+                    ?: NisFormationService::normalizeZoneCode($application->scope_code)
+                    ?: $application->scope_code)
+                : $application->scope_code;
+
+            if ($approverScope !== null && $approverScope !== $expectedScope) {
                 continue;
             }
 

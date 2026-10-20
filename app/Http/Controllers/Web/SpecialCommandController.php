@@ -52,14 +52,14 @@ class SpecialCommandController extends Controller
             'pendingSubmissions' => $pendingSubmissions,
             'approvedSubmissions' => $approvedSubmissions,
             'queriedSubmissions' => $queriedSubmissions,
-            'commandName' => $this->commandNameForUser($user),
+            'commandName' => NisFormationService::commandNameForUser($user),
         ]);
     }
 
     public function createReturn(): View
     {
         return view('special-commands.create-return', [
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -79,7 +79,7 @@ class SpecialCommandController extends Controller
 
         $returnData = $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
-        $returnData['command_name'] = $this->commandNameForUser($user);
+        $returnData['command_name'] = NisFormationService::commandNameForUser($user);
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
         $returnData['special_command_code'] = $user?->primary_location_code;
         $returnData['attachments'] = $this->storeUploadedFiles($request, 'attachments');
@@ -127,7 +127,7 @@ class SpecialCommandController extends Controller
 
         return view('special-commands.show', [
             'application' => $application,
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -144,7 +144,7 @@ class SpecialCommandController extends Controller
 
         return view('special-commands.create-return', [
             'editing' => $application,
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -165,7 +165,7 @@ class SpecialCommandController extends Controller
 
         $returnData = $this->sanitizeReturnData($request->except(['_token', '_method', 'data_consent', 'attachments']));
         $returnData['report_period'] = $request->input('period');
-        $returnData['command_name'] = $this->commandNameForUser($user);
+        $returnData['command_name'] = NisFormationService::commandNameForUser($user);
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
         $returnData['special_command_code'] = $user?->primary_location_code;
         $returnData['attachments'] = $request->hasFile('attachments')
@@ -273,7 +273,7 @@ class SpecialCommandController extends Controller
 
         return view('special-commands.report', [
             'application' => $application,
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
         ]);
     }
 
@@ -285,24 +285,11 @@ class SpecialCommandController extends Controller
 
         $pdf = Pdf::loadView('special-commands.report', [
             'application' => $application,
-            'commandName' => $this->commandNameForUser(Auth::user()),
+            'commandName' => NisFormationService::commandNameForUser(Auth::user()),
             'isPdf' => true,
         ])->setPaper('a4');
 
         return $pdf->download('special-command-return-' . $application->id . '.pdf');
-    }
-
-    public static function commandNameForUser(?User $user): ?string
-    {
-        $code = $user?->primary_location_code;
-
-        if ($code === null || $code === '') {
-            return null;
-        }
-
-        $label = NisFormationService::labelForCode($code);
-
-        return $label ?? strtoupper((string) $code);
     }
 
     private function returnValidationRules(Request $request): array

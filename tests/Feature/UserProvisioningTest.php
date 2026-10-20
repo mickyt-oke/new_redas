@@ -58,7 +58,7 @@ class UserProvisioningTest extends TestCase
             'email' => 'zonal@example.com',
             'user_category' => 'zonal_user',
             'primary_location_type' => 'zonal',
-            'primary_location_code' => 'ZONE_A',
+            'primary_location_code' => 'ZONE-A',
             'geo_state' => 'LA',
         ]);
     }

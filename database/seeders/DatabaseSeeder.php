@@ -27,12 +27,12 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Zone User',
                 'service_number' => 'NIS/ZN/001',
                 'user_category' => 'zonal_user',
-                'role' => 'user',
+                'role' => 'officer',
                 'primary_location_type' => 'zonal',
-                'primary_location_code' => 'ZONE_A',
+                'primary_location_code' => 'ZONE-A',
                 'password' => Hash::make('password'),
                 'is_enabled' => true,
-                'access_level' => 1,
+                'access_level' => 0,
             ]
         );
 
@@ -43,12 +43,12 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Zonal Admin',
                 'service_number' => 'NIS/ZN/1000',
                 'user_category' => 'zonal_commander',
-                'role' => 'admin',
+                'role' => 'zonal',
                 'primary_location_type' => 'zonal',
-                'primary_location_code' => 'ZONE_A',
+                'primary_location_code' => 'ZONE-A',
                 'password' => Hash::make('password'),
                 'is_enabled' => true,
-                'access_level' => 2,
+                'access_level' => 4,
             ]
         );
 
@@ -59,12 +59,12 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Special Command User',
                 'service_number' => 'NIS/SC/1001',
                 'user_category' => 'state_user',
-                'role' => 'user',
+                'role' => 'officer',
                 'primary_location_type' => 'state',
                 'primary_location_code' => 'SEME',
                 'password' => Hash::make('password'),
                 'is_enabled' => true,
-                'access_level' => 1,
+                'access_level' => 0,
             ]
         );
     }

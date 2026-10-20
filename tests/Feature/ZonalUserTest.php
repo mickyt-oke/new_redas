@@ -23,7 +23,7 @@ class ZonalUserTest extends TestCase
         Cache::put('settings.abac_hq_bypass', true);
     }
 
-    private function zonalUser(string $code = 'ZONE_A'): User
+    private function zonalUser(string $code = 'ZONE-A'): User
     {
         return User::factory()->create([
             'role' => 'officer',
@@ -35,7 +35,7 @@ class ZonalUserTest extends TestCase
         ]);
     }
 
-    private function zonalCommander(string $code = 'ZONE_A'): User
+    private function zonalCommander(string $code = 'ZONE-A'): User
     {
         return User::factory()->create([
             'role' => 'zonal',
@@ -103,7 +103,7 @@ class ZonalUserTest extends TestCase
         $this->assertSame($user->id, $application->user_id);
         $this->assertSame('zonal', $application->category);
         $this->assertSame('zonal_review', $application->workflow_stage);
-        $this->assertSame('ZONE_A', $application->scope_code);
+        $this->assertSame('ZONE-A', $application->scope_code);
         $this->assertSame('2026-08', $application->return_data['report_period']);
     }
 
@@ -114,7 +114,7 @@ class ZonalUserTest extends TestCase
         $application = Application::create([
             'user_id' => $user->id,
             'category' => 'zonal',
-            'scope_code' => 'ZONE_A',
+            'scope_code' => 'ZONE-A',
             'workflow_stage' => 'zonal_review',
             'status' => 'returned',
             'return_data' => array_merge($this->validReturnData(), ['report_period' => '2026-07']),
@@ -141,7 +141,7 @@ class ZonalUserTest extends TestCase
         $application = Application::create([
             'user_id' => $user->id,
             'category' => 'zonal',
-            'scope_code' => 'ZONE_A',
+            'scope_code' => 'ZONE-A',
             'workflow_stage' => 'zonal_review',
             'status' => 'pending',
             'return_data' => $this->validReturnData(),

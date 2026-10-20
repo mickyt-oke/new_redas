@@ -32,6 +32,20 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Runs for both web and api requests to flag unusual/blocked traffic.
         $middleware->append(\App\Http\Middleware\LogSuspiciousActivity::class);
+
+        // Security headers for all responses.
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
+        // Trust proxies behind load balancers.
+        $middleware->trustProxies(
+            at: explode(',', (string) env('TRUSTED_PROXIES', '')),
+            headers: Request::HEADER_X_FORWARDED_FOR
+                | Request::HEADER_X_FORWARDED_HOST
+                | Request::HEADER_X_FORWARDED_PORT
+                | Request::HEADER_X_FORWARDED_PROTO
+                | Request::HEADER_X_FORWARDED_PREFIX
+                | Request::HEADER_X_FORWARDED_AWS_ELB
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Session/CSRF expiry (419): send the user back to where they were

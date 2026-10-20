@@ -258,7 +258,7 @@
     </div>
 </form>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
 (function () {
     var form = document.getElementById('singleReturnForm');
     if (!form) return;

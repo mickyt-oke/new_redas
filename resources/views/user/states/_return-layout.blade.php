@@ -1,7 +1,7 @@
 @include('partials.header')
 
 <main class="redas-content">
-    <style>
+    <style nonce="{{ csp_nonce() }}">
     .state-dir-tabs-wrap { background:#f8fafc; border:1px solid var(--gray-200); border-radius:var(--radius-md); padding:8px; margin-bottom:16px; position:sticky; top:var(--topbar-height); z-index:30; }
     .state-dir-tabs { display:flex; gap:6px; overflow-x:auto; }
     .state-dir-tab { display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border:1px solid transparent; border-radius:var(--radius-sm); background:transparent; color:var(--gray-600); font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap; }
@@ -185,7 +185,7 @@
         </div>
     </form>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
     (function () {
         var form = document.getElementById('stateReturnForm');
         if (!form) return;
@@ -445,7 +445,7 @@
     </script>
 
     @if (session('status'))
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         /* The return was submitted successfully: clear the saved draft. */
         (function () {
             try { localStorage.removeItem('redas_state_draft'); } catch (e) {}
@@ -454,7 +454,7 @@
     @endif
 
     @isset($editing)
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         /* Edit mode: restore the previously submitted values into the form.
            Fields the user just re-typed (flashed old input after a failed
            validation) take precedence and are not overwritten. */

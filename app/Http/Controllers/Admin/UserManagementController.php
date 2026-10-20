@@ -19,6 +19,7 @@ use Illuminate\Validation\ValidationException;
 class UserManagementController extends Controller
 {
     use ResolvesHashedModels;
+
     private const CGIS_UNITS = [
         'actu' => 'Anti-Corruption and Transparency Unit',
         'epms' => 'Electronic Passport Management System',
@@ -27,32 +28,67 @@ class UserManagementController extends Controller
         'protocol' => 'Protocol Unit',
         'provost' => 'Provost Unit',
         'servicom' => 'SERVICOM Unit',
+    ];
 
+    /**
+     * Canonical directorate slugs mapped back to the 3-letter codes stored
+     * on user accounts.
+     */
+    private const DIRECTORATE_SLUGS = [
+        'hrm' => 'HRM',
+        'prs' => 'PRS',
+        'finance' => 'FIN',
+        'investigation' => 'INV',
+        'passport' => 'PAS',
+        'visa' => 'VIS',
+        'migration' => 'MIG',
+        'border' => 'BOR',
+        'ict' => 'ICT',
+        'works-logistics' => 'WKS',
     ];
-    private const ZONAL_OFFICES = [
-        'north' => 'Northern Zonal Office',
-        'south' => 'Southern Zonal Office',
-        'east' => 'Eastern Zonal Office',
-        'west' => 'Western Zonal Office',
-    ];
+
+    /**
+     * Human-readable labels for every user category defined by the
+     * application RBAC.
+     */
+    private function categoryLabels(): array
+    {
+        return [
+            'state_user' => 'State User',
+            'desk_admin' => 'State Desk Admin',
+            'zonal_user' => 'Zonal User',
+            'zonal_commander' => 'Zonal Commander',
+            'directorate_user' => 'Directorate User',
+            'directorate_admin' => 'Directorate Admin',
+            'cgis_unit_user' => 'CGIS Unit User',
+            'cgis_desk_admin' => 'CGIS Unit Desk Admin',
+            'hq_admin' => 'HQ Admin',
+            'admin' => 'National Administrator',
+            'super_admin' => 'Super Admin',
+        ];
+    }
+
+    /**
+     * Canonical roles that may be assigned through the user-management UI.
+     */
+    private function roleLabels(): array
+    {
+        return [
+            'officer' => 'Officer',
+            'state' => 'State Admin',
+            'zonal' => 'Zonal Commander',
+            'directorate' => 'Directorate User',
+            'unit_officer' => 'CGIS Unit Officer',
+            'unit_admin' => 'CGIS Unit Desk Admin',
+            'admin' => 'Administrator',
+            'super_admin' => 'Super Admin',
+        ];
+    }
 
     private function formViewData(): array
     {
         return [
-            'categories' => [
-                'state_user' => 'State User',
-                'special_command_user' => 'Special Command User',
-                'desk_admin' => 'State Desk Admin',
-                'directorate_user' => 'Directorate User',
-                'directorate_admin' => 'Directorate Admin',
-                'zonal_user' => 'Zonal User',
-                'zonal_commander' => 'Zonal Commander',
-                'cgis_unit_user' => 'CGIS Unit User',
-                'cgis_desk_admin' => 'CGIS Unit Desk Admin',
-                'hq_admin' => 'HQ Admin',
-                'admin' => 'National Administrator',
-                'super_admin' => 'Super Admin',
-            ],
+            'categories' => $this->categoryLabels(),
             'locationTypes' => [
                 'state' => 'State',
                 'zonal' => 'Zonal',
@@ -60,21 +96,7 @@ class UserManagementController extends Controller
                 'unit' => 'CGIS Unit',
                 'headquarters' => 'Headquarters',
             ],
-            'roles' => [
-                'officer' => 'Officer',
-                'state' => 'State Supervisor',
-                'special_command_user' => 'Special Command User',
-                'desk_admin' => 'State Desk Admin',
-                'zonal_commander' => 'Zonal Commander',
-                'zonal' => 'Zonal Commander',
-                'directorate' => 'Directorate User',
-                'directorate_admin' => 'Directorate Admin',
-                'unit_officer' => 'CGIS Unit Officer',
-                'unit_admin' => 'CGIS Unit Desk Admin',
-                'hq_admin' => 'HQ Admin',
-                'super_admin' => 'Super Admin',
-                'admin' => 'Administrator',
-            ],
+            'roles' => $this->roleLabels(),
             'cgisUnits' => self::CGIS_UNITS,
             'zonalOffices' => NisFormationService::zonalOffices(),
             'stateCommands' => NisFormationService::stateCommands(),
@@ -93,15 +115,20 @@ class UserManagementController extends Controller
             ? 'unique:users'
             : 'unique:users,email,'.$user->id;
 
+        $roleOptions = implode(',', array_keys($this->roleLabels()));
+        $categoryOptions = implode(',', array_keys($this->categoryLabels()));
+        $locationOptions = implode(',', User::LOCATION_TYPES);
+        $cgisUnitOptions = implode(',', array_keys(self::CGIS_UNITS));
+
         return [
             'name' => 'required|string|max:255',
-            'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{3}\/\d{4}$/', $uniqueServiceNumber],
-            'role' => 'required|in:officer,state,desk_admin,zonal_commander,zonal,directorate,directorate_admin,unit_officer,unit_admin,hq_admin,super_admin,admin',
-            'user_category' => 'required|in:state_user,desk_admin,directorate_user,directorate_admin,zonal_user,zonal_commander,cgis_unit_user,cgis_desk_admin,hq_admin,admin,super_admin',
-            'primary_location_type' => 'required|in:state,zonal,directorate,unit,headquarters',
+            'service_number' => ['required', 'string', 'regex:/^NIS\/[A-Z]{2,3}\/\d{3,4}$/', $uniqueServiceNumber],
+            'role' => 'required|in:'.$roleOptions,
+            'user_category' => 'required|in:'.$categoryOptions,
+            'primary_location_type' => 'required|in:'.$locationOptions,
             'formation_code' => 'nullable|string|max:50',
-            'primary_location_code' => 'nullable|string|max:50',
-            'assigned_cgis_unit_code' => 'nullable|in:'.implode(',', array_keys(self::CGIS_UNITS)),
+            'primary_location_code' => ['nullable', 'required_if:user_category,directorate_user,directorate_admin', 'string', 'max:50'],
+            'assigned_cgis_unit_code' => ['nullable', 'required_if:user_category,cgis_unit_user,cgis_desk_admin', 'in:'.$cgisUnitOptions],
             'email' => ['required', 'string', 'email', 'max:255', $uniqueEmail],
             'password' => $user === null ? 'required|string|min:8|confirmed' : 'nullable|string|min:8|confirmed',
             'is_enabled' => 'sometimes|boolean',
@@ -114,6 +141,14 @@ class UserManagementController extends Controller
      */
     private function resolveFormation(?string $formationCode, ?string $fallbackCode, string $locationType): array
     {
+        if ($locationType === 'zonal') {
+            $code = NisFormationService::normalizeZoneCode($formationCode)
+                ?? NisFormationService::normalizeZoneCode($fallbackCode)
+                ?? ($formationCode ?: $fallbackCode);
+
+            return [$code, NisFormationService::geoStateForCode($code)];
+        }
+
         if ($formationCode !== null && $formationCode !== '') {
             return [
                 $formationCode,
@@ -121,11 +156,69 @@ class UserManagementController extends Controller
             ];
         }
 
-        if (in_array($locationType, ['state', 'zonal'], true)) {
+        if ($locationType === 'state') {
             return [$fallbackCode, NisFormationService::geoStateForCode($fallbackCode ?? '')];
         }
 
         return [$fallbackCode, null];
+    }
+
+    /**
+     * Derive the operational-scope fields that match the access profile.
+     */
+    private function scopeFieldsForProfile(string $category, ?string $locationCode, ?string $geoState, ?string $assignedCgisUnit): array
+    {
+        $fields = [];
+
+        switch ($category) {
+            case 'state_user':
+            case 'desk_admin':
+                $stateCode = $geoState ?: $locationCode;
+                $fields['assigned_state_code'] = $stateCode;
+
+                if ($stateCode !== null && $stateCode !== '') {
+                    $fields['assigned_zonal_command_code'] = NisFormationService::zoneForState($stateCode);
+                }
+                break;
+
+            case 'zonal_user':
+            case 'zonal_commander':
+                if ($locationCode !== null && $locationCode !== '') {
+                    $fields['assigned_zonal_command_code'] = NisFormationService::normalizeZoneCode($locationCode) ?: $locationCode;
+                }
+                break;
+
+            case 'directorate_user':
+            case 'directorate_admin':
+                $fields['assigned_directorate_code'] = $this->normalizeDirectorateCode($locationCode);
+                break;
+
+            case 'cgis_unit_user':
+            case 'cgis_desk_admin':
+                $fields['assigned_cgis_unit_code'] = $assignedCgisUnit ?: $locationCode;
+                break;
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Normalize a directorate slug or code to the uppercase code used by
+     * the rest of the application.
+     */
+    private function normalizeDirectorateCode(?string $code): ?string
+    {
+        if ($code === null || $code === '') {
+            return null;
+        }
+
+        $key = strtolower(trim($code));
+
+        if (array_key_exists($key, self::DIRECTORATE_SLUGS)) {
+            return self::DIRECTORATE_SLUGS[$key];
+        }
+
+        return strtoupper($code);
     }
 
     public function index(Request $request)
@@ -174,6 +267,28 @@ class UserManagementController extends Controller
             $normalized['primary_location_type']
         );
 
+        $scopeFields = $this->scopeFieldsForProfile(
+            $normalized['user_category'],
+            $locationCode,
+            $geoState,
+            $validated['assigned_cgis_unit_code'] ?? null
+        );
+
+        // Ensure unit/directorate accounts carry a usable primary location code.
+        if ($normalized['primary_location_type'] === 'unit' && empty($locationCode) && ! empty($scopeFields['assigned_cgis_unit_code'])) {
+            $locationCode = $scopeFields['assigned_cgis_unit_code'];
+        }
+
+        if ($normalized['primary_location_type'] === 'directorate' && empty($locationCode) && ! empty($scopeFields['assigned_directorate_code'])) {
+            $locationCode = $scopeFields['assigned_directorate_code'];
+        }
+
+        if (in_array($normalized['primary_location_type'], ['unit', 'directorate'], true) && empty($locationCode)) {
+            throw ValidationException::withMessages([
+                $normalized['primary_location_type'] === 'unit' ? 'assigned_cgis_unit_code' : 'primary_location_code' => ['A scope code is required for this account type.'],
+            ]);
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'service_number' => strtoupper($validated['service_number']),
@@ -181,13 +296,13 @@ class UserManagementController extends Controller
             'user_category' => $normalized['user_category'],
             'primary_location_type' => $normalized['primary_location_type'],
             'primary_location_code' => $locationCode,
-            'assigned_cgis_unit_code' => $validated['assigned_cgis_unit_code'] ?? null,
             'geo_state' => $geoState,
             'access_level' => $normalized['access_level'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'must_change_password' => true,
             'is_enabled' => $request->boolean('is_enabled', true),
+            ...$scopeFields,
         ]);
 
         $this->sendVerificationEmail($user);
@@ -228,22 +343,48 @@ class UserManagementController extends Controller
             $normalized['primary_location_type']
         );
 
-        $user->update([
+        $scopeFields = $this->scopeFieldsForProfile(
+            $normalized['user_category'],
+            $locationCode,
+            $geoState,
+            $validated['assigned_cgis_unit_code'] ?? null
+        );
+
+        if ($normalized['primary_location_type'] === 'unit' && empty($locationCode) && ! empty($scopeFields['assigned_cgis_unit_code'])) {
+            $locationCode = $scopeFields['assigned_cgis_unit_code'];
+        }
+
+        if ($normalized['primary_location_type'] === 'directorate' && empty($locationCode) && ! empty($scopeFields['assigned_directorate_code'])) {
+            $locationCode = $scopeFields['assigned_directorate_code'];
+        }
+
+        if (in_array($normalized['primary_location_type'], ['unit', 'directorate'], true) && empty($locationCode)) {
+            throw ValidationException::withMessages([
+                $normalized['primary_location_type'] === 'unit' ? 'assigned_cgis_unit_code' : 'primary_location_code' => ['A scope code is required for this account type.'],
+            ]);
+        }
+
+        $updateData = [
             'name' => $validated['name'],
             'service_number' => strtoupper($validated['service_number']),
             'role' => $normalized['role'],
             'user_category' => $normalized['user_category'],
             'primary_location_type' => $normalized['primary_location_type'],
             'primary_location_code' => $locationCode,
-            'assigned_cgis_unit_code' => $validated['assigned_cgis_unit_code'] ?? null,
             'geo_state' => $geoState,
             'access_level' => $normalized['access_level'],
             'email' => $validated['email'],
             'is_enabled' => $request->boolean('is_enabled', true),
-            'password' => !empty($validated['password']) ? Hash::make($validated['password']) : $user->password,
+            ...$scopeFields,
+        ];
+
+        if (! empty($validated['password'])) {
+            $updateData['password'] = Hash::make($validated['password']);
             // An admin-assigned password must be changed by the user on their next login.
-            'must_change_password' => !empty($validated['password']) ? true : $user->must_change_password,
-        ]);
+            $updateData['must_change_password'] = true;
+        }
+
+        $user->update($updateData);
 
         return redirect()->route('admin.users.edit', ['userHash' => HashidService::encode($user->id)])
             ->with('status', 'User updated successfully.');
@@ -262,18 +403,32 @@ class UserManagementController extends Controller
     {
         $map = [
             'state_user' => [
-                'roles' => ['officer'],
+                'roles' => ['officer', 'user'],
                 'locations' => ['state'],
                 'level' => 0,
                 'canonical_role' => 'officer',
                 'canonical_location' => 'state',
             ],
             'desk_admin' => [
-                'roles' => ['state', 'desk_admin'],
+                'roles' => ['state'],
                 'locations' => ['state'],
                 'level' => 1,
                 'canonical_role' => 'state',
                 'canonical_location' => 'state',
+            ],
+            'zonal_user' => [
+                'roles' => ['officer', 'user'],
+                'locations' => ['zonal', 'zone'],
+                'level' => 0,
+                'canonical_role' => 'officer',
+                'canonical_location' => 'zonal',
+            ],
+            'zonal_commander' => [
+                'roles' => ['zonal'],
+                'locations' => ['zonal', 'zone'],
+                'level' => 4,
+                'canonical_role' => 'zonal',
+                'canonical_location' => 'zonal',
             ],
             'directorate_user' => [
                 'roles' => ['directorate'],
@@ -283,25 +438,11 @@ class UserManagementController extends Controller
                 'canonical_location' => 'directorate',
             ],
             'directorate_admin' => [
-                'roles' => ['admin', 'directorate_admin'],
+                'roles' => ['admin'],
                 'locations' => ['directorate'],
                 'level' => 3,
                 'canonical_role' => 'admin',
                 'canonical_location' => 'directorate',
-            ],
-            'zonal_user' => [
-                'roles' => ['officer', 'zone_officer', 'zonal'],
-                'locations' => ['zone', 'zonal'],
-                'level' => 0,
-                'canonical_role' => 'officer',
-                'canonical_location' => 'zonal',
-            ],
-            'zonal_commander' => [
-                'roles' => ['zonal', 'zonal_commander'],
-                'locations' => ['zone', 'zonal'],
-                'level' => 4,
-                'canonical_role' => 'zonal',
-                'canonical_location' => 'zonal',
             ],
             'cgis_unit_user' => [
                 'roles' => ['unit_officer', 'officer'],

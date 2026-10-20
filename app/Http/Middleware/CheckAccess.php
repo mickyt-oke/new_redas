@@ -139,7 +139,9 @@ class CheckAccess
         // Role type check (new semantic role layer)
         if (!empty($parsed['role'])) {
             foreach ($parsed['role'] as $role) {
-                if (!in_array($role, User::ROLE_TYPES, true) && !in_array($role, ['admin', 'zonal', 'state', 'officer', 'directorate', 'user'], true)) {
+                $legacyRoles = ['admin', 'zonal', 'state', 'officer', 'directorate', 'user', 'hq_admin', 'super_admin'];
+
+                if (! in_array($role, User::ROLE_TYPES, true) && ! in_array($role, $legacyRoles, true)) {
                     return false; // strict validation
                 }
             }

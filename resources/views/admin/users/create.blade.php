@@ -4,7 +4,7 @@
     <div class="page-header">
         <div>
             <h1 class="page-title">Create New User</h1>
-            <p class="page-subtitle">Provision a new account and optionally enforce a specific login state.</p>
+            <p class="page-subtitle">Provision a new account and assign the correct RBAC profile.</p>
         </div>
         <a href="{{ route('admin.users') }}" class="btn-nis btn-ghost">
             <i class="fas fa-arrow-left"></i> Back to users
@@ -42,19 +42,9 @@
                 </div>
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
-                    <label class="form-label-nis">Role</label>
-                    <select name="role" class="auth-input" required>
-                        <option value="" disabled selected>Select role</option>
-                        @foreach($roles as $value => $label)
-                            <option value="{{ $value }}" {{ old('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="auth-form-group" style="margin-bottom:18px;">
                     <label class="form-label-nis">Access Category</label>
-                    <select name="user_category" class="auth-input" required>
-                        <option value="" disabled selected>Select category</option>
+                    <select name="user_category" id="userCategory" class="auth-input" required>
+                        <option value="" disabled {{ old('user_category') ? '' : 'selected' }}>Select category</option>
                         @foreach($categories as $value => $label)
                             <option value="{{ $value }}" {{ old('user_category') === $value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
@@ -62,9 +52,19 @@
                 </div>
 
                 <div class="auth-form-group" style="margin-bottom:18px;">
+                    <label class="form-label-nis">Role</label>
+                    <select name="role" id="userRole" class="auth-input" required>
+                        <option value="" disabled {{ old('role') ? '' : 'selected' }}>Select role</option>
+                        @foreach($roles as $value => $label)
+                            <option value="{{ $value }}" data-category-roles="{{ $value }}" {{ old('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="auth-form-group" style="margin-bottom:18px;">
                     <label class="form-label-nis">Primary Location Type</label>
-                    <select name="primary_location_type" class="auth-input" required>
-                        <option value="" disabled selected>Select location</option>
+                    <select name="primary_location_type" id="locationType" class="auth-input" required>
+                        <option value="" disabled {{ old('primary_location_type') ? '' : 'selected' }}>Select location</option>
                         @foreach($locationTypes as $value => $label)
                             <option value="{{ $value }}" {{ old('primary_location_type') === $value ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
@@ -80,13 +80,14 @@
                 </div>
 
                 <div class="auth-form-group" id="locationCodeGroup" style="margin-bottom:18px;display:none;">
-                    <label class="form-label-nis">Primary Location Code</label>
-                    <input type="text" name="primary_location_code" value="{{ old('primary_location_code') }}" class="auth-input" placeholder="e.g. HRM, ACTU">
+                    <label class="form-label-nis">Scope Code</label>
+                    <input type="text" name="primary_location_code" value="{{ old('primary_location_code') }}" class="auth-input" id="primaryLocationCode" placeholder="e.g. HRM, ACTU">
+                    <small class="text-muted">Enter the directorate code or unit slug for this account.</small>
                 </div>
 
-                <div class="auth-form-group" style="margin-bottom:18px;">
+                <div class="auth-form-group" id="cgisUnitGroup" style="margin-bottom:18px;display:none;">
                     <label class="form-label-nis">CGIS Unit</label>
-                    <select name="assigned_cgis_unit_code" class="auth-input">
+                    <select name="assigned_cgis_unit_code" id="cgisUnit" class="auth-input">
                         <option value="" {{ old('assigned_cgis_unit_code') === null ? 'selected' : '' }}>None</option>
                         @foreach($cgisUnits as $value => $label)
                             <option value="{{ $value }}" {{ old('assigned_cgis_unit_code') === $value ? 'selected' : '' }}>{{ $label }}</option>
@@ -95,7 +96,7 @@
                     <small class="text-muted">Required for CGIS Unit User and CGIS Unit Desk Admin accounts.</small>
                 </div>
 
-                            <div class="auth-form-group" style="margin-bottom:18px;display:flex;align-items:center;gap:12px;">
+                <div class="auth-form-group" style="margin-bottom:18px;display:flex;align-items:center;gap:12px;">
                     <label class="switch">
                         <input type="checkbox" name="is_enabled" value="1" {{ old('is_enabled', '1') === '1' ? 'checked' : '' }}>
                         <span class="slider round"></span>
@@ -106,7 +107,7 @@
                 <div class="auth-form-group pw-wrap" style="margin-bottom:18px;">
                     <label class="form-label-nis">Password</label>
                     <input type="password" name="password" id="password" class="auth-input" required>
-                     <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
                     <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -115,7 +116,7 @@
                 <div class="auth-form-group pw-wrap" style="margin-bottom:24px;">
                     <label class="form-label-nis">Confirm Password</label>
                     <input type="password" name="password_confirmation" id="password_confirmation" class="auth-input" required>
-                     <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
+                    <span class="auth-input-icon"><i class="fas fa-lock"></i></span>
                     <button type="button" class="pw-toggle" aria-label="Toggle password visibility">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -131,15 +132,47 @@
 
 <script>
 (function () {
-    var categorySelect = document.querySelector('select[name="user_category"]');
-    var locationSelect = document.querySelector('select[name="primary_location_type"]');
+    var categorySelect = document.getElementById('userCategory');
+    var roleSelect = document.getElementById('userRole');
+    var locationSelect = document.getElementById('locationType');
     var formationGroup = document.getElementById('formationGroup');
     var formationSelect = document.getElementById('formationSelect');
     var locationCodeGroup = document.getElementById('locationCodeGroup');
+    var cgisUnitGroup = document.getElementById('cgisUnitGroup');
+    var cgisUnitSelect = document.getElementById('cgisUnit');
+    var locationCodeInput = document.getElementById('primaryLocationCode');
 
     var zonalOffices = @json($zonalOffices);
     var stateCommands = @json($stateCommands);
     var specialCommands = @json($specialCommands);
+
+    var categoryRoles = {
+        state_user: ['officer'],
+        desk_admin: ['state'],
+        zonal_user: ['officer'],
+        zonal_commander: ['zonal'],
+        directorate_user: ['directorate'],
+        directorate_admin: ['admin'],
+        cgis_unit_user: ['unit_officer', 'officer'],
+        cgis_desk_admin: ['unit_admin', 'admin'],
+        hq_admin: ['admin', 'super_admin'],
+        admin: ['admin'],
+        super_admin: ['admin', 'super_admin'],
+    };
+
+    var categoryLocations = {
+        state_user: 'state',
+        desk_admin: 'state',
+        zonal_user: 'zonal',
+        zonal_commander: 'zonal',
+        directorate_user: 'directorate',
+        directorate_admin: 'directorate',
+        cgis_unit_user: 'unit',
+        cgis_desk_admin: 'unit',
+        hq_admin: 'headquarters',
+        admin: 'headquarters',
+        super_admin: 'headquarters',
+    };
 
     function clearSelect() {
         formationSelect.innerHTML = '<option value="" disabled selected>Select formation</option>';
@@ -158,10 +191,66 @@
         formationSelect.appendChild(optgroup);
     }
 
+    function filterRoles() {
+        var category = categorySelect ? categorySelect.value : '';
+        var allowed = categoryRoles[category] || [];
+        var hasSelection = false;
+
+        Array.from(roleSelect.options).forEach(function (option) {
+            if (!option.value) return;
+            var visible = allowed.indexOf(option.value) !== -1;
+            option.style.display = visible ? '' : 'none';
+            option.disabled = !visible;
+            if (visible && option.selected) {
+                hasSelection = true;
+            }
+        });
+
+        if (!hasSelection && allowed.length) {
+            roleSelect.value = allowed[0];
+        }
+    }
+
+    function updateCgisUnit() {
+        var category = categorySelect ? categorySelect.value : '';
+        var needsUnit = category === 'cgis_unit_user' || category === 'cgis_desk_admin';
+
+        cgisUnitGroup.style.display = needsUnit ? '' : 'none';
+        if (!needsUnit) {
+            cgisUnitSelect.value = '';
+        }
+    }
+
+    function updateLocationType() {
+        var category = categorySelect ? categorySelect.value : '';
+        var expected = categoryLocations[category];
+
+        if (expected && locationSelect) {
+            locationSelect.value = expected;
+        }
+    }
+
+    function updateLocationCodePlaceholder() {
+        var category = categorySelect ? categorySelect.value : '';
+        var location = locationSelect ? locationSelect.value : '';
+
+        if (category === 'directorate_user' || category === 'directorate_admin') {
+            locationCodeInput.placeholder = 'e.g. HRM, PRS, FIN';
+        } else if (location === 'unit') {
+            locationCodeInput.placeholder = 'e.g. actu, epms, servicom';
+        } else {
+            locationCodeInput.placeholder = 'e.g. HRM, ACTU';
+        }
+    }
+
     function updateForm() {
         var category = categorySelect ? categorySelect.value : '';
         var location = locationSelect ? locationSelect.value : '';
         var needsFormation = (location === 'state' || location === 'zonal');
+
+        filterRoles();
+        updateCgisUnit();
+        updateLocationCodePlaceholder();
 
         if (needsFormation) {
             formationGroup.style.display = '';
@@ -183,7 +272,12 @@
         }
     }
 
-    if (categorySelect) categorySelect.addEventListener('change', updateForm);
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function () {
+            updateLocationType();
+            updateForm();
+        });
+    }
     if (locationSelect) locationSelect.addEventListener('change', updateForm);
 
     updateForm();
