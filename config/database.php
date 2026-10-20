@@ -2,8 +2,22 @@
 
 use Illuminate\Support\Str;
 
+$redisHost = (string) env('REDIS_HOST', '127.0.0.1');
+$redisUrl = (string) env('REDIS_URL');
+
+// Auto-enable TLS for Upstash-style hosts or when explicitly requested.
+$redisUsesTls = str_starts_with($redisHost, 'tls://')
+    || str_starts_with($redisUrl, 'tls://')
+    || str_starts_with($redisUrl, 'rediss://')
+    || env('REDIS_SSL', false)
+    || str_contains($redisHost, 'upstash.io');
+
+if ($redisUsesTls && ! str_starts_with($redisHost, 'tls://')) {
+    $redisHost = 'tls://' . ltrim($redisHost, '/');
+}
+
 $redisSslOptions = [];
-if (env('REDIS_SSL', false)) {
+if ($redisUsesTls) {
     $redisSslOptions = [
         'verify_peer' => env('REDIS_SSL_VERIFY_PEER', true),
         'verify_peer_name' => env('REDIS_SSL_VERIFY_PEER_NAME', true),
@@ -16,8 +30,8 @@ if (env('REDIS_SSL', false)) {
 }
 
 $redisConnection = [
-    'url' => env('REDIS_URL'),
-    'host' => env('REDIS_HOST', 'major-fowl-127024.upstash.io'),
+    'url' => $redisUrl !== '' ? $redisUrl : null,
+    'host' => $redisHost,
     'username' => env('REDIS_USERNAME'),
     'password' => env('REDIS_PASSWORD'),
     'port' => env('REDIS_PORT', '6379'),
