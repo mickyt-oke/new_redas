@@ -3,26 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\OtpCode;
-use App\Models\RefreshToken;
 use App\Models\User;
-use App\Services\JwtService;
+use App\Services\AuthCookie;
 use App\Services\Messaging\ResendMailService;
+use App\Services\MfaService;
+use App\Services\TokenService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ApiOtpController extends Controller
 {
-    /**
-     * Build a Secure/HttpOnly/Strict SameSite auth cookie.
-     */
-    private function authCookie(string $name, string $value, int $ttlMinutes): \Symfony\Component\HttpFoundation\Cookie
+    private TokenService $tokenService;
+
+    public function __construct()
     {
-        return cookie($name, $value, $ttlMinutes, '/', null, true, true, false, 'Strict');
+        $this->tokenService = TokenService::fromConfig();
     }
 
     public function request(Request $request)
@@ -62,13 +61,11 @@ class ApiOtpController extends Controller
 
         $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300); // 5 minutes default
 
-        // Exactly 4 digits, including leading zeros (e.g. 0007)
         $codeInt = random_int(0, 9999);
         $code = str_pad((string) $codeInt, 4, '0', STR_PAD_LEFT);
         $codeHash = hash('sha256', $code);
 
-        // Create a fresh OTP row (simpler than rotation logic)
-        $otp = OtpCode::create([
+        OtpCode::create([
             'user_id' => $user->id,
             'purpose' => $purpose,
             'code_hash' => $codeHash,
@@ -77,7 +74,6 @@ class ApiOtpController extends Controller
             'consumed_at' => null,
         ]);
 
-        // Send OTP email (template keys are configurable)
         $templateKey = $purpose === 'verify_email'
             ? 'otp_verify_email'
             : 'otp_login';
@@ -109,7 +105,7 @@ class ApiOtpController extends Controller
 
         return response()->json([
             'message' => 'OTP sent successfully.',
-            'expires_at' => $otp->expires_at?->toIso8601String(),
+            'expires_at' => Carbon::now()->addSeconds($ttlSeconds)->toIso8601String(),
         ], 200);
     }
 
@@ -119,6 +115,7 @@ class ApiOtpController extends Controller
             'login' => ['required', 'string', 'max:255'],
             'purpose' => ['required', 'string', 'in:login,verify_email'],
             'otp' => ['required', 'string', 'regex:/^\d{4}$/'],
+            'totp' => ['nullable', 'string', 'max:32'],
         ]);
 
         if ($validator->fails()) {
@@ -162,7 +159,6 @@ class ApiOtpController extends Controller
             ->first();
 
         if (! $otp) {
-            // Best-effort attempt increment (for the most recent active OTP for this purpose)
             $latest = OtpCode::query()
                 ->where('user_id', $user->id)
                 ->where('purpose', $purpose)
@@ -202,78 +198,47 @@ class ApiOtpController extends Controller
         $this->resetOtpLockout($user);
 
         if ($purpose === 'login') {
-            // No API password-change flow exists yet, so a pending forced
-            // change must be completed on the web portal before a mobile/API
-            // session can be issued — otherwise it would bypass the policy.
             if ($user->must_change_password) {
                 return response()->json([
                     'message' => 'PASSWORD_CHANGE_REQUIRED',
                 ], 403);
             }
 
-            // Issue JWTs only after 2FA OTP verification
-            $jti = (string) Str::uuid();
+            $mfaResponse = $this->ensureMfaSatisfied($user, $request);
+            if ($mfaResponse !== null) {
+                return $mfaResponse;
+            }
 
-            $refreshToken = new RefreshToken([
-                'user_id' => $user->id,
-                'jti' => $jti,
-                'token_hash' => '', // set below
-                'expires_at' => now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000)),
-                'revoked_at' => null,
-                'created_ip' => $request->ip(),
-                'user_agent' => (string) $request->userAgent(),
-            ]);
+            $access = $this->tokenService->issueAccessToken($user);
+            $refresh = $this->tokenService->issueRefreshToken($user, $request);
 
-            $refreshJwt = JwtService::fromEnv()->issueRefreshToken(
-                userId: $user->id,
-                role: $user->role,
-                jti: $jti
-            );
-
-            $refreshToken->token_hash = hash('sha256', $refreshJwt);
-            $refreshToken->save();
-
-            $accessJwt = JwtService::fromEnv()->issueAccessToken(
-                userId: $user->id,
-                role: $user->role,
-                jti: (string) Str::uuid()
-            );
-
-            $accessTtlMinutes = (int) ceil((int) env('JWT_ACCESS_TTL', 900) / 60);
-            $refreshTtlMinutes = (int) ceil((int) env('JWT_REFRESH_TTL', 2592000) / 60);
-            $refreshExpiresAt = now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000));
+            $accessTtlMinutes = (int) ceil($access['expiresAt']->diffInSeconds(now()) / 60);
+            $refreshTtlMinutes = (int) ceil($refresh['expiresAt']->diffInSeconds(now()) / 60);
 
             return response()->json([
                 'message' => 'OTP verified successfully.',
                 'user_id' => $user->id,
-                'access_token' => $accessJwt,
+                'access_token' => $access['plainTextToken'],
                 'token_type' => 'bearer',
-                'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-                'refresh_expires_in' => (int) env('JWT_REFRESH_TTL', 2592000),
-                'refresh_expires_at' => $refreshExpiresAt->toDateTimeString(),
+                'expires_in' => max(0, $access['expiresAt']->diffInSeconds(now())),
+                'refresh_expires_in' => max(0, $refresh['expiresAt']->diffInSeconds(now())),
+                'refresh_expires_at' => $refresh['expiresAt']->toDateTimeString(),
             ], 200)
-                ->withCookie($this->authCookie('access_token', $accessJwt, $accessTtlMinutes))
-                ->withCookie($this->authCookie('refresh_token', $refreshJwt, $refreshTtlMinutes));
+                ->withCookie(AuthCookie::make('access_token', $access['plainTextToken'], max(1, $accessTtlMinutes)))
+                ->withCookie(AuthCookie::make('refresh_token', $refresh['plainTextToken'], max(1, $refreshTtlMinutes)));
         }
 
-        // verify_email (and other purposes) currently just consume OTP
         return response()->json([
             'message' => 'OTP verified successfully.',
             'user_id' => $user->id,
         ], 200);
     }
 
-    /**
-     * Return the user's OTP lockout timestamp, if any.
-     */
     private function otpLockedUntil(User $user): ?Carbon
     {
         return $user->otp_locked_until;
     }
 
-    /**
-     * Build the standardized OTP lockout JSON response.
-     */
     private function otpLockedResponse(User $user): JsonResponse
     {
         $seconds = (int) now()->diffInSeconds($user->otp_locked_until);
@@ -284,10 +249,6 @@ class ApiOtpController extends Controller
         ], 403);
     }
 
-    /**
-     * Record a failed OTP verification attempt and lock the account if the
-     * threshold has been reached.
-     */
     private function recordFailedOtpAttempt(User $user, string $purpose, ?string $ip): void
     {
         $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
@@ -316,9 +277,6 @@ class ApiOtpController extends Controller
         ])->save();
     }
 
-    /**
-     * Clear any OTP lockout state after a successful verification.
-     */
     private function resetOtpLockout(User $user): void
     {
         if ($user->otp_failed_attempts !== 0 || $user->otp_locked_until !== null) {
@@ -327,5 +285,37 @@ class ApiOtpController extends Controller
                 'otp_locked_until' => null,
             ])->save();
         }
+    }
+
+    /**
+     * Enforce the enrolled second factor before issuing API tokens.
+     *
+     * If the user has MFA enabled, a valid TOTP code or single-use backup code
+     * must be supplied in the same request. Missing/invalid codes return a
+     * 401 challenge so the client can prompt for the second factor.
+     */
+    private function ensureMfaSatisfied(User $user, Request $request): ?JsonResponse
+    {
+        if (! $user->isMfaEnabled()) {
+            return null;
+        }
+
+        $totp = (string) $request->input('totp', '');
+
+        if ($totp === '') {
+            return response()->json([
+                'message' => 'MFA_REQUIRED',
+                'methods' => ['totp', 'backup_code'],
+            ], 401);
+        }
+
+        if (! app(MfaService::class)->verifyCode($user, $totp)) {
+            return response()->json([
+                'message' => 'MFA_INVALID',
+                'methods' => ['totp', 'backup_code'],
+            ], 401);
+        }
+
+        return null;
     }
 }

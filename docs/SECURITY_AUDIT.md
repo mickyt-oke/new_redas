@@ -58,8 +58,8 @@ The final approval gate is also weaker than it reads. The national approval auth
 | C-3 | Account lockout is non-functional (silent mass-assignment discard) | **Critical** | `AuthController` / `User` |
 | C-4 | Reviewer scope checks fail open | **Critical** | `SubmissionReviewController` / `SubmissionWorkflow` |
 | H-1 | MFA challenge has no throttling, lockout, or audit trail | High | `routes/web.php`, `MfaController` |
-| H-2 | API login bypasses the enrolled TOTP factor entirely | High | `ApiAuthController` / `ApiOtpController` |
-| H-3 | JWT access tokens cannot be revoked; issuer unverified; dev secret fallback | High | `JwtService`, `JwtAccessTokenMiddleware` |
+| H-2 | ~~API login bypasses the enrolled TOTP factor entirely~~ **Resolved** — MFA now enforced on API token issue | High | `ApiAuthController` / `ApiOtpController` |
+| H-3 | ~~JWT access tokens cannot be revoked; issuer unverified; dev secret fallback~~ **Resolved** — replaced by Laravel Sanctum stateful tokens | High | `TokenService`, `ApiAccessTokenMiddleware` |
 | H-4 | Password reset does not terminate existing sessions | High | `AuthTokenController` |
 | H-5 | Hashid salt is a hard-coded constant (config key does not exist) | High | `HashidService`, `config/app.php` |
 | H-6 | CSP is Report-Only and never enforced; cache headers absent | High | `SecurityHeaders` |
@@ -518,94 +518,45 @@ Add `mfa_failed_attempts` / `mfa_locked_until` columns (there is already a `mfa_
 
 ---
 
-### H-2 — The JSON API bypasses the enrolled TOTP factor entirely
+### H-2 — ~~API login bypasses the enrolled TOTP factor entirely~~ **Resolved**
 
-**Where:** `app/Http/Controllers/ApiAuthController::login()`, `app/Http/Controllers/ApiOtpController::verify()`.
+**Status:** Resolved. API token issuance now enforces the same enrolled second factor as the web portal.
 
-**What is wrong.** Two parallel login mechanisms have diverged in security property:
+**What changed.**
 
-| Step | Web portal | JSON API |
-|---|---|---|
-| Password | ✔ | ✔ |
-| Second factor | **TOTP (enrolled, verified)** | **4-digit email OTP** |
-| Enrolled TOTP consulted? | Yes | **No** |
-| Session | encrypted server-side, `HttpOnly`, `SameSite=Lax` | JWT (15 min) + refresh cookie |
+- `ApiOtpController::verify()` now checks `$user->isMfaEnabled()` before issuing tokens.
+- If MFA is enabled, the request must include a valid `totp` value (TOTP code or single-use backup code) in the same call; otherwise it returns `401` with `message: "MFA_REQUIRED"` and `methods: ["totp", "backup_code"]`.
+- `ApiAuthController::login()` no longer requires or filters by a client-supplied `role`, removing a role-enumeration oracle.
+- Users without MFA continue to authenticate with email OTP only, preserving backwards compatibility for accounts that have not yet enrolled.
 
-`ApiOtpController::verify()` issues access and refresh JWTs after a correct 4-digit email code and never looks at `mfa_enabled`, `mfa_secret` or `mfa_verified_at`:
+**Verification.** `tests/Feature/ApiMfaTest.php` covers:
+- non-MFA users still receive tokens after email OTP;
+- MFA-enabled users are challenged with `MFA_REQUIRED` when `totp` is missing;
+- invalid TOTP returns `MFA_INVALID` and no token;
+- valid TOTP issues tokens;
+- valid backup code issues tokens and consumes the code.
 
-```php
-if ($purpose === 'login') {
-    // …no MFA check anywhere…
-    $accessJwt  = JwtService::fromEnv()->issueAccessToken(...);
-    $refreshJwt = JwtService::fromEnv()->issueRefreshToken(...);
-}
-```
-
-A user who has dutifully enrolled a hardware-backed TOTP authenticator has that protection silently downgraded to email possession the moment anyone uses the API. The 4-digit OTP is also the weaker of the two factors by a wide margin (see H-8).
-
-**Impact.** Full second-factor bypass on the API surface, and a second, weaker oracle that can be attacked independently of the hardened web path. Any attacker with mailbox access (the same mailbox used for password reset, remember) obtains a full bearer token and refresh cookie.
-
-**Remediation.** Require the enrolled factor before issuing tokens:
-
-```php
-// ApiOtpController::verify(), inside the login branch, before issuing JWTs
-if ($user->isMfaEnabled()) {
-    $totp = (string) $request->input('totp', '');
-
-    if (! app(MfaService::class)->verifyCode($user, $totp)) {
-        return response()->json([
-            'message' => 'MFA_REQUIRED',
-            'methods' => ['totp', 'backup_code'],
-        ], 401);
-    }
-}
-```
-
-If the mobile client cannot yet display a TOTP prompt, the correct interim posture is to **deny API login for MFA-enrolled accounts** (`403 MFA_REQUIRED_ON_API`) rather than silently weakening them, and to make the API opt-in per account. Also remove the `role` requirement from `ApiAuthController::login()` — it makes the endpoint's credential check stricter in an unusual way (it constrains the lookup by legacy role string) without adding security, and it invites clients to enumerate which role a given email has by observing 401 vs. 200-with-OTP.
+**Residual risk.** The 4-digit email OTP remains a relatively weak first factor (see H-8/H-9). Consider making MFA mandatory for all API-accessible accounts and, for high-privilege accounts, issuing hardware-key/WebAuthn credentials instead of TOTP.
 
 ---
 
-### H-3 — JWT access tokens cannot be revoked; issuer unchecked; dev secret fallback
+### H-3 — ~~JWT access tokens cannot be revoked; issuer unchecked; dev secret fallback~~ **Resolved**
 
-**Where:** `app/Services/JwtService.php`, `app/Http/Middleware/JwtAccessTokenMiddleware.php`.
+**Status:** Resolved. `firebase/php-jwt` has been removed and the API token layer rebuilt on Laravel Sanctum.
 
-**What is wrong.** Three distinct weaknesses in one service.
+**What changed.**
 
-1. **No revocation path.** `JwtAccessTokenMiddleware` validates signature, `type === 'access'`, subject, then re-loads the user and checks `is_enabled`/`email_verified_at`. It never consults a denylist, so a stolen access token remains valid for its full `JWT_ACCESS_TTL` (900 s). Disabling an account does work — but role changes, password resets and detected token theft do not. The `jti` claim is generated (`Str::uuid()`) and then discarded on the access-token path; only refresh tokens are recorded, so there is nothing to revoke *against*.
+- `composer.json` no longer depends on `firebase/php-jwt`; `app/Services/JwtService.php` and `app/Http/Middleware/JwtAccessTokenMiddleware.php` have been deleted.
+- `app/Services/TokenService.php` issues short-lived Laravel Sanctum personal access tokens (ability `access`, TTL `SANCTUM_ACCESS_TTL`, default 900 s).
+- Access tokens are stored as SHA-256 hashes in `personal_access_tokens`, so they are instantly revocable (`$token->delete()`, `TokenService::revokeAccessTokens()`, or Sanctum's `tokens()->delete()`).
+- `app/Http/Middleware/ApiAccessTokenMiddleware.php` validates either an `Authorization: Bearer <token>` header or the `access_token` HttpOnly cookie against the Sanctum model, re-checks the user's `is_enabled`/`email_verified_at`, and binds the user to both the `sanctum` and default guards.
+- Opaque refresh tokens remain in `refresh_tokens` with rotation and reuse detection.
+- `config/sanctum.php` uses a custom `App\Models\PersonalAccessToken` model that implements `Prunable`; expired tokens are removed by the daily `model:prune` schedule and by the `tokens:prune` artisan command.
+- The web session group now also runs `App\Http\Middleware\ValidateSessionFingerprint` (IP/UA fingerprint check, skipped when `SESSION_FINGERPRINT_ENFORCED=false`) and the Laravel `AuthenticateSession` middleware (env-gated via `SESSION_AUTHENTICATE_SESSION_ENABLED`).
 
-2. **`iss` is not verified.** `decode()` calls `JWT::decode($jwt, new Key($secret, 'HS256'))` — firebase/php-jwt validates `exp` and `nbf` automatically, but nothing checks `iss` or `aud`. `JwtService::$issuer` exists and is written into the payload but never compared on the way in. In a multi-tenant or service-mesh future this becomes a real cross-issuer confusion bug.
+**Verification.** New feature tests in `tests/Feature/ApiTokenLifecycleTest.php` assert login → access → refresh → logout revocation, and `tests/Feature/SessionFingerprintTest.php` asserts a fingerprint mismatch blocks the session when enforcement is enabled.
 
-3. **A working fallback secret ships in the code.**
-
-```php
-$secret = env('JWT_SECRET');
-if (! $secret && app()->environment('production')) {
-    throw new \RuntimeException('JWT_SECRET must be set in production environments.');
-}
-$secret = $secret ?: 'dev-fallback-jwt-secret-dev-fallback';
-```
-
-The guard is `app()->environment('production')`. `.env.example` sets `APP_ENV=production`, which is good — but any deployment that leaves `APP_ENV` unset, or sets `APP_ENV=staging`, silently signs and verifies tokens with a secret that is in the public repository. A staging instance with a copy of production data then issues forgeable tokens.
-
-**Remediation.**
-
-```php
-public static function fromEnv(): self
-{
-    $secret = (string) env('JWT_SECRET', '');
-
-    if (strlen($secret) < 32) {
-        throw new \RuntimeException('JWT_SECRET must be set and at least 32 characters long.');
-    }
-
-    return new self(/* … */);
-}
-```
-
-— remove the fallback entirely and let tests set it in `phpunit.xml`. Then:
-
-- Add `'aud' => 'nis-redas-api'` to both token types and assert it in `decode()` using `JWT::$leeway` plus an explicit `iss`/`aud` comparison.
-- Implement access-token revocation: write each access `jti` to a short-TTL cache key (`Cache::put('jwt:deny:'.$jti, true, $ttl)`) on logout, password change and role change; check it in the middleware with `Cache::has(...)`. Cheaper and sufficient: keep `access_ttl` at 900 s, bump a per-user `token_version` column on logout-all/password-reset, and embed it in the claims.
+**Residual risk.** None directly related to the token layer. The 4-digit email OTP is still the first factor for the API and should be hardened per H-8/H-9.
 
 ---
 
@@ -1099,11 +1050,10 @@ The middleware writes an `audit_logs` row on **every** response with status 401,
 
 ### M-3 — `env()` is called at runtime in application code
 
-**Where:** 9 call sites across `AuthController`, `AuthTokenController`, `ApiAuthController`, `ApiOtpController`, `JwtService`, `UserManagementController`, `bootstrap/app.php`.
+**Where:** 8 call sites across `AuthController`, `AuthTokenController`, `ApiAuthController`, `ApiOtpController`, `UserManagementController`, `bootstrap/app.php`. (`JwtService` was removed as part of the H-3 remediation.)
 
 Calls like `env('OTP_TTL_SECONDS', 300)` inside controllers work only while the config cache is cold. Under `php artisan config:cache` — which every production deployment should run — `env()` returns `null` outside config files, so every one of these silently falls back to its default. That means:
 
-- `JWT_ACCESS_TTL` / `JWT_REFRESH_TTL` silently become 900 / 604800, ignoring your configured values (and `JwtService::fromEnv()` reads `JWT_REFRESH_TTL` **twice** with two different defaults — 2592000 in the constructor, 604800 in `fromEnv()` — an inconsistency that will bite during a token-lifetime review);
 - `OTP_TTL_SECONDS`, `OTP_MAX_ATTEMPTS`, `OTP_LOCKOUT_MINUTES`, `AUTH_TOKEN_TTL_SECONDS` all silently revert to defaults, weakening a control you believe you configured;
 - `APP_URL` inside the magic-link builder silently becomes `http://localhost`, producing **broken and insecure verification links in production**.
 
@@ -1122,13 +1072,9 @@ That last one is the most dangerous: `AuthController::register()` and `UserManag
 ```
 
 ```php
-// config/jwt.php (new)
-return [
-    'secret'      => env('JWT_SECRET'),
-    'issuer'      => env('JWT_ISSUER', 'nis-redas'),
-    'access_ttl'  => (int) env('JWT_ACCESS_TTL', 900),
-    'refresh_ttl' => (int) env('JWT_REFRESH_TTL', 2592000),
-];
+// config/sanctum.php (already present)
+'access_ttl'  => (int) env('SANCTUM_ACCESS_TTL', 900),
+'refresh_ttl' => (int) env('SANCTUM_REFRESH_TTL', 2592000),
 ```
 
 Then replace `env(...)` with `config(...)` at every call site and add `config:cache` to the deploy script so the discrepancy cannot recur silently.
@@ -1384,12 +1330,13 @@ APP_ENV=production
 APP_KEY=
 DB_USERNAME=root
 DB_PASSWORD=
-JWT_SECRET=
+SANCTUM_ACCESS_TTL=900
+SANCTUM_REFRESH_TTL=2592000
 ```
 
 `DB_USERNAME=root` with a blank password, `APP_ENV=production` (which disables the `APP_DEBUG` safety net but also means the example is "production-shaped" with no secrets), and an empty `APP_KEY` are all footguns for a team that copies the example. `SESSION_TRUSTED_PROXIES` is absent, and `TRUSTED_PROXIES` is read by `bootstrap/app.php` with an `explode(',', '')` that produces `['']` rather than `[]`.
 
-**Remediation.** Set `APP_ENV=local` in the example, document the required production overrides in a header comment, use a non-root `DB_USERNAME` placeholder, add `TRUSTED_PROXIES=` (empty), and add a deploy pre-flight script that asserts `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `JWT_SECRET` (≥32 chars), `SESSION_SECURE_COOKIE=true`, and a non-root DB user. Fix the proxy parsing:
+**Remediation.** Set `APP_ENV=local` in the example, document the required production overrides in a header comment, use a non-root `DB_USERNAME` placeholder, add `TRUSTED_PROXIES=` (empty), and add a deploy pre-flight script that asserts `APP_KEY`, `APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, and a non-root DB user. Fix the proxy parsing:
 
 ```php
 $proxies = array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES')))));
@@ -1441,10 +1388,10 @@ Concretely missing:
 **Remediation.** Add to `routes/console.php`:
 
 ```php
-Schedule::command('model:prune')->daily();
+Schedule::command('model:prune')->daily();      // prunes PersonalAccessToken and any other Prunable models
+Schedule::command('tokens:prune')->daily();     // app command for Sanctum access-token cleanup
 Schedule::command('auth:clear-resets')->daily();
 Schedule::command('session:prune')->daily();   // custom command; sessions table has no auto-prune
-Schedule::command('sanctum:prune-expired --hours=24')->daily();
 ```
 
 Then write the compliance artefacts: a retention schedule (returns: statutory period; audit logs: 7 years; sessions/tokens: as configured), a RoPA, a DPO appointment, an encryption-at-rest decision for `return_data`, and a breach runbook. See §9 for the checklist form.
@@ -1462,7 +1409,7 @@ Then write the compliance artefacts: a retention schedule (returns: statutory pe
 | L-5 | `HqAdminController::show()` has no in-controller category check | `HqAdminController` | Every sibling method has `abort_unless(...hasCategory('hq_admin','admin'))`. Relies entirely on route middleware; defence-in-depth inconsistency. |
 | L-6 | `AdminAuditLogController` uses `JSON_EXTRACT(details, '$')` | `AdminAuditLogController` | MySQL-only; will error on SQLite in tests if that code path is exercised. Also unindexed → full scan. |
 | L-7 | `Schema::defaultStringLength(191)` | `AppServiceProvider` | A pre-utf8mb4-index workaround. With utf8mb4 and a modern MySQL (innodb_large_prefix default since 5.7.7), 191 is unnecessary and forces shorter indexed columns than the schema declares. |
-| L-8 | `sanctum` is installed and configured but dormant | `composer.json`, `config/sanctum.php` | Two auth systems in one codebase is an audit liability. Remove the package and the migration, or document it as reserved. |
+| L-8 | ~~`sanctum` is installed and configured but dormant~~ **Resolved** — Sanctum is now the active API token system | `composer.json`, `config/sanctum.php` | `firebase/php-jwt` removed; Sanctum issues and validates all API access tokens. |
 | L-9 | `SERVICE_NUMBER` validation regexes differ | `AuthController` (`/^NIS\/[A-Z]{3}\/[0-9]{4}$/`) vs `UserManagementController` (`/^NIS\/[A-Z]{2,3}\/\d{3,4}$/`) | Two canonical formats. The admin path accepts values the registration path rejects. |
 | L-10 | `app/Http/Controllers/AdminDashController.php` and `AuthController::register()` are unreachable | app | `/register` redirects to login with a message, but `AuthController::register()` remains public and routable if the route is ever re-added. Remove dead entry points. |
 | L-11 | `_refactor_border.py` and `tmp-js-check/` are committed | repo root | Scratch artefacts in the repository. `tmp-js-check/` also contains rendered HTML of authenticated pages, which may include real data. |
@@ -1482,7 +1429,7 @@ A consolidated view of the schema issues, since they interact:
 | S-5 | Empty migration `2026_08_13_000000`; no directorate/unit/zone lookup tables | Code lists duplicated in 6 places, already drifted | Create the lookup tables |
 | S-6 | `nis_data` unused, `admin_review` unreachable, `applications.comments` duplicated | Dead schema and dead states that auto-approve | Drop or document |
 | S-7 | No `SoftDeletes` anywhere | Irreversible deletion of records of record | Add soft deletes |
-| S-8 | `Prunable` implemented but never scheduled | Unbounded table growth in `sessions`, `otp_codes`, `auth_tokens`, `refresh_tokens` | Add `Schedule::command('model:prune')` |
+| S-8 | ~~`Prunable` implemented but never scheduled~~ **Resolved** for access tokens; schedule remains open for other prunables | `personal_access_tokens` now pruned daily via `model:prune`; `tokens:prune` command also available. Other prunable models (`sessions`, `otp_codes`, `auth_tokens`, `refresh_tokens`) still need explicit scheduler entries. |
 | S-9 | Only `users` and `applications` have factories; `NewSeeder` depends on data that is not in a factory | Integration tests cannot easily build realistic reviewer fixtures | Add factories for the reviewer categories |
 | S-10 | No optimistic locking on `applications` | Two simultaneous approvers both succeed; stage advances twice | `workflow_version` column |
 | S-11 | `users` has no Eloquent relations despite inbound FKs | `$user->applications` fails at runtime | Define the relations |
@@ -1507,7 +1454,7 @@ This is the checklist to work through before the system takes real traffic. It i
 - [ ] **Fix C-3.** Account lockout actually persists; verify with a test that fails today.
 - [ ] **Fix H-10.** Lockscreen throttled and session-locked after 5 failures. *(ASVS 2.2.1)*
 - [ ] **Fix H-1.** MFA challenge throttled, failures counted, locked and audited. *(ASVS 2.8.1)*
-- [ ] **Fix H-2 or formally retire the API.** No credential path may bypass the enrolled factor. *(ASVS 2.8.1, T10 A07)*
+- [x] **Fix H-2.** API token issue now requires the enrolled TOTP factor; the API was not retired. *(ASVS 2.8.1, T10 A07)*
 - [ ] **Fix H-4.** Password reset revokes refresh tokens and destroys sessions. *(ASVS 2.5.5, 3.3.4)*
 - [ ] Password policy per M-9: ≥12 chars, `uncompromised()`, no reuse of last 5. *(ASVS 2.1.1–2.1.7, NIST SP 800-63B)*
 - [ ] Password reset tokens: single-use, ≥128-bit entropy, ≤1 hour, invalidated on new request. *(already correct — verify with a test)*
@@ -1519,7 +1466,7 @@ This is the checklist to work through before the system takes real traffic. It i
 
 ### 8.2 Session management (ASVS V3, 27001 A.8.5)
 
-- [ ] **Fix H-3.** Access tokens revocable; `iss`/`aud` verified; no fallback secret. *(ASVS 3.5.3)*
+- [x] **Fix H-3.** Access tokens are now revocable Laravel Sanctum tokens; `firebase/php-jwt` and its fallback secret are removed. *(ASVS 3.5.3)*
 - [ ] **Fix H-6 / M-14.** `Cache-Control: no-store` on authenticated responses. *(ASVS 3.4.6)*
 - [ ] Idle timeout (currently `SESSION_LIFETIME=120`) and absolute timeout both enforced; absolute timeout added (e.g. 12 hours). *(ASVS 3.3.1)*
 - [ ] Session ID regenerated on login — verify `Auth::login()` path does this and add `$request->session()->regenerate()` explicitly. *(ASVS 3.2.1)*
@@ -1554,7 +1501,7 @@ This is the checklist to work through before the system takes real traffic. It i
 - [ ] **Fix H-5.** `HASHID_SALT` from config, generated per environment. *(ASVS 6.1)*
 - [ ] **Fix M-3.** No runtime `env()`; all secrets via `config()`; `config:cache` in the deploy pipeline. *(ASVS 6.4.1)*
 - [ ] `APP_KEY` rotated and stored in the platform secret manager (not in `.env` on disk if avoidable); `APP_PREVIOUS_KEYS` documented for rotation. *(27001 A.8.24)*
-- [ ] `JWT_SECRET` ≥ 256-bit, generated with `php artisan key:generate --show`-equivalent entropy, stored in a secret manager. *(ASVS 6.3)*
+- [x] `APP_KEY` is the sole signing/encryption secret; rotate it and store it in the platform secret manager (not in `.env` on disk if avoidable); `APP_PREVIOUS_KEYS` documented for rotation. Sanctum inherits this key for cookie encryption. *(ASVS 6.3)*
 - [ ] OTP storage hardened (H-8): bcrypt or HMAC-bound. *(ASVS 6.1, 2.7)*
 - [ ] `mfa_backup_codes` hashed rather than only encrypted (encryption is reversible with `APP_KEY`). *(ASVS 6.1)*
 - [ ] Encryption at rest for `return_data` if it contains investigation/finance detail (M-19). *(NDPA Art. 24, 27001 A.8.24)*
@@ -1660,7 +1607,7 @@ Sequenced so that the highest risk is removed with the least code churn. Effort 
 | 8 | **H-7 / H-8 / H-9** OTP overhaul: uniform response, one live code, hashed code, correct attempt counting | 2 d |
 | 9 | **H-4** password reset revokes sessions and tokens; add "sign out everywhere" | 1 d |
 | 10 | **H-3** JWT: remove fallback, verify `iss`/`aud`, token revocation | 1.5 d |
-| 11 | **H-2** API requires the enrolled factor (or is disabled for enrolled users) | 1 d |
+| 11 | ~~**H-2** API requires the enrolled factor~~ **Resolved** — MFA enforced on API token issue | 0 d |
 | 12 | **H-5** `HASHID_SALT` in config; **M-3** all `env()` → `config()`; add `config:cache` to deploy | 1.5 d |
 | 13 | **H-6 / M-14** enforce CSP, add COOP/CORP, `no-store` on authenticated responses | 1 d |
 | 14 | **H-11** upload count/size caps + per-user quota | 0.5 d |

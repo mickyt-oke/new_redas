@@ -123,9 +123,9 @@ Migration `2026_07_17_213528`. `id` PK; `category` varchar(50) INDEX; `name` str
 
 `id` PK; `user_id` FK → users CASCADE; `type` string INDEX (email_verify, password_reset); `token_hash` string INDEX; `expires_at` timestamp INDEX; `used_at` timestamp nullable; timestamps; composite index (user_id, type). Single-use magic-link tokens.
 
-### 3.4 personal_access_tokens — `2026_02_20_155859` (Sanctum, dormant)
+### 3.4 personal_access_tokens — `2026_02_20_155859` (Sanctum, active)
 
-`id` PK; morphs `tokenable_type`/`tokenable_id`; `name` text; `token` varchar(64) UNIQUE; `abilities` text nullable; `last_used_at` timestamp nullable; `expires_at` timestamp nullable INDEX; timestamps.
+`id` PK; morphs `tokenable_type`/`tokenable_id`; `name` text; `token` varchar(64) UNIQUE (SHA-256 of the plain token); `abilities` text nullable; `last_used_at` timestamp nullable; `expires_at` timestamp nullable INDEX; timestamps. Stores short-lived API access tokens issued by `TokenService::issueAccessToken()` with ability `access`.
 
 ### 3.5 audit_logs — `2026_07_22_000003`
 

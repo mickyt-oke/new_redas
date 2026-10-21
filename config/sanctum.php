@@ -6,6 +6,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Personal Access Token Model
+    |--------------------------------------------------------------------------
+    |
+    | The model used to store personal access tokens. You may swap this for
+    | a custom model that adds pruning, retention or audit behaviour.
+    |
+    */
+
+    'personal_access_token_model' => App\Models\PersonalAccessToken::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Access / Refresh Token TTL
+    |--------------------------------------------------------------------------
+    |
+    | Access tokens are short-lived (seconds). Refresh tokens are long-lived
+    | opaque tokens stored in the refresh_tokens table; their TTL here is used
+    | to set cookie expirations and response metadata.
+    |
+    */
+
+    'access_ttl' => (int) env('SANCTUM_ACCESS_TTL', 900),
+
+    'refresh_ttl' => (int) env('SANCTUM_REFRESH_TTL', 2592000),
+
+    /*
+    |--------------------------------------------------------------------------
     | Stateful Domains
     |--------------------------------------------------------------------------
     |

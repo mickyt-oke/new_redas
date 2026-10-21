@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\OtpCode;
 use App\Models\RefreshToken;
 use App\Models\User;
-use App\Services\JwtService;
+use App\Services\AuthCookie;
 use App\Services\Messaging\ResendMailService;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -17,22 +18,11 @@ use Throwable;
 
 class ApiAuthController extends Controller
 {
-    private function jwt(): JwtService
-    {
-        return JwtService::fromEnv();
-    }
+    private TokenService $tokenService;
 
-    private function decodeToken(string $token): object
+    public function __construct()
     {
-        return $this->jwt()->decode($token);
-    }
-
-    /**
-     * Build a Secure/HttpOnly/Strict SameSite auth cookie.
-     */
-    private function authCookie(string $name, string $value, int $ttlMinutes): \Symfony\Component\HttpFoundation\Cookie
-    {
-        return cookie($name, $value, $ttlMinutes, '/', null, true, true, false, 'Strict');
+        $this->tokenService = TokenService::fromConfig();
     }
 
     public function login(Request $request): Response
@@ -40,7 +30,6 @@ class ApiAuthController extends Controller
         $validator = Validator::make($request->all(), [
             'login' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
-            'role' => ['required', 'in:admin,zonal,state,officer,directorate'],
         ]);
 
         if ($validator->fails()) {
@@ -57,7 +46,6 @@ class ApiAuthController extends Controller
         /** @var User|null $user */
         $user = User::query()
             ->where([$field => $normalizedLogin])
-            ->where('role', $request->input('role'))
             ->first();
 
         if (! $user || ! Hash::check((string) $request->input('password'), $user->password)) {
@@ -72,15 +60,13 @@ class ApiAuthController extends Controller
             ], 403);
         }
 
-        // Gate login behind email verification
         if (! $user->email_verified_at) {
             return response()->json([
                 'message' => 'EMAIL_NOT_VERIFIED',
             ], 403);
         }
 
-        // Send OTP (4-digit) and return challenge response (no JWT yet)
-        $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300); // 5 minutes default
+        $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300);
 
         $codeInt = random_int(0, 9999);
         $otp = str_pad((string) $codeInt, 4, '0', STR_PAD_LEFT);
@@ -128,43 +114,15 @@ class ApiAuthController extends Controller
 
     public function refresh(Request $request): Response
     {
-        // Read from secure cookie instead of request body for silent refresh
-        $refreshTokenJwt = $request->cookie('refresh_token');
+        $refreshTokenPlain = $request->cookie('refresh_token');
 
-        if (! $refreshTokenJwt) {
+        if (! $refreshTokenPlain) {
             return response()->json([
                 'message' => 'SESSION_EXPIRED',
             ], 401);
         }
 
-        try {
-            $decoded = $this->jwt()->decode($refreshTokenJwt);
-        } catch (Throwable) {
-            return response()->json([
-                'message' => 'TOKEN_INVALID',
-            ], 401);
-        }
-
-        if (($decoded->type ?? null) !== 'refresh') {
-            return response()->json([
-                'message' => 'TOKEN_INVALID',
-            ], 401);
-        }
-
-        $userId = (int) ($decoded->sub ?? 0);
-        $jti = (string) ($decoded->jti ?? '');
-
-        if (! $userId || ! $jti) {
-            return response()->json([
-                'message' => 'TOKEN_INVALID',
-            ], 401);
-        }
-
-        /** @var RefreshToken|null $rt */
-        $rt = RefreshToken::query()
-            ->where('jti', $jti)
-            ->where('user_id', $userId)
-            ->first();
+        $rt = $this->tokenService->findRefreshToken($refreshTokenPlain);
 
         if (! $rt) {
             return response()->json([
@@ -172,13 +130,8 @@ class ApiAuthController extends Controller
             ], 401);
         }
 
-        // SECURED ROTATION: Reuse Detection
-        // If the token is already revoked, it's a sign of a stolen token being reused.
-        // Revoke all refresh tokens for this user immediately.
         if ($rt->revoked_at) {
-            RefreshToken::query()
-                ->where('user_id', $userId)
-                ->update(['revoked_at' => now()]);
+            $this->tokenService->revokeAllRefreshTokens($rt->user);
 
             return response()->json([
                 'message' => 'SECURITY_BREACH_DETECTED',
@@ -191,93 +144,78 @@ class ApiAuthController extends Controller
             ], 401);
         }
 
-        // Rotation hardening: revoke old refresh token, then issue a new one
-        $rt->revoked_at = now();
-        $rt->save();
+        $user = $rt->user;
 
-        $newJti = (string) Str::uuid();
-
-        $newRefreshJwt = $this->jwt()->issueRefreshToken(
-            userId: $userId,
-            role: (string) ($decoded->role ?? ''),
-            jti: $newJti
-        );
-
-        $newRt = RefreshToken::create([
-            'user_id' => $userId,
-            'jti' => $newJti,
-            'token_hash' => hash('sha256', $newRefreshJwt),
-            'expires_at' => now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000)),
-            'revoked_at' => null,
-            'created_ip' => $request->ip(),
-            'user_agent' => (string) $request->userAgent(),
-        ]);
-
-        $user = User::query()->find($userId);
-        if (! $user) {
+        if (! $user instanceof User) {
             return response()->json(['message' => 'TOKEN_INVALID'], 401);
         }
 
-        $accessJwt = $this->jwt()->issueAccessToken(
-            userId: $user->id,
-            role: $user->role,
-            jti: (string) Str::uuid()
+        if ($user->is_enabled === false) {
+            return response()->json(['message' => 'ACCOUNT_DISABLED'], 401);
+        }
+
+        if (! $user->email_verified_at) {
+            return response()->json(['message' => 'EMAIL_NOT_VERIFIED'], 401);
+        }
+
+        // Rotation: revoke the old refresh token and issue a new one.
+        $newRefresh = $this->tokenService->rotateRefreshToken($rt, $request);
+        $access = $this->tokenService->issueAccessToken($user);
+
+        return $this->tokenResponse(
+            $user,
+            $access['plainTextToken'],
+            $newRefresh['plainTextToken'],
+            $access['expiresAt'],
+            $newRefresh['expiresAt']
         );
-
-        // Set both tokens in Secure, HttpOnly cookies (TTL in minutes)
-        $accessTtlMinutes = (int) ceil((int) env('JWT_ACCESS_TTL', 900) / 60);
-        $refreshTtlMinutes = (int) ceil((int) env('JWT_REFRESH_TTL', 2592000) / 60);
-        $refreshExpiresAt = now()->addSeconds((int) env('JWT_REFRESH_TTL', 2592000));
-
-        return response()->json([
-            'access_token' => $accessJwt,
-            'token_type' => 'bearer',
-            'expires_in' => (int) env('JWT_ACCESS_TTL', 900),
-            'refresh_expires_in' => (int) env('JWT_REFRESH_TTL', 2592000),
-            'refresh_expires_at' => $refreshExpiresAt->toDateTimeString(),
-        ])
-            ->withCookie($this->authCookie('access_token', $accessJwt, $accessTtlMinutes))
-            ->withCookie($this->authCookie('refresh_token', $newRefreshJwt, $refreshTtlMinutes));
     }
 
     public function logout(Request $request): Response
     {
-        // The refresh token is stored in a Secure, HttpOnly cookie; it is never
-        // available to JavaScript in the request body.
-        $refreshTokenJwt = (string) $request->cookie('refresh_token');
-        if (! $refreshTokenJwt) {
-            return response()->json(['message' => 'OK'], 200)
-                ->withoutCookie('access_token')
-                ->withoutCookie('refresh_token');
+        $refreshTokenPlain = (string) $request->cookie('refresh_token');
+
+        if ($refreshTokenPlain) {
+            $rt = $this->tokenService->findRefreshToken($refreshTokenPlain);
+
+            if ($rt && ! $rt->revoked_at && $rt->user_id) {
+                $rt->revoked_at = now();
+                $rt->save();
+            }
         }
 
-        try {
-            $decoded = $this->jwt()->decode($refreshTokenJwt);
-        } catch (Throwable) {
-            return response()->json(['message' => 'OK'], 200);
+        // Revoke the access token if it was resolved by the API middleware.
+        $accessToken = $request->attributes->get('api_access_token');
+        if ($accessToken) {
+            $accessToken->delete();
         }
-
-        if (($decoded->type ?? null) !== 'refresh') {
-            return response()->json(['message' => 'OK'], 200);
-        }
-
-        $userId = (int) ($decoded->sub ?? 0);
-        $jti = (string) ($decoded->jti ?? '');
-
-        if (! $userId || ! $jti) {
-            return response()->json(['message' => 'OK'], 200);
-        }
-
-        $hash = hash('sha256', $refreshTokenJwt);
-
-        RefreshToken::query()
-            ->where('user_id', $userId)
-            ->where('jti', $jti)
-            ->where('token_hash', $hash)
-            ->update(['revoked_at' => now()]);
 
         return response()->json(['message' => 'Logged out'], 200)
-            ->withoutCookie('access_token')
-            ->withoutCookie('refresh_token');
+            ->withCookie(AuthCookie::forget('access_token'))
+            ->withCookie(AuthCookie::forget('refresh_token'));
+    }
+
+    /**
+     * Build a consistent token-issuing JSON response with Secure/HttpOnly cookies.
+     */
+    private function tokenResponse(
+        User $user,
+        string $accessToken,
+        string $refreshToken,
+        \DateTimeInterface $accessExpiresAt,
+        \DateTimeInterface $refreshExpiresAt
+    ): Response {
+        $accessTtlMinutes = (int) ceil($accessExpiresAt->getTimestamp() - now()->getTimestamp()) / 60;
+        $refreshTtlMinutes = (int) ceil($refreshExpiresAt->getTimestamp() - now()->getTimestamp()) / 60;
+
+        return response()->json([
+            'access_token' => $accessToken,
+            'token_type' => 'bearer',
+            'expires_in' => max(0, $accessExpiresAt->getTimestamp() - now()->getTimestamp()),
+            'refresh_expires_in' => max(0, $refreshExpiresAt->getTimestamp() - now()->getTimestamp()),
+            'refresh_expires_at' => $refreshExpiresAt->format('Y-m-d H:i:s'),
+        ])
+            ->withCookie(AuthCookie::make('access_token', $accessToken, max(1, $accessTtlMinutes)))
+            ->withCookie(AuthCookie::make('refresh_token', $refreshToken, max(1, $refreshTtlMinutes)));
     }
 }

@@ -46,6 +46,14 @@ class MfaFlowTest extends TestCase
         return strtolower($user->service_number).'|127.0.0.1';
     }
 
+    /**
+     * Hash plaintext backup codes so they match the at-rest storage format.
+     */
+    private function hashBackupCodes(array $codes): array
+    {
+        return array_values(array_map(fn (string $code) => hash('sha256', $code), $codes));
+    }
+
     public function test_login_redirects_to_mfa_setup_for_new_user(): void
     {
         $user = $this->createUser();
@@ -126,7 +134,7 @@ class MfaFlowTest extends TestCase
             'mfa_secret' => app(MfaService::class)->generateSecret(),
             'mfa_enabled' => true,
             'mfa_verified_at' => now(),
-            'mfa_backup_codes' => $backupCodes,
+            'mfa_backup_codes' => $this->hashBackupCodes($backupCodes),
         ]);
 
         $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
@@ -138,7 +146,7 @@ class MfaFlowTest extends TestCase
 
         $user->refresh();
         $this->assertCount(1, $user->mfa_backup_codes);
-        $this->assertNotContains($backupCodes[0], $user->mfa_backup_codes);
+        $this->assertNotContains($this->hashBackupCodes([$backupCodes[0]])[0], $user->mfa_backup_codes);
     }
 
     public function test_enabled_user_can_use_recovery_route_with_backup_code(): void
@@ -148,7 +156,7 @@ class MfaFlowTest extends TestCase
             'mfa_secret' => app(MfaService::class)->generateSecret(),
             'mfa_enabled' => true,
             'mfa_verified_at' => now(),
-            'mfa_backup_codes' => $backupCodes,
+            'mfa_backup_codes' => $this->hashBackupCodes($backupCodes),
         ]);
 
         $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
@@ -161,7 +169,7 @@ class MfaFlowTest extends TestCase
 
         $user->refresh();
         $this->assertCount(1, $user->mfa_backup_codes);
-        $this->assertNotContains($backupCodes[0], $user->mfa_backup_codes);
+        $this->assertNotContains($this->hashBackupCodes([$backupCodes[0]])[0], $user->mfa_backup_codes);
     }
 
     public function test_recovery_route_rejects_invalid_backup_code(): void
@@ -170,7 +178,7 @@ class MfaFlowTest extends TestCase
             'mfa_secret' => app(MfaService::class)->generateSecret(),
             'mfa_enabled' => true,
             'mfa_verified_at' => now(),
-            'mfa_backup_codes' => ['AABBCCDD'],
+            'mfa_backup_codes' => $this->hashBackupCodes(['AABBCCDD']),
         ]);
 
         $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
@@ -220,5 +228,23 @@ class MfaFlowTest extends TestCase
         $response = $this->post('/mfa/cancel');
         $response->assertRedirect('/login');
         $this->assertGuest();
+    }
+
+    public function test_mfa_challenge_is_rate_limited(): void
+    {
+        $user = $this->createUser([
+            'mfa_secret' => app(MfaService::class)->generateSecret(),
+            'mfa_enabled' => true,
+            'mfa_verified_at' => now(),
+        ]);
+
+        $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/mfa/challenge', ['code' => '000000']);
+        }
+
+        $response = $this->post('/mfa/challenge', ['code' => '000000']);
+        $response->assertStatus(429);
     }
 }

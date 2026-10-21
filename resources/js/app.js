@@ -839,6 +839,11 @@ function lockSession() {
     isLocking = true;
     hideInactivityWarning();
 
+    // Clear any explicit in-memory token so it cannot be used while locked.
+    if (window.REDAS_AUTH) {
+        window.REDAS_AUTH.clearToken();
+    }
+
     // Remember when the full session will expire so the lockscreen can count down.
     // If the PWA has a valid refresh token, keep the session alive until it expires.
     try {

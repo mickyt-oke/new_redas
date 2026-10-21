@@ -3,7 +3,6 @@
 use App\Http\Controllers\ApiAuthController;
 use App\Http\Controllers\ApiNotificationController;
 use App\Http\Controllers\ApiOtpController;
-use App\Http\Middleware\JwtAccessTokenMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,7 +18,7 @@ Route::middleware('throttle:api')->group(function () {
     // JWT auth routes
     Route::post('/refresh', [ApiAuthController::class, 'refresh'])->middleware('throttle:10,1');
 
-    Route::middleware(JwtAccessTokenMiddleware::class)->group(function () {
+    Route::middleware('api.token')->group(function () {
         Route::get('/user', function (Request $request) {
             return $request->user();
         });

@@ -69,7 +69,7 @@ class MfaController extends Controller
         $user->forceFill([
             'mfa_enabled' => true,
             'mfa_verified_at' => now(),
-            'mfa_backup_codes' => $backupCodes,
+            'mfa_backup_codes' => $this->mfaService->hashBackupCodes($backupCodes),
         ])->save();
 
         $request->session()->put('mfa.setup_verified', true);

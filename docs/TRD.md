@@ -1,7 +1,7 @@
 # NIS REDAS — Technical Requirements Document (TRD)
 
 **Project:** NIS REDAS — Returns Data Automation System
-**Stack:** Laravel 12 · PHP 8.2 · MySQL · Blade + Vite · JWT · Resend · PWA
+**Stack:** Laravel 12 · PHP 8.2 · MySQL · Blade + Vite · Laravel Sanctum · Resend · PWA
 
 ---
 
@@ -14,7 +14,7 @@ Server-rendered monolith with a small companion JSON API:
 │  Browser    │──────────▶ │  routes/web.php (session auth, Blade)     │
 │  (PWA)      │            │  Middleware: auth → access → abac.geo     │
 └────────────┘            │                                          │
-┌────────────┐   HTTPS    │  routes/api.php (JWT auth, JSON)          │
+┌────────────┐   HTTPS    │  routes/api.php (Sanctum token auth, JSON)│
 │  API client │──────────▶ │  Middleware: throttle:api → JwtAccess... │
 └────────────┘            └──────────────┬───────────────────────────┘
                                           ▼
@@ -28,9 +28,9 @@ Server-rendered monolith with a small companion JSON API:
         External: Resend (email) · ip-api.com / ipapi.co (geolocation)
 ```
 
-- **Routing:** `routes/web.php` (318 lines, session-auth Blade UI), `routes/api.php` (JWT-auth JSON API), registered in `bootstrap/app.php`.
+- **Routing:** `routes/web.php` (session-auth Blade UI), `routes/api.php` (Sanctum-token JSON API), registered in `bootstrap/app.php`.
 - **Controllers:** `app/Http/Controllers/` — web auth (`AuthController`, `MfaController`, `AuthTokenController`), API (`ApiAuthController`, `ApiOtpController`, `ApiNotificationController`), workflow (`SubmissionReviewController`), dashboards (`Web/DashboardController`), HQ admin (`Admin/HqAdminController`, `AdminSettingController`, `AdminAuditLogController`, `UserManagementController`, `Admin/ConsolidationController`, `Admin/SuperAdminController`).
-- **Services:** all business logic (workflow, geo, MFA, JWT, settings, reporting, mail) lives in `app/Services/` as mostly static classes.
+- **Services:** all business logic (workflow, geo, MFA, tokens, settings, reporting, mail) lives in `app/Services/` as mostly static classes.
 - **Providers:** only `App\Providers\AppServiceProvider` — sets `Schema::defaultStringLength(191)` and rate limiters `api` (60/min) and `database` (30/min), keyed by user ID or IP.
 
 ## 2. Runtime requirements
@@ -44,7 +44,7 @@ Server-rendered monolith with a small companion JSON API:
 | PHP extensions | ZipArchive (Excel writer), OpenSSL, PDO |
 | Node | Vite 7 build pipeline (`npm run build`) |
 
-Composer packages (runtime): `laravel/framework`, `laravel/sanctum`, `firebase/php-jwt ^7.0`, `pragmarx/google2fa`, `bacon/bacon-qr-code`, `barryvdh/laravel-dompdf`, `resend/resend-php 0.11`, `silviolleite/laravelpwa`.
+Composer packages (runtime): `laravel/framework`, `laravel/sanctum ^4.3`, `pragmarx/google2fa`, `bacon/bacon-qr-code`, `barryvdh/laravel-dompdf`, `resend/resend-php 0.11`, `silviolleite/laravelpwa`.
 
 ## 3. Authentication & token lifecycle
 
@@ -59,14 +59,14 @@ Three parallel mechanisms:
 5. `completeLogin()` → `Auth::login`, session stores `abac.location`, success audit-logged, redirect by `user_category`.
 6. Sessions: **database** driver, 120-min lifetime.
 
-### 3.2 API (JWT + OTP)
+### 3.2 API (Sanctum + OTP)
 
-1. `POST /api/login` (`login`, `password`, `role`; role must match) → verified email required → 4-digit OTP emailed → `OTP_REQUIRED` response (no token yet).
+1. `POST /api/login` (`login`, `password`) → verified email required → 4-digit OTP emailed → `OTP_REQUIRED` response (no token yet).
 2. OTP (`otp_codes`): SHA-256 hashed, TTL `OTP_TTL_SECONDS` (default 300 s), max `OTP_MAX_ATTEMPTS` (5).
-3. `POST /api/otp/verify` (purpose `login`) → issues token pair via `JwtService`:
-   - **Access:** HS256 JWT, claims `iss/sub/role/type=access/jti/iat/exp`, TTL `JWT_ACCESS_TTL` (default 900 s). Stateless; validated by `JwtAccessTokenMiddleware` (`type=access` check, loads user, `Auth::setUser`).
-   - **Refresh:** JWT with `jti`, TTL `JWT_REFRESH_TTL` (default 30 d), persisted as SHA-256 hash in `refresh_tokens` with IP + user agent.
-4. `POST /api/refresh` → rotation (old `jti` revoked, new pair issued). `POST /api/logout` → refresh token revoked.
+3. `POST /api/otp/verify` (purpose `login`) → if the user has MFA enabled, a valid `totp` (TOTP or backup code) must also be supplied; otherwise `401 MFA_REQUIRED` is returned. On success, issues token pair via `TokenService`:
+   - **Access:** Laravel Sanctum personal access token, ability `access`, TTL `SANCTUM_ACCESS_TTL` (default 900 s). Stored hashed in `personal_access_tokens`; validated by `ApiAccessTokenMiddleware`.
+   - **Refresh:** opaque 64-byte token with `jti` (uuid), TTL `SANCTUM_REFRESH_TTL` (default 30 d), persisted as SHA-256 hash in `refresh_tokens` with IP + user agent.
+4. `POST /api/refresh` → rotation (old refresh token revoked, new pair issued). `POST /api/logout` → both access and refresh tokens revoked.
 
 ### 3.3 Magic links
 
@@ -74,7 +74,7 @@ Three parallel mechanisms:
 
 ### 3.4 Sanctum
 
-Installed and configured (`HasApiTokens`, `personal_access_tokens` table) but **no route uses `auth:sanctum`** — dormant. Consolidation candidate.
+Now the active API token system. `TokenService` issues short-lived access tokens via Sanctum's `HasApiTokens` trait; `ApiAccessTokenMiddleware` validates the bearer token or `access_token` cookie against `personal_access_tokens`. Refresh-token rotation and reuse detection remain in the dedicated `refresh_tokens` table for audit metadata.
 
 ## 4. Authorization model
 
@@ -98,7 +98,8 @@ HQ tiers: `hq_admin` (level 5) is the final approver of all returns and owns `/a
 | Service | Purpose | Key API | Dependencies |
 |---|---|---|---|
 | `AuditLogger` | Append-only audit trail | `log`, `logAuthAttempt`, `logAuthBlocked`, `logLogout`, `logCrud`, `logSettingChange` (static; auto IP/UA) | `AuditLog` |
-| `JwtService` | HS256 JWT issue/decode | `fromEnv`, `issueAccessToken`, `issueRefreshToken`, `decode`, `isExpired` | `firebase/php-jwt` |
+| `TokenService` | Sanctum access + opaque refresh token lifecycle | `issueAccessToken`, `issueRefreshToken`, `rotateRefreshToken`, `revokeAccessTokens`, `findRefreshToken` | `laravel/sanctum` |
+| `AuthCookie` | Hardened auth cookie builder | `make`, `forget` | `symfony/http-foundation` |
 | `MfaService` | TOTP + backup codes | `generateSecret`, `renderQrCodeSvg`, `generateBackupCodes(8)`, `verifyCode` | google2fa, BaconQrCode |
 | `GeolocationService` | IP → Nigerian state | `resolve(ip)` → `{country, state, state_code, provider}` (cached) | HTTP client; ip-api.com (default) or ipapi.co; `primary_location_codes` lookup |
 | `SettingService` | Typed DB settings, 60-min cache | `get`, `getBool`, `getInt`, `set`, `forget` | `Setting`, Cache |
@@ -112,8 +113,9 @@ HQ tiers: `hq_admin` (level 5) is the final approver of all returns and owns `/a
 
 - Passwords: bcrypt (`hashed` cast). Sessions/cache/queue: database-backed.
 - `users.mfa_secret` — encrypted cast; `mfa_backup_codes` — encrypted array cast.
-- OTPs, magic-link tokens, refresh tokens — stored as SHA-256 hashes only; single-use with TTLs.
+- OTPs, magic-link tokens, refresh tokens, Sanctum access tokens — stored as SHA-256 hashes only; single-use with TTLs.
 - Refresh token rows record `created_ip` and `user_agent`; rotation revokes the predecessor.
+- Session fingerprinting binds web sessions to IP + user-agent; mismatches invalidate the session.
 - Composite DB indexes on hot paths: `(workflow_stage, scope_code)`, `(workflow_stage, zonal_code)`, `(user_id, is_read, created_at)` notifications, audit `(action, created_at)` etc.
 
 ## 7. Frontend stack
@@ -139,14 +141,16 @@ Note: ip-api.com default endpoint is plain HTTP — prefer ipapi.co (HTTPS) or a
 
 ## 10. Required environment variables
 
-`.env.example` now ships at the repo root covering app, DB, session/cache/queue, Redis, Resend mail, JWT, OTP, Sanctum and filesystem variables. Beyond stock Laravel vars (`APP_KEY`, `APP_URL`, `DB_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER`, `MAIL_*`):
+`.env.example` now ships at the repo root covering app, DB, session/cache/queue, Redis, Resend mail, Sanctum, OTP, session hardening and filesystem variables. Beyond stock Laravel vars (`APP_KEY`, `APP_URL`, `DB_*`, `CACHE_STORE`, `QUEUE_CONNECTION`, `SESSION_DRIVER`, `MAIL_*`):
 
 | Variable | Default | Used by |
 |---|---|---|
-| `JWT_SECRET` | **insecure dev fallback** — must be set in production | `JwtService` |
-| `JWT_ISSUER` | `nis-redas` | `JwtService` |
-| `JWT_ACCESS_TTL` | 900 (s) | `JwtService` |
-| `JWT_REFRESH_TTL` | 2592000 (s) | `JwtService` |
+| `SANCTUM_ACCESS_TTL` | 900 (s) | `TokenService` |
+| `SANCTUM_REFRESH_TTL` | 2592000 (s) | `TokenService` |
+| `SANCTUM_STATEFUL_DOMAINS` | local dev hosts | Sanctum SPA auth |
+| `SESSION_FINGERPRINT_ENFORCED` | `true` | `ValidateSessionFingerprint` |
+| `SESSION_AUTHENTICATE_SESSION_ENABLED` | `true` in production | `AuthenticateSession` |
+| `AUTH_COOKIE_SECURE` | `true` outside local | `AuthCookie` |
 | `OTP_TTL_SECONDS` | 300 | API OTP |
 | `OTP_MAX_ATTEMPTS` | 5 | API OTP |
 | `AUTH_TOKEN_TTL_SECONDS` | 3600 | Magic links |
@@ -162,8 +166,8 @@ ABAC/geolocation knobs are DB `settings` (seeded: `abac_enabled=true`, `abac_loc
 
 ## 12. Known technical risks
 
-1. `JwtService` falls back to a hardcoded dev secret when `JWT_SECRET` is unset — fail closed instead.
-2. Dual API token systems (Sanctum installed but unused vs custom JWT) — consolidate.
+1. ~~`JwtService` falls back to a hardcoded dev secret~~ **Resolved** — replaced by Laravel Sanctum; access tokens are hashed at rest and instantly revocable.
+2. ~~Dual API token systems~~ **Resolved** — Sanctum is now the active API token system; `firebase/php-jwt` removed.
 3. `otp_login` / `otp_verify_email` email templates referenced but not seeded — runtime mail failure if absent.
 4. ~~`user_notifications` has readers, no writers~~ **Resolved** — `SubmissionWorkflow` now produces notifications on submit/approve/reject/resubmit.
 5. ip-api.com default is unencrypted HTTP.
@@ -172,4 +176,4 @@ ABAC/geolocation knobs are DB `settings` (seeded: `abac_enabled=true`, `abac_loc
 8. ~~`Application::admin()` relation references a non-existent `admin_id` column (dead relation)~~ **Resolved** — the relation was removed and replaced by `Application::reviewComments()` (hasMany `ApplicationComment`).
 9. The `2026_08_13` migration for directorate/formation/zone/HQ/CGIS-unit tables is empty — those tables were never created.
 10. `users` ↔ location lookups enforced only in application code (no FKs).
-11. ~~No `.env.example` in repo~~ **Resolved** — `.env.example` now ships at repo root with app, DB, session/cache/queue, Redis, Resend mail, JWT, OTP, Sanctum and filesystem variables.
+11. ~~No `.env.example` in repo~~ **Resolved** — `.env.example` now ships at repo root with app, DB, session/cache/queue, Redis, Resend mail, Sanctum, OTP, session hardening and filesystem variables.

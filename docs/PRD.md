@@ -10,7 +10,7 @@
 
 ## 1. Overview
 
-NIS REDAS is a centralized system that automates the collection, review, and approval of periodic **returns** (operational reports) across the Nigeria Immigration Service. Officers at state commands and directorates submit structured returns; those returns flow up a multi-stage approval chain — desk supervisor → zonal command → headquarters — until they receive final approval from an HQ admin and are archived at HQ. The system enforces strong authentication (MFA for web, OTP + JWT for API), location-based access control (ABAC), and full audit logging.
+NIS REDAS is a centralized system that automates the collection, review, and approval of periodic **returns** (operational reports) across the Nigeria Immigration Service. Officers at state commands and directorates submit structured returns; those returns flow up a multi-stage approval chain — desk supervisor → zonal command → headquarters — until they receive final approval from an HQ admin and are archived at HQ. The system enforces strong authentication (MFA for web, OTP + Sanctum tokens for API), location-based access control (ABAC), and full audit logging.
 
 ### 1.1 Problem statement
 
@@ -24,7 +24,7 @@ NIS REDAS is a centralized system that automates the collection, review, and app
 - Enforce a deterministic, auditable multi-stage approval workflow.
 - Give HQ a consolidated view: register, analytics, archive, and exportable reports (Excel/PDF).
 - Provide a public, searchable directory of NIS formations.
-- Harden access: MFA, OTP-based API auth, JWT token rotation, ABAC geo enforcement, audit logging.
+- Harden access: MFA, OTP-based API auth, Sanctum token rotation, ABAC geo enforcement, audit logging.
 
 ### 1.3 Non-goals (current scope)
 
@@ -72,7 +72,7 @@ The system models access on three axes: **user_category** (functional role), **p
 | FR-AUTH-6 | Self-registration is disabled; HQ admins create accounts, which triggers an email verification magic link (single-use, 1 h TTL). |
 | FR-AUTH-7 | Password reset via enumeration-safe magic link (single-use, 1 h TTL, min 8 chars confirmed). |
 | FR-AUTH-8 | Users can change their own password from the profile page (current password required). |
-| FR-AUTH-9 | API clients authenticate with login+password+role → 4-digit email OTP (5 min TTL, max 5 attempts) → JWT access token (15 min) + refresh token (30 days, rotating, revocable). |
+| FR-AUTH-9 | API clients authenticate with login+password → 4-digit email OTP (5 min TTL, max 5 attempts) → enrolled TOTP/backup code if MFA enabled → Sanctum access token (15 min) + opaque refresh token (30 days, rotating, revocable). |
 
 ### 3.2 Returns submission
 
@@ -119,7 +119,7 @@ The system models access on three axes: **user_category** (functional role), **p
 
 | ID | Requirement |
 |---|---|
-| FR-NTF-1 | Users can list notifications, get unread counts, and mark one/all as read (web session + JWT API). |
+| FR-NTF-1 | Users can list notifications, get unread counts, and mark one/all as read (web session + Sanctum API). |
 | FR-NTF-2 | Workflow events produce notifications: on submission and resubmission, in-scope reviewers of the pending stage are notified; on approval, the submitter and next-stage reviewers are notified; on rejection, the submitter is notified with the reason. |
 
 ### 3.6 Public features
@@ -160,7 +160,7 @@ The system models access on three axes: **user_category** (functional role), **p
 
 ## 6. Release status
 
-Delivered: full auth stack (web MFA, API OTP+JWT), submission workflow end-to-end, approver dashboards, HQ admin (users, settings, audit, analytics, Excel/PDF reports), public directory, PWA shell, audit logging.
+Delivered: full auth stack (web MFA, API OTP+Sanctum), submission workflow end-to-end, approver dashboards, HQ admin (users, settings, audit, analytics, Excel/PDF reports), public directory, PWA shell, audit logging.
 
 ## 7. Known gaps and roadmap
 
@@ -172,7 +172,7 @@ Delivered: full auth stack (web MFA, API OTP+JWT), submission workflow end-to-en
 | G4 | ~~`user_notifications` has readers but no producers~~ **Resolved** | `SubmissionWorkflow` now writes notifications on submission, approval, rejection, and resubmission (`notifyPendingReviewers()` / `notifySubmitter()`). |
 | G5 | `otp_login` / `otp_verify_email` email templates are referenced but not seeded | Must exist in `email_templates` or API mail send throws. |
 | G6 | `NisData` model/table unused | Legacy HR-stats placeholder; decide to implement or drop. |
-| G7 | Sanctum installed but unused alongside custom JWT | Consolidate on one API token system. |
-| G8 | ~~No `.env.example` in repo~~ **Resolved** | `.env.example` now ships at repo root with app, DB, session/cache/queue, Redis, Resend mail, JWT, OTP, Sanctum and filesystem variables. |
+| G7 | ~~Sanctum installed but unused alongside custom JWT~~ **Resolved** | Sanctum is now the active API token system; `firebase/php-jwt` removed. |
+| G8 | ~~No `.env.example` in repo~~ **Resolved** | `.env.example` now ships at repo root with app, DB, session/cache/queue, Redis, Resend mail, Sanctum, OTP, session hardening and filesystem variables. |
 | G9 | Edit-prefill doesn't repopulate pre-namespacing submissions | Submissions created before the state/directorate form namespacing (e.g. bare `staff_strength` vs `passport[staff_strength]`) won't prefill the renamed fields when edited; new submissions round-trip correctly. |
 | G9 | Legacy/dead code: root `DashboardController`, `AdminDashController`, vestigial `register` view | Cleanup candidates. |

@@ -119,9 +119,9 @@ Super admin — executive, strictly view-only (`access:category=super_admin,loca
 | Route | Handler | Auth |
 |---|---|---|
 | `POST /api/login` | `ApiAuthController@login` | public — returns `OTP_REQUIRED` |
-| `POST /api/otp/request`, `/api/otp/verify` | `ApiOtpController` | public — verify issues JWT pair |
+| `POST /api/otp/request`, `/api/otp/verify` | `ApiOtpController` | public — verify issues Sanctum access + opaque refresh |
 | `POST /api/refresh` | `ApiAuthController@refresh` | refresh-token rotation |
-| `GET /api/user`, `/api/notifications…`, `POST /api/logout` | — | `JwtAccessTokenMiddleware` |
+| `GET /api/user`, `/api/notifications…`, `POST /api/logout` | — | `ApiAccessTokenMiddleware` (`api.token`) |
 
 ---
 
@@ -184,17 +184,18 @@ sequenceDiagram
     participant C as API client
     participant S as REDAS API
     participant M as Email (Resend)
-    C->>S: POST /api/login {login, password, role}
-    S->>S: verify credentials + role + email_verified
+    C->>S: POST /api/login {login, password}
+    S->>S: verify credentials + email_verified
     S->>M: 4-digit OTP (hashed, 5 min TTL, max 5 attempts)
     S-->>C: OTP_REQUIRED
-    C->>S: POST /api/otp/verify {login, code, purpose=login}
-    S-->>C: access JWT (15 min) + refresh JWT (30 d, hashed + stored)
+    C->>S: POST /api/otp/verify {login, code, purpose=login, [totp]}
+    S->>S: if MFA enabled, verify totp/backup code
+    S-->>C: Sanctum access token (15 min, hashed) + opaque refresh token (30 d, hashed + stored)
     C->>S: GET /api/user (Bearer access token)
-    C->>S: POST /api/refresh {refresh_token}
-    S->>S: revoke old jti, issue new pair
+    C->>S: POST /api/refresh (refresh_token cookie)
+    S->>S: revoke old refresh, issue new pair
     S-->>C: rotated access + refresh tokens
-    C->>S: POST /api/logout → refresh token revoked
+    C->>S: POST /api/logout → access + refresh tokens revoked
 ```
 
 ## 5. HQ admin journey
@@ -215,7 +216,7 @@ sequenceDiagram
 
 ## 7. Notification flow
 
-`user_notifications` are read via both session (`/user/notifications/*`) and JWT (`/api/notifications*`) endpoints: list, unread count, mark read, mark all read. Producers live in `SubmissionWorkflow`: submission and resubmission notify in-scope reviewers of the pending stage (`notifyPendingReviewers()`), approval notifies the submitter and next-stage reviewers, and rejection notifies the submitter with the reason (`notifySubmitter()`).
+`user_notifications` are read via both session (`/user/notifications/*`) and Sanctum-token (`/api/notifications*`) endpoints: list, unread count, mark read, mark all read. Producers live in `SubmissionWorkflow`: submission and resubmission notify in-scope reviewers of the pending stage (`notifyPendingReviewers()`), approval notifies the submitter and next-stage reviewers, and rejection notifies the submitter with the reason (`notifySubmitter()`).
 
 ## 8. Known flow gaps
 

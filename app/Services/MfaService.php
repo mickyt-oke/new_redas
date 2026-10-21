@@ -65,6 +65,24 @@ class MfaService
     }
 
     /**
+     * Hash plaintext backup codes for storage.
+     *
+     * Codes are stored as SHA-256 hashes so a database breach does not reveal
+     * usable recovery codes. The plaintext codes are shown to the user exactly
+     * once during MFA setup.
+     *
+     * @param  list<string>  $codes
+     * @return list<string>
+     */
+    public function hashBackupCodes(array $codes): array
+    {
+        return array_values(array_map(
+            fn (string $code) => hash('sha256', $code),
+            $codes
+        ));
+    }
+
+    /**
      * Verify a TOTP code or single-use backup code for the user.
      */
     public function verifyCode(User $user, string $code): bool
@@ -112,7 +130,8 @@ class MfaService
             return false;
         }
 
-        $index = array_search($code, $codes, true);
+        $codeHash = hash('sha256', $code);
+        $index = array_search($codeHash, $codes, true);
 
         if ($index === false) {
             return false;

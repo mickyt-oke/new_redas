@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\ValidateSessionFingerprint;
 use App\Models\AuthToken;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -303,6 +304,11 @@ class AuthController extends Controller
 
         Auth::login($user, $remember);
 
+        // Prevent session fixation: rotate the session ID after
+        // authentication. This is called after Auth::login() so the new
+        // session carries the authenticated user.
+        $request->session()->regenerate();
+
         $request->session()->forget([
             'mfa.pending_user_id',
             'mfa.location',
@@ -313,6 +319,13 @@ class AuthController extends Controller
 
         $request->session()->put('abac.location', $location);
         $request->session()->put('abac.resolved_at', now());
+
+        // Store a session fingerprint for privileged web routes so that session
+        // theft from a different device/IP is detectable.
+        $request->session()->put(
+            ValidateSessionFingerprint::SESSION_KEY,
+            app(ValidateSessionFingerprint::class)->fingerprint($request)
+        );
 
         AuditLogger::logAuthAttempt(
             user: $user,

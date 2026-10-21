@@ -15,7 +15,10 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // Failover keeps login/MFA working if Redis is unreachable. The primary
+    // store is tried first; if it throws, the framework falls back to the
+    // next store automatically.
+    'default' => env('CACHE_STORE', 'failover'),
 
     /*
     |--------------------------------------------------------------------------
@@ -94,9 +97,12 @@ return [
         'failover' => [
             'driver' => 'failover',
             'stores' => [
+                'redis',
                 'database',
-                'array',
             ],
+            // Retry the primary store on every request so Redis is used again
+            // as soon as it recovers, instead of staying on the fallback forever.
+            'retry_after' => 60,
         ],
 
     ],

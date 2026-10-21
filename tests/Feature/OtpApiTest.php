@@ -91,6 +91,13 @@ class OtpApiTest extends TestCase
         $res->assertStatus(200);
         $res->assertJsonPath('message', 'OTP verified successfully.');
         $res->assertJsonPath('user_id', $user->id);
+        $res->assertJsonPath('token_type', 'bearer');
+        $res->assertJsonPath('access_token', fn (string $token) => str_contains($token, '|'));
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'api-access',
+        ]);
 
         $this->assertDatabaseHas('otp_codes', [
             'user_id' => $user->id,

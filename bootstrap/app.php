@@ -22,12 +22,23 @@ return Application::configure(basePath: dirname(__DIR__))
             'mfa.pending' => \App\Http\Middleware\RequireMfaPending::class,
             'lockscreen' => \App\Http\Middleware\LockscreenMiddleware::class,
             'redirect.access' => \App\Http\Middleware\RedirectIfAccessMismatch::class,
+            'api.token' => \App\Http\Middleware\ApiAccessTokenMiddleware::class,
+            'session.fingerprint' => \App\Http\Middleware\ValidateSessionFingerprint::class,
         ]);
+
+        // AuthenticateSession requires a password hash in the session, which is
+        // only present after a real login. Enable it in production/staging but
+        // keep it optional in local/testing environments where actingAs() is used.
+        $appEnv = env('APP_ENV', 'production');
+        if (env('SESSION_AUTHENTICATE_SESSION_ENABLED', $appEnv !== 'testing' && $appEnv !== 'local')) {
+            $middleware->appendToGroup('web', \Illuminate\Session\Middleware\AuthenticateSession::class);
+        }
 
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\RequirePasswordChange::class,
             \App\Http\Middleware\LockscreenMiddleware::class,
             \App\Http\Middleware\RedirectIfAccessMismatch::class,
+            \App\Http\Middleware\ValidateSessionFingerprint::class,
         ]);
 
         // Runs for both web and api requests to flag unusual/blocked traffic.

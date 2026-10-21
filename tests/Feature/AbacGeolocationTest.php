@@ -212,6 +212,9 @@ class AbacGeolocationTest extends TestCase
 
         $response = $this->actingAs($user)->withServerVariables(['REMOTE_ADDR' => '1.2.3.6'])->get('/user/dashboard');
 
-        $response->assertStatus(403);
+        // The session fingerprint middleware detects the IP/UA change first and
+        // invalidates the session, redirecting to login before the ABAC layer
+        // can return its own 403.
+        $response->assertRedirect('/login');
     }
 }

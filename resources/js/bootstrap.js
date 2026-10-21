@@ -5,11 +5,15 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.axios.defaults.withCredentials = true; // Required to send/receive HttpOnly cookies
 
 /**
- * JWT Session Management
+ * Sanctum Session Management
  *
- * Access tokens are deliberately kept in memory only (never localStorage or
- * sessionStorage) to mitigate XSS theft. The refresh token lives in a Secure,
- * HttpOnly cookie so the session can survive browser/PWA restarts.
+ * Access tokens are deliberately stored in a Secure/HttpOnly/Strict cookie
+ * (`access_token`) so JavaScript cannot read them, mitigating XSS theft.
+ * The refresh token lives in a similar cookie so the PWA session can survive
+ * browser restarts.
+ *
+ * A small in-memory token path remains for explicit external/mobile API
+ * consumers that set a token via window.REDAS_AUTH.setToken().
  */
 const REFRESH_URL = '/api/refresh';
 const REFRESH_EXPIRY_KEY = 'redas_refresh_expires_at';
@@ -17,6 +21,10 @@ const REFRESH_EXPIRY_KEY = 'redas_refresh_expires_at';
 let accessToken = null;
 let isRefreshing = false;
 let failedQueue = [];
+
+function hasAccessCookie() {
+    return document.cookie.split(';').some(c => c.trim().startsWith('access_token='));
+}
 
 function storeRefreshExpiry(data) {
     if (data && data.refresh_expires_at) {
@@ -40,81 +48,71 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// Request Interceptor: Attach Access Token
+// Request interceptor: only attach an explicit bearer token when the HttpOnly
+// cookie is not present. Same-origin requests rely on the cookie automatically.
 window.axios.interceptors.request.use(config => {
-    if (accessToken) {
+    if (!hasAccessCookie() && accessToken) {
         config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
 }, error => Promise.reject(error));
 
-// Response Interceptor: Handle 401s and Silent Refresh
+// Response interceptor: handle 401s and silent refresh via the refresh cookie.
 window.axios.interceptors.response.use(
     response => response,
     async error => {
         const originalRequest = error.config;
 
-        // Only attempt refresh if it's a 401 and not already a refresh attempt
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            if (originalRequest.url === REFRESH_URL) {
-                // Refresh token itself is expired or invalid -> Force Logout
-                accessToken = null;
-                window.location.href = '/login';
-                return Promise.reject(error);
-            }
-
-            if (isRefreshing) {
-                // Queue requests while refreshing
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                })
-                .then(token => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return window.axios(originalRequest);
-                })
-                .catch(err => Promise.reject(err));
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            try {
-                // Call the refresh endpoint (browser sends HttpOnly cookie automatically)
-                const { data } = await window.axios.post(REFRESH_URL);
-                const newToken = data.access_token;
-
-                storeRefreshExpiry(data);
-                accessToken = newToken;
-                window.axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-
-                processQueue(null, newToken);
-
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                return window.axios(originalRequest);
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                accessToken = null;
-                clearRefreshExpiry();
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
-            } finally {
-                isRefreshing = false;
-            }
+        if (error.response?.status !== 401 || originalRequest._retry) {
+            return Promise.reject(error);
         }
 
-        return Promise.reject(error);
+        if (originalRequest.url === REFRESH_URL) {
+            accessToken = null;
+            clearRefreshExpiry();
+            window.location.href = '/login';
+            return Promise.reject(error);
+        }
+
+        if (isRefreshing) {
+            return new Promise((resolve, reject) => {
+                failedQueue.push({ resolve, reject });
+            })
+            .then(() => window.axios(originalRequest))
+            .catch(err => Promise.reject(err));
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        try {
+            const { data } = await window.axios.post(REFRESH_URL);
+
+            if (data.access_token && !hasAccessCookie()) {
+                accessToken = data.access_token;
+                window.axios.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
+            }
+
+            storeRefreshExpiry(data);
+            processQueue(null, data.access_token);
+
+            return window.axios(originalRequest);
+        } catch (refreshError) {
+            processQueue(refreshError, null);
+            accessToken = null;
+            clearRefreshExpiry();
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+        } finally {
+            isRefreshing = false;
+        }
     }
 );
 
-/**
- * Restore the session on app start / PWA launch. If a refresh token cookie is
- * present, the server will issue a new access token and the user can continue
- * without re-entering credentials.
- */
 function restoreSession() {
     return window.axios.post(REFRESH_URL)
         .then(({ data }) => {
-            if (data.access_token) {
+            if (data.access_token && !hasAccessCookie()) {
                 accessToken = data.access_token;
                 window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
             }
@@ -122,29 +120,24 @@ function restoreSession() {
             return data;
         })
         .catch(error => {
-            // No valid refresh cookie: clear any stale token and remain logged out.
             accessToken = null;
             clearRefreshExpiry();
             return Promise.reject(error);
         });
 }
 
-/**
- * Proactive refresh: request a new access token shortly before the current one
- * expires (default 14 minutes). This keeps the PWA session alive during active
- * use without waiting for a 401.
- */
-const accessTokenTtlMs = 15 * 60 * 1000; // mirrors JWT_ACCESS_TTL=900s
+// Proactive refresh: request a new access token shortly before expiry.
+const accessTokenTtlMs = 15 * 60 * 1000; // mirrors SANCTUM_ACCESS_TTL=900s
 const proactiveRefreshMs = Math.max(30 * 1000, accessTokenTtlMs - 60 * 1000);
 
 function scheduleProactiveRefresh() {
     setInterval(() => {
-        if (!accessToken) return;
+        if (!accessToken && !hasAccessCookie()) return;
         window.axios.post(REFRESH_URL)
             .then(({ data }) => {
-                if (data.access_token) {
+                if (data.access_token && !hasAccessCookie()) {
                     accessToken = data.access_token;
-                    window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                    window.axios.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
                 }
                 storeRefreshExpiry(data);
             })
@@ -155,7 +148,6 @@ function scheduleProactiveRefresh() {
     }, proactiveRefreshMs);
 }
 
-// Expose helpers for PWA/inline usage.
 window.REDAS_AUTH = {
     restoreSession,
     setToken: token => { accessToken = token; },
@@ -166,9 +158,6 @@ window.REDAS_AUTH = {
     },
 };
 
-// Attempt to restore the session on startup if the PWA was launched from a
-// previous authenticated session. This is a "best effort" call: failure simply
-// means the user must log in.
 if (document.cookie.includes('refresh_token=')) {
     restoreSession().catch(() => {});
 }
