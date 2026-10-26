@@ -1209,7 +1209,7 @@ sequenceDiagram
     Ctl-->>User: dashboard (scope-limited rows)
 ```
 
-### 13.3 API token lifecycle
+### 13.3 API token lifecycle (Sanctum access + opaque refresh)
 
 ```mermaid
 sequenceDiagram
@@ -1217,36 +1217,54 @@ sequenceDiagram
     actor App as Mobile client
     participant AC as ApiAuthController
     participant OC as ApiOtpController
-    participant JWT as JwtService
+    participant TS as TokenService
+    participant MW as ApiAccessTokenMiddleware
     participant DB as Database
 
-    App->>AC: POST /api/login (login, password, role)
+    App->>AC: POST /api/login (login, password)
     AC->>DB: user lookup + Hash::check
-    AC->>DB: INSERT otp_codes (sha256(4-digit))
+    AC->>DB: INSERT otp_codes (sha256 of 4-digit code)
     AC-->>App: 200 {message: OTP_REQUIRED}
 
-    App->>OC: POST /api/otp/verify (login, otp)
+    App->>OC: POST /api/otp/verify (login, otp [, totp])
     OC->>DB: code lookup (unconsumed, unexpired)
-    OC->>DB: consumed_at=now()
-    OC->>JWT: issueRefreshToken(jti) + issueAccessToken()
-    OC->>DB: INSERT refresh_tokens (jti, sha256)
-    OC-->>App: tokens + Secure HttpOnly cookies
+    OC->>DB: consumed_at = now()
+    alt must_change_password
+        OC-->>App: 403 PASSWORD_CHANGE_REQUIRED
+    else MFA enabled and no/invalid totp
+        OC-->>App: 401 MFA_REQUIRED / MFA_INVALID
+    else satisfied
+        OC->>TS: issueAccessToken(user)
+        TS->>DB: INSERT personal_access_tokens (ability "access", expires_at)
+        OC->>TS: issueRefreshToken(user, request)
+        TS->>DB: INSERT refresh_tokens (jti, sha256, ip, ua)
+        OC-->>App: tokens + Secure HttpOnly cookies
+    end
 
-    App->>AC: GET /api/user (Bearer or cookie)
-    Note over AC: JwtAccessTokenMiddleware<br/>verify sig, type=access, user enabled+verified<br/>Auth::setUser()
-    AC-->>App: user payload
+    App->>MW: GET /api/user (Bearer or access_token cookie)
+    MW->>DB: PersonalAccessToken::findToken()
+    MW->>MW: expiry + ability "access" + is_enabled + email_verified_at
+    MW->>MW: Auth::guard('sanctum')->setUser() + Auth::setUser()
+    MW-->>App: user payload
 
-    App->>AC: POST /api/refresh (refresh cookie)
-    AC->>DB: refresh_tokens by (jti, user_id)
+    App->>AC: POST /api/refresh (refresh_token cookie)
+    AC->>DB: refresh_tokens by sha256(token)
     alt revoked_at not null
         AC->>DB: revoke ALL user refresh tokens
         AC-->>App: 401 SECURITY_BREACH_DETECTED
+    else expired
+        AC-->>App: 401 TOKEN_EXPIRED
     else valid
-        AC->>DB: revoked_at=now() on old row
-        AC->>JWT: new jti + new refresh + new access
-        AC->>DB: INSERT new refresh_tokens row
-        AC-->>App: rotated tokens
+        AC->>DB: revoked_at = now() on old row
+        AC->>TS: rotateRefreshToken() -> new opaque token + jti
+        AC->>TS: issueAccessToken() -> new Sanctum token
+        AC-->>App: rotated tokens + cookies
     end
+
+    App->>AC: POST /api/logout
+    AC->>DB: revoke refresh_tokens row
+    AC->>DB: DELETE personal_access_tokens row (from request attribute)
+    AC-->>App: 200 + cleared cookies
 ```
 
 ### 13.4 Reviewer action authorization
@@ -1276,3 +1294,191 @@ sequenceDiagram
     SW->>SW: recordComment() + notifySubmitter() + notifyPendingReviewers()
     SW-->>SRC: done
     SRC-->>RC: 302 back with status
+---
+
+## 14. Token retention, pruning and scheduling
+
+Authentication artefacts are pruned by **two overlapping mechanisms**.
+
+### 14.1 Scheduled `model:prune` (daily 02:17)
+
+`routes/console.php` registers:
+
+```php
+Schedule::command('model:prune', [
+    '--model' => [
+        AuthToken::class,           // prunable: expires_at < now()-7d
+        OtpCode::class,             // prunable: expires_at < now()-1d
+        PersonalAccessToken::class, // prunable: expires_at < now()-90d
+        RefreshToken::class,        // prunable: expires_at < now()-30d OR revoked_at NOT NULL
+    ],
+])->dailyAt('02:17');
+```
+
+| Model | Prunable condition | Effect |
+|---|---|---|
+| `AuthToken` | `expires_at < now() - 7 days` | magic links disappear a week after expiry |
+| `OtpCode` | `expires_at < now() - 1 day` | OTP rows live at most ~1 day past expiry |
+| `PersonalAccessToken` | `expires_at NOT NULL AND expires_at < now() - 90 days` | access tokens retained 90 days for audit |
+| `RefreshToken` | `expires_at < now() - 30 days` **or** `revoked_at NOT NULL` | revoked rows go on the next run |
+
+Requires the scheduler to be running (`* * * * * php artisan schedule:run`).
+
+### 14.2 On-demand command
+
+`php artisan tokens:prune` — `App\Console\Commands\PruneExpiredTokens`:
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--days` | `90` | retain expired **access** tokens this long past `expires_at` |
+| `--refresh-days` | `90` | retain **refresh** tokens this long past `expires_at` |
+| `--dry-run` | off | report counts without deleting |
+
+It deletes:
+- `personal_access_tokens` where `expires_at < now() - --days`;
+- `refresh_tokens` where `expires_at < now() - --refresh-days` **or** `revoked_at IS NOT NULL`.
+
+> The two mechanisms use **different refresh-token windows**: `RefreshToken::prunable()`
+> also matches revoked rows, and `tokens:prune` deletes revoked rows unconditionally on the
+> next invocation while honouring `--refresh-days` for expiry. Run only one, or align the
+> windows, otherwise the shorter policy wins silently.
+
+`PersonalAccessToken` is a **custom** model (`App\Models\PersonalAccessToken`) extending
+`Laravel\Sanctum\PersonalAccessToken` and adding `Prunable` — this is what makes scheduled
+pruning of Sanctum tokens possible (the vendor model is not prunable).
+
+---
+
+## 15. Quick reference: "where do I change X?"
+
+| Requirement | File(s) to change |
+|---|---|
+| Add / change a role's landing page | `AuthController::getRedirectUrl()`, `User::homeRoute()`, `LockscreenController::redirectUrlForUser()` — **three** copies, keep in sync |
+| Add a new `user_category` | `User::ACCESS_CATEGORIES`, `UserManagementController::{categoryLabels,normalizeAccessProfile,scopeFieldsForProfile}`, `SubmissionWorkflow::{categoryForUser,stageForApprover,scopeCodeForApprover}`, `User::{homeRoute,portalLabel}`, plus the relevant `access:` route groups |
+| Restrict an endpoint further | The `access:` string on its route group in `routes/web.php` |
+| Change who can approve a workflow stage | `SubmissionWorkflow::stageForApprover()` + `SubmissionReviewController::{authorizeAction,authorizeView,authorizeScope}` |
+| Turn geolocation enforcement off | `settings.abac_location_enforcement = 0` (no deploy needed) |
+| Exempt HQ users from geo / fingerprint checks | `settings.abac_hq_bypass = 1` |
+| Disable IP/UA session binding | `SESSION_FINGERPRINT_ENFORCED=false` |
+| Change access / refresh lifetimes (API) | `SANCTUM_ACCESS_TTL`, `SANCTUM_REFRESH_TTL` |
+| Change magic-link lifetime | `AUTH_TOKEN_TTL_SECONDS` |
+| Change OTP lifetime / attempts / lockout | `OTP_TTL_SECONDS`, `OTP_MAX_ATTEMPTS`, `OTP_LOCKOUT_MINUTES` |
+| Change password policy | `AuthController::register()`, `AuthTokenController::resetPassword()`, `ProfileController::update()`, `UserManagementController::userValidationRules()` (`min:8` in four places) |
+| Enforce the CSP instead of only reporting | `SecurityHeaders` — rename `Content-Security-Policy-Report-Only` |
+---
+
+## 16. Observations and risk notes
+
+Findings from reading the implementation. None of these claims an active vulnerability;
+each is a real maintenance or defence-in-depth concern.
+
+**1. Two divergent `normalizeAccessProfile()` implementations.**
+`AuthController::normalizeAccessProfile()` accepts `role ∈ ['officer']` for `state_user`
+and knows an `executive` category. `UserManagementController::normalizeAccessProfile()`
+accepts `['officer','user']`, knows `hq_admin`, and does **not** know `executive`. Only the
+admin path is reachable (registration is disabled), so the dormant copy silently encodes a
+different policy — a drift hazard if registration is ever re-enabled.
+
+**2. `executive` is a dead category.**
+`AuthController` maps `executive` → `role='cgis'`, `access_level=7`, but
+`User::ACCESS_CATEGORIES` omits it. `CheckAccess` rejects any `category=` value not in that
+constant, so an `executive` account could never pass a single `access:` check. There is
+also no `/executive/*` route group even though `getRedirectUrl()` points at
+`/executive/dashboard`.
+
+**3. RBAC denials are 302s, not 403s.**
+`CheckAccess` returns `redirect($user->homeRoute())` with a flash on failure. Two
+consequences: `LogSuspiciousActivity` only watches `[401, 403, 419, 429]`, so RBAC denials
+never reach `audit_logs`; and an investigator asking "who tried to reach the admin area?"
+has no trail. Consider an explicit `authz.denied` audit entry before redirecting.
+
+**4. Legacy role aliases are over-broad.**
+`state`, `zonal`, `super_admin` and `hq_admin` all alias to `admin` inside `CheckAccess`.
+Today the `category=` and `location=` clauses bracket that safely, but any future route
+specifying `role=` without `category=` inherits a much wider audience than intended.
+
+**5. The API tier authenticates but does not authorize.**
+`routes/api.php` protects `/api/*` with `api.token` only; any valid token can call any API
+route, with no `access:` equivalent. The current surface (identity + notifications) makes
+that acceptable, but any business endpoint added under `api.token` would be reachable by
+every account category — including a state officer reading HQ data.
+
+**6. Overlapping token-retention policies.**
+See §14 — scheduled `model:prune` and `tokens:prune` disagree on refresh-token retention.
+
+**7. CSP is report-only.**
+`SecurityHeaders` emits `Content-Security-Policy-Report-Only`, so the nonce plumbing
+(`csp_nonce()`, `@nonce`) is collected but never enforced. Reasonable as a rollout stage;
+promote to an enforcing header once inline-handler violations are clean.
+
+**8. Unused but live auth scaffolding.**
+- `AuthController::register()` — full implementation, no route.
+- `CheckRole` middleware + the `role` alias — registered, never used by a route.
+- Laravel's `password_reset_tokens` table and the `config/auth.php` `passwords` broker —
+  superseded by `auth_tokens` / `AuthTokenController`.
+
+**9. Geolocation failure is fail-closed for state accounts.**
+When the GeoIP provider times out, `GeolocationService::resolve()` returns
+`country: 'Unknown'`, which fails the `abac_allowed_countries` check — locking out every
+`state_user`, `desk_admin`, `zonal_user` and `zonal_commander`. Runbook escape hatches:
+set `abac_location_enforcement = 0`, or fix `TRUSTED_PROXIES` / `geolocation_fallback_state`.
+
+**10. Three copies of the landing-page map.**
+`AuthController::getRedirectUrl()`, `User::homeRoute()` and
+`LockscreenController::redirectUrlForUser()` each re-implement the same match. A new
+category must be added in three places; a mismatch silently bounces users between pages.
+
+**11. Password policy is duplicated in four validators.**
+`AuthController::register()`, `AuthTokenController::resetPassword()`,
+`ProfileController::update()` and `UserManagementController::userValidationRules()` each
+declare `min:8` independently.
+---
+
+## 17. File index
+
+| Concern | Path |
+|---|---|
+| Route definitions | `routes/web.php`, `routes/api.php` |
+| Middleware registration / aliases | `bootstrap/app.php` |
+| Guard & provider config | `config/auth.php` |
+| Session config | `config/session.php` |
+| Sanctum config | `config/sanctum.php` |
+| Scheduled pruning | `routes/console.php` |
+| Web login / session / MFA handoff | `app/Http/Controllers/AuthController.php` |
+| MFA setup & challenge | `app/Http/Controllers/MfaController.php` |
+| Magic links, password reset | `app/Http/Controllers/AuthTokenController.php` |
+| Lockscreen | `app/Http/Controllers/LockscreenController.php` |
+| Profile / password change | `app/Http/Controllers/ProfileController.php` |
+| API login / refresh / logout | `app/Http/Controllers/ApiAuthController.php` |
+| API OTP request / verify | `app/Http/Controllers/ApiOtpController.php` |
+| Account provisioning | `app/Http/Controllers/Admin/UserManagementController.php` |
+| Submitter record authorization | `app/Http/Controllers/Web/DashboardController.php`, `Web/ZonalUserController.php`, `Web/SpecialCommandController.php` |
+| Reviewer authorization | `app/Http/Controllers/SubmissionReviewController.php` |
+| RBAC engine | `app/Http/Middleware/CheckAccess.php` |
+| Friendly category redirect | `app/Http/Middleware/RedirectIfAccessMismatch.php` |
+| ABAC geolocation | `app/Http/Middleware/AbacGeolocationMiddleware.php` |
+| Session fingerprint | `app/Http/Middleware/ValidateSessionFingerprint.php` |
+| Forced password change | `app/Http/Middleware/RequirePasswordChange.php` |
+| Idle lock | `app/Http/Middleware/LockscreenMiddleware.php` |
+| Pending-MFA guard | `app/Http/Middleware/RequireMfaPending.php` |
+| API token guard | `app/Http/Middleware/ApiAccessTokenMiddleware.php` |
+| Special-command gate | `app/Http/Middleware/EnsureSpecialCommand.php` |
+| Security headers / CSP | `app/Http/Middleware/SecurityHeaders.php` |
+| Denial telemetry | `app/Http/Middleware/LogSuspiciousActivity.php` |
+| TOTP / backup codes | `app/Services/MfaService.php` |
+| API token lifecycle | `app/Services/TokenService.php` |
+| Auth cookie builder | `app/Services/AuthCookie.php` |
+| GeoIP | `app/Services/GeolocationService.php` |
+| Audit trail | `app/Services/AuditLogger.php` |
+| Runtime settings | `app/Services/SettingService.php` |
+| Workflow scope/stage rules | `app/Services/SubmissionWorkflow.php` |
+| Formation/zone lookup | `app/Services/NisFormationService.php` |
+| Email delivery (OTP/magic link) | `app/Services/Messaging/ResendMailService.php` |
+| User model (categories, MFA state) | `app/Models/User.php` |
+| Sanctum token model (prunable) | `app/Models/PersonalAccessToken.php` |
+| Magic-link / reset tokens | `app/Models/AuthToken.php` |
+| Refresh tokens | `app/Models/RefreshToken.php` |
+| OTP codes | `app/Models/OtpCode.php` |
+| Audit log | `app/Models/AuditLog.php` |
+| Pruning command | `app/Console/Commands/PruneExpiredTokens.php` |
+| CSP nonce helper | `app/helpers.php` |
