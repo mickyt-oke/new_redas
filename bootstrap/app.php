@@ -29,8 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // AuthenticateSession requires a password hash in the session, which is
         // only present after a real login. Enable it in production/staging but
         // keep it optional in local/testing environments where actingAs() is used.
-        $appEnv = env('APP_ENV', 'production');
-        if (env('SESSION_AUTHENTICATE_SESSION_ENABLED', $appEnv !== 'testing' && $appEnv !== 'local')) {
+        $appEnv = env('APP_ENV');
+        if (filter_var(env('SESSION_AUTHENTICATE_SESSION_ENABLED', $appEnv !== 'testing' && $appEnv !== 'local'), FILTER_VALIDATE_BOOLEAN)) {
             $middleware->appendToGroup('web', \Illuminate\Session\Middleware\AuthenticateSession::class);
         }
 
@@ -48,8 +48,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
 
         // Trust proxies behind load balancers.
+        $proxies = array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '')))));
         $middleware->trustProxies(
-            at: explode(',', (string) env('TRUSTED_PROXIES', '')),
+            at: $proxies,
             headers: Request::HEADER_X_FORWARDED_FOR
                 | Request::HEADER_X_FORWARDED_HOST
                 | Request::HEADER_X_FORWARDED_PORT

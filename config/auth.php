@@ -112,4 +112,32 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | One-Time Password (OTP) Settings
+    |--------------------------------------------------------------------------
+    |
+    | These values control the lifetime, attempt limit and lockout duration
+    | for email-based OTP codes issued by the API authentication flow.
+    |
+    */
+
+    'otp' => [
+        'ttl_seconds' => (int) env('OTP_TTL_SECONDS', 300),
+        'max_attempts' => (int) env('OTP_MAX_ATTEMPTS', 5),
+        'lockout_minutes' => (int) env('OTP_LOCKOUT_MINUTES', 15),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Magic Link Token Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | Email verification and password-reset magic links expire after this
+    | many seconds.
+    |
+    */
+
+    'magic_link_ttl' => (int) env('AUTH_TOKEN_TTL_SECONDS', 3600),
+
 ];

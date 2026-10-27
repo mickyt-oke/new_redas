@@ -10,6 +10,8 @@ use App\Models\ApplicationComment;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\NisFormationService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 
 class SubmissionWorkflow
@@ -25,7 +27,6 @@ class SubmissionWorkflow
     public const STAGE_DIRECTORATE_REVIEW = 'directorate_review';
     public const STAGE_CGIS_DESK_REVIEW = 'cgis_desk_review';
     public const STAGE_HQ_REVIEW = 'hq_review';
-    public const STAGE_ADMIN_REVIEW = 'admin_review';
     public const STAGE_APPROVED = 'approved';
 
     public const STATUS_PENDING = 'pending';
@@ -56,23 +57,28 @@ class SubmissionWorkflow
         $category = self::categoryForUser($user);
         $scopeCode = $scopeCode ?? self::scopeCodeForUser($user);
 
-        $application = Application::create([
-            'user_id' => $user->id,
-            'status' => 'pending',
-            'workflow_stage' => self::initialStageForUser($user),
-            'workflow_path' => [
-                [
-                    'stage' => self::STAGE_SUBMITTED,
-                    'by' => $user->id,
-                    'at' => now()->toDateTimeString(),
+        $application = DB::transaction(function () use ($user, $returnData, $category, $scopeCode) {
+            $application = Application::create([
+                'user_id' => $user->id,
+                'status' => self::STATUS_PENDING,
+                'workflow_stage' => self::initialStageForUser($user),
+                'workflow_path' => [
+                    [
+                        'stage' => self::STAGE_SUBMITTED,
+                        'by' => $user->id,
+                        'at' => now()->toDateTimeString(),
+                    ],
                 ],
-            ],
-            'category' => $category,
-            'scope_code' => $scopeCode,
-            'return_data' => $returnData,
-        ]);
+                'category' => $category,
+                'scope_code' => $scopeCode,
+                'return_data' => $returnData,
+            ]);
 
-        self::recordComment($application, $user, self::STAGE_SUBMITTED, ApplicationComment::ACTION_SUBMITTED);
+            self::recordComment($application, $user, self::STAGE_SUBMITTED, ApplicationComment::ACTION_SUBMITTED);
+
+            return $application;
+        });
+
         self::notifyPendingReviewers($application);
         SubmissionCreated::dispatch($application);
 
@@ -159,6 +165,35 @@ class SubmissionWorkflow
     }
 
     /**
+     * Constrain a query to the records this actor is entitled to see.
+     * Super Admin and (optionally) general Admin are national; everyone else
+     * is confined to their own category and scope.
+     */
+    public static function scopeQueryForViewer(Builder $query, User $viewer): Builder
+    {
+        if ($viewer->hasCategory('super_admin')) {
+            return $query;
+        }
+
+        if ($viewer->user_category === 'admin') {
+            return $query;
+        }
+
+        if ($viewer->hasCategory('cgis_unit_user', 'cgis_desk_admin')) {
+            $unit = $viewer->cgisUnitSlug();
+
+            if ($unit === null) {
+                return $query->whereRaw('1 = 0');
+            }
+
+            return $query->where('category', self::CATEGORY_CGIS)
+                ->where('scope_code', $unit);
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
+    /**
      * Build a query for submissions currently sitting in the approver's queue.
      */
     public static function pendingQueryForApprover(User $user)
@@ -169,25 +204,31 @@ class SubmissionWorkflow
             return Application::query()->whereRaw('1 = 0');
         }
 
+        $scopeCode = self::scopeCodeForApprover($user);
+
         $query = Application::query()
             ->with('user')
             ->where('workflow_stage', $stage)
-            ->whereNotIn('status', ['approved', 'rejected']);
+            ->where('status', self::STATUS_PENDING);
 
-        $scopeCode = self::scopeCodeForApprover($user);
+        if ($user->user_category === 'hq_admin') {
+            return $query;
+        }
 
-        if ($scopeCode !== null) {
-            if ($user->user_category === 'zonal_commander') {
-                $query->where(function ($q) use ($scopeCode) {
-                    $q->whereRaw("UPPER(REPLACE(zonal_code, '_', '-')) = ?", [$scopeCode])
-                        ->orWhere(function ($inner) use ($scopeCode) {
-                            $inner->whereNull('zonal_code')
-                                ->whereRaw("UPPER(REPLACE(scope_code, '_', '-')) = ?", [$scopeCode]);
-                        });
-                });
-            } else {
-                $query->where('scope_code', $scopeCode);
-            }
+        if ($scopeCode === null) {
+            return Application::query()->whereRaw('1 = 0');
+        }
+
+        if ($user->user_category === 'zonal_commander') {
+            $query->where(function ($q) use ($scopeCode) {
+                $q->whereRaw("UPPER(REPLACE(zonal_code, '_', '-')) = ?", [$scopeCode])
+                    ->orWhere(function ($inner) use ($scopeCode) {
+                        $inner->whereNull('zonal_code')
+                            ->whereRaw("UPPER(REPLACE(scope_code, '_', '-')) = ?", [$scopeCode]);
+                    });
+            });
+        } else {
+            $query->where('scope_code', $scopeCode);
         }
 
         return $query;
@@ -201,35 +242,39 @@ class SubmissionWorkflow
         $currentStage = $application->workflow_stage;
         $nextStage = self::nextStage($application);
 
-        $path = $application->workflow_path ?? [];
-        $path[] = [
-            'stage' => $nextStage,
-            'by' => $actor->id,
-            'at' => now()->toDateTimeString(),
-            'action' => 'approved',
-        ];
+        $application = DB::transaction(function () use ($application, $actor, $currentStage, $nextStage, $comment) {
+            $path = $application->workflow_path ?? [];
+            $path[] = [
+                'stage' => $nextStage,
+                'by' => $actor->id,
+                'at' => now()->toDateTimeString(),
+                'action' => 'approved',
+            ];
 
-        $update = [
-            'workflow_stage' => $nextStage,
-            'status' => $nextStage === self::STAGE_APPROVED ? 'approved' : 'pending',
-            'workflow_path' => $path,
-            'last_action_by' => $actor->id,
-        ];
+            $update = [
+                'workflow_stage' => $nextStage,
+                'status' => $nextStage === self::STAGE_APPROVED ? self::STATUS_APPROVED : self::STATUS_PENDING,
+                'workflow_path' => $path,
+                'last_action_by' => $actor->id,
+            ];
 
-        // When a desk admin releases a state submission, tag it with the zonal command
-        // it should be routed to so the correct zonal commander sees it.
-        if ($actor->user_category === 'desk_admin') {
-            $zonalCode = NisFormationService::zoneForState($application->scope_code)
-                ?: NisFormationService::normalizeZoneCode($actor->assigned_zonal_command_code);
+            // When a desk admin releases a state submission, tag it with the zonal command
+            // it should be routed to so the correct zonal commander sees it.
+            if ($actor->user_category === 'desk_admin') {
+                $zonalCode = NisFormationService::zoneForState($application->scope_code)
+                    ?: NisFormationService::normalizeZoneCode($actor->assigned_zonal_command_code);
 
-            if ($zonalCode !== null) {
-                $update['zonal_code'] = $zonalCode;
+                if ($zonalCode !== null) {
+                    $update['zonal_code'] = $zonalCode;
+                }
             }
-        }
 
-        $application->update($update);
+            $application->update($update);
 
-        self::recordComment($application, $actor, $currentStage, ApplicationComment::ACTION_APPROVED, $comment);
+            self::recordComment($application, $actor, $currentStage, ApplicationComment::ACTION_APPROVED, $comment);
+
+            return $application;
+        });
 
         if ($nextStage === self::STAGE_APPROVED) {
             self::notifySubmitter(
@@ -256,23 +301,25 @@ class SubmissionWorkflow
     {
         $currentStage = $application->workflow_stage;
 
-        $path = $application->workflow_path ?? [];
-        $path[] = [
-            'stage' => self::STAGE_SUBMITTED,
-            'by' => $actor->id,
-            'at' => now()->toDateTimeString(),
-            'action' => 'rejected',
-        ];
+        DB::transaction(function () use ($application, $actor, $currentStage, $comment) {
+            $path = $application->workflow_path ?? [];
+            $path[] = [
+                'stage' => self::STAGE_SUBMITTED,
+                'by' => $actor->id,
+                'at' => now()->toDateTimeString(),
+                'action' => 'rejected',
+            ];
 
-        $application->update([
-            'workflow_stage' => self::STAGE_SUBMITTED,
-            'status' => 'returned',
-            'comments' => $comment,
-            'workflow_path' => $path,
-            'last_action_by' => $actor->id,
-        ]);
+            $application->update([
+                'workflow_stage' => self::STAGE_SUBMITTED,
+                'status' => self::STATUS_RETURNED,
+                'comments' => $comment,
+                'workflow_path' => $path,
+                'last_action_by' => $actor->id,
+            ]);
 
-        self::recordComment($application, $actor, $currentStage, ApplicationComment::ACTION_REJECTED, $comment);
+            self::recordComment($application, $actor, $currentStage, ApplicationComment::ACTION_REJECTED, $comment);
+        });
 
         self::notifySubmitter(
             $application,
@@ -454,7 +501,6 @@ class SubmissionWorkflow
             self::STAGE_DIRECTORATE_REVIEW => self::STAGE_HQ_REVIEW,
             self::STAGE_CGIS_DESK_REVIEW => self::STAGE_HQ_REVIEW,
             self::STAGE_HQ_REVIEW => self::STAGE_APPROVED,
-            self::STAGE_ADMIN_REVIEW => self::STAGE_APPROVED,
             default => self::STAGE_APPROVED,
         };
     }

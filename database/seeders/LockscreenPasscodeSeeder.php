@@ -13,6 +13,10 @@ class LockscreenPasscodeSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         // Update users who have no lockscreen_passcode to use their main password hash
         // We use a raw query to efficiently copy the password column to lockscreen_passcode for null values
         DB::table('users')

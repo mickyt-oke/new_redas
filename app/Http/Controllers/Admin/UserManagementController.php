@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Console\Commands\MfaResetCommand;
 use App\Http\Controllers\Concerns\ResolvesHashedModels;
 use App\Http\Controllers\Controller;
 use App\Models\AuthToken;
 use App\Models\User;
+use App\Services\AuditLogger;
 use App\Services\HashidService;
 use App\Services\Messaging\ResendMailService;
 use App\Services\NisFormationService;
+use App\Services\PasswordRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -19,6 +23,11 @@ use Illuminate\Validation\ValidationException;
 class UserManagementController extends Controller
 {
     use ResolvesHashedModels;
+
+    private const ASSIGNABLE_CATEGORIES = [
+        'hq_admin' => ['state_user', 'desk_admin', 'zonal_user', 'zonal_commander', 'directorate_user', 'directorate_admin', 'cgis_unit_user', 'cgis_desk_admin', 'hq_admin'],
+        'super_admin' => ['state_user', 'desk_admin', 'zonal_user', 'zonal_commander', 'directorate_user', 'directorate_admin', 'cgis_unit_user', 'cgis_desk_admin', 'hq_admin', 'admin', 'super_admin'],
+    ];
 
     private const CGIS_UNITS = [
         'actu' => 'Anti-Corruption and Transparency Unit',
@@ -85,6 +94,17 @@ class UserManagementController extends Controller
         ];
     }
 
+    private function assertMayAssignCategory(User $actor, string $targetCategory): void
+    {
+        $allowed = self::ASSIGNABLE_CATEGORIES[$actor->user_category] ?? [];
+
+        abort_unless(
+            in_array($targetCategory, $allowed, true),
+            403,
+            'You are not authorised to assign this account type.'
+        );
+    }
+
     private function formViewData(): array
     {
         return [
@@ -130,7 +150,7 @@ class UserManagementController extends Controller
             'primary_location_code' => ['nullable', 'required_if:user_category,directorate_user,directorate_admin', 'string', 'max:50'],
             'assigned_cgis_unit_code' => ['nullable', 'required_if:user_category,cgis_unit_user,cgis_desk_admin', 'in:'.$cgisUnitOptions],
             'email' => ['required', 'string', 'email', 'max:255', $uniqueEmail],
-            'password' => $user === null ? 'required|string|min:8|confirmed' : 'nullable|string|min:8|confirmed',
+            'password' => PasswordRule::rules($user, required: $user === null, confirmed: true),
             'is_enabled' => 'sometimes|boolean',
         ];
     }
@@ -249,6 +269,8 @@ class UserManagementController extends Controller
     {
         $validated = $request->validate($this->userValidationRules());
 
+        $this->assertMayAssignCategory($request->user(), $validated['user_category']);
+
         $normalized = $this->normalizeAccessProfile(
             $validated['user_category'],
             $validated['primary_location_type'],
@@ -289,6 +311,13 @@ class UserManagementController extends Controller
             ]);
         }
 
+        $reviewerCategoriesRequiringScope = ['desk_admin', 'zonal_commander', 'directorate_admin', 'cgis_desk_admin'];
+        if (in_array($normalized['user_category'], $reviewerCategoriesRequiringScope, true) && blank($locationCode)) {
+            throw ValidationException::withMessages([
+                'formation_code' => ['A formation/scope is required for reviewer accounts.'],
+            ]);
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'service_number' => strtoupper($validated['service_number']),
@@ -324,6 +353,8 @@ class UserManagementController extends Controller
     {
         $user = $this->resolveUser($userHash);
         $validated = $request->validate($this->userValidationRules($user));
+
+        $this->assertMayAssignCategory($request->user(), $validated['user_category']);
 
         $normalized = $this->normalizeAccessProfile(
             $validated['user_category'],
@@ -364,6 +395,27 @@ class UserManagementController extends Controller
             ]);
         }
 
+        $reviewerCategoriesRequiringScope = ['desk_admin', 'zonal_commander', 'directorate_admin', 'cgis_desk_admin'];
+        if (in_array($normalized['user_category'], $reviewerCategoriesRequiringScope, true) && blank($locationCode)) {
+            throw ValidationException::withMessages([
+                'formation_code' => ['A formation/scope is required for reviewer accounts.'],
+            ]);
+        }
+
+        if ($request->user()->id === $user->id) {
+            $requestedEnabled = $request->boolean('is_enabled', $user->is_enabled);
+
+            if (
+                $validated['user_category'] !== $user->user_category
+                || $validated['role'] !== $user->role
+                || $normalized['access_level'] !== $user->access_level
+                || $requestedEnabled !== (bool) $user->is_enabled
+                || ! empty($validated['password'])
+            ) {
+                abort(403, 'You cannot change your own account type, role, access level, enabled status, or password from this screen.');
+            }
+        }
+
         $updateData = [
             'name' => $validated['name'],
             'service_number' => strtoupper($validated['service_number']),
@@ -384,7 +436,32 @@ class UserManagementController extends Controller
             $updateData['must_change_password'] = true;
         }
 
+        $oldCategory = $user->user_category;
+        $oldRole = $user->role;
+        $oldAccessLevel = $user->access_level;
+
         $user->update($updateData);
+
+        if (
+            $oldCategory !== $user->user_category
+            || $oldRole !== $user->role
+            || $oldAccessLevel !== $user->access_level
+        ) {
+            AuditLogger::logCrud(
+                $request->user(),
+                'user.privilege_assigned',
+                'user',
+                $user->id,
+                [
+                    'old_category' => $oldCategory,
+                    'new_category' => $user->user_category,
+                    'old_role' => $oldRole,
+                    'new_role' => $user->role,
+                    'old_access_level' => $oldAccessLevel,
+                    'new_access_level' => $user->access_level,
+                ]
+            );
+        }
 
         return redirect()->route('admin.users.edit', ['userHash' => HashidService::encode($user->id)])
             ->with('status', 'User updated successfully.');
@@ -393,6 +470,14 @@ class UserManagementController extends Controller
     public function toggleStatus(string $userHash): RedirectResponse
     {
         $user = $this->resolveUser($userHash);
+        $actor = request()->user();
+
+        abort_if(
+            $actor === null || $actor->id === $user->id || $user->user_category === 'super_admin',
+            403,
+            'You cannot disable or downgrade this account.'
+        );
+
         $user->update(['is_enabled' => ! $user->is_enabled]);
 
         return redirect()->route('admin.users')
@@ -503,9 +588,61 @@ class UserManagementController extends Controller
         ];
     }
 
+    /**
+     * Reset MFA enrolment for the given user.
+     */
+    public function resetMfa(Request $request, string $userHash): RedirectResponse
+    {
+        $target = $this->resolveUser($userHash);
+        $actor = $request->user();
+
+        $this->assertMayManageCategory($actor, $target->user_category);
+
+        $exitCode = Artisan::call(MfaResetCommand::class, [
+            'service_number' => $target->service_number,
+        ]);
+
+        if ($exitCode !== 0) {
+            return redirect()->route('admin.users')
+                ->with('error', 'Unable to reset MFA for this user.');
+        }
+
+        return redirect()->route('admin.users')
+            ->with('status', sprintf('MFA enrolment has been reset for %s.', $target->name));
+    }
+
+    /**
+     * Categories each acting category is permitted to manage (create, update,
+     * or reset MFA for). Mirrors the assignment-authority rule from the
+     * security audit so an HQ admin cannot escalate to or manage Super Admins.
+     */
+    private const MANAGEABLE_CATEGORIES = [
+        'hq_admin' => ['state_user', 'desk_admin', 'zonal_user', 'zonal_commander',
+            'directorate_user', 'directorate_admin',
+            'cgis_unit_user', 'cgis_desk_admin', 'hq_admin'],
+        'super_admin' => ['state_user', 'desk_admin', 'zonal_user', 'zonal_commander',
+            'directorate_user', 'directorate_admin',
+            'cgis_unit_user', 'cgis_desk_admin', 'hq_admin', 'admin', 'super_admin'],
+    ];
+
+    private function assertMayManageCategory(?User $actor, string $targetCategory): void
+    {
+        if (! $actor instanceof User) {
+            abort(403, 'You are not authorised to perform this action.');
+        }
+
+        $allowed = self::MANAGEABLE_CATEGORIES[$actor->user_category] ?? [];
+
+        abort_unless(
+            in_array($targetCategory, $allowed, true),
+            403,
+            'You are not authorised to manage this account type.'
+        );
+    }
+
     private function sendVerificationEmail(User $user): void
     {
-        $ttlSeconds = (int) env('AUTH_TOKEN_TTL_SECONDS', 3600);
+        $ttlSeconds = config('auth.magic_link_ttl');
         $rawToken = Str::random(64);
         $tokenHash = hash('sha256', $rawToken);
 
@@ -517,7 +654,7 @@ class UserManagementController extends Controller
             'used_at' => null,
         ]);
 
-        $frontendUrl = (string) env('APP_URL', 'https://nis-redas.laravel.cloud');
+        $frontendUrl = config('app.url');
         $magicLink = rtrim($frontendUrl, '/').'/verify-email/'.$rawToken;
 
         try {

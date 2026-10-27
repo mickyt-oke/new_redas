@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ApplicationComment extends Model
 {
+    use SoftDeletes;
+
     public const ACTION_SUBMITTED = 'submitted';
     public const ACTION_RESUBMITTED = 'resubmitted';
     public const ACTION_APPROVED = 'approved';

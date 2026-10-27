@@ -17,8 +17,12 @@ class TestUserSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         $now = now();
-        $password = Hash::make('password123');
+        $password = Hash::make(\Illuminate\Support\Str::password(16));
 
         $officers = [
             ['first_name' => 'Michael', 'last_name' => 'Oke', 'email' => 'michael.oke@nis.gov.ng'],

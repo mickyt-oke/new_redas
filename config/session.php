@@ -219,4 +219,21 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authenticate Session Middleware
+    |--------------------------------------------------------------------------
+    |
+    | Enable Laravel's AuthenticateSession middleware, which re-validates the
+    | user's password hash on each request. This requires the password hash to
+    | be present in the session, so it is disabled by default in local and
+    | testing environments where actingAs() is commonly used.
+    |
+    */
+
+    'authenticate_session_enabled' => env(
+        'SESSION_AUTHENTICATE_SESSION_ENABLED',
+        ! in_array((string) env('APP_ENV', 'production'), ['local', 'testing'], true)
+    ),
+
 ];

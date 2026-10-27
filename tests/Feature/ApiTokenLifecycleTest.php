@@ -42,11 +42,11 @@ class ApiTokenLifecycleTest extends TestCase
     {
         $this->seedOtpTemplate();
 
-        $knownOtp = '1234';
+        $knownOtp = '123456';
         OtpCode::query()->create([
             'user_id' => $user->id,
             'purpose' => 'login',
-            'code_hash' => hash('sha256', $knownOtp),
+            'code_hash' => Hash::make($knownOtp),
             'expires_at' => now()->addMinutes(5),
             'attempts' => 0,
             'consumed_at' => null,

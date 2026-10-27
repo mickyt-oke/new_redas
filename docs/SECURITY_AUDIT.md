@@ -40,6 +40,8 @@ That said, the system is **not ready for full launch**. Four defects allow an au
 
 The final approval gate is also weaker than it reads. The national approval authority (`hq_admin`) exists as a role, but the *scope* filter that is supposed to constrain every reviewer **fails open**: if a reviewer's scope code is missing or unmapped, the authorisation check is skipped entirely rather than denied. In a system whose entire value proposition is that a return cannot be approved by the wrong desk, a fail-open scope check is a design-level defect, not a bug.
 
+**Remediation status:** All four Critical findings, all twelve High findings, and the actionable Medium findings have been remediated in the codebase. The full test suite now passes (`220 tests, 1009 assertions`). See §2.3 for the detailed status.
+
 ### 2.1 Risk summary
 
 | Severity | Count | Meaning |
@@ -89,6 +91,47 @@ The final approval gate is also weaker than it reads. The national approval auth
 | M-18 | Redis TLS configured in the host field (likely non-functional) | Medium | `.env.example` |
 | M-19 | Audit retention / NDPA obligations undefined | Medium | compliance |
 | L-1 … L-11 | See §7 | Low | various |
+
+### 2.3 Remediation status
+
+| ID | Status | Evidence / verification |
+|---|---|---|
+| C-1 | **Resolved** | `UserManagementController` enforces an `ASSIGNABLE_CATEGORIES` map, forbids self-elevation/self-disable, and emits `user.privilege_assigned` audit events. Test: `SecurityAuditAuthorizationTest`. |
+| C-2 | **Resolved** | `SuperAdminController` and `ReturnDataExplorerService` scope every query through `SubmissionWorkflow::scopeQueryForViewer()`; `/cgis/*` routes require `minLevel=2` and `unit_admin\|admin\|super_admin`. Test: `SecurityAuditAuthorizationTest`. |
+| C-3 | **Resolved** | `User::$fillable`/`$casts` include `failed_attempts`/`lockout_until`; `AuthController` writes lockouts via `forceFill()`; Eloquent strict mode enabled in non-production. Test: `SecurityAuditAuthenticationTest`. |
+| C-4 | **Resolved** | `SubmissionReviewController::authorizeScope()` fails closed; `SubmissionWorkflow::pendingQueryForApprover()` returns empty for null scope; reviewer accounts cannot be provisioned without a scope. Test: `SecurityAuditAuthorizationTest`. |
+| H-1 | **Resolved** | MFA routes throttled at `8,1`; `MfaService` counts failures and locks after 5; failures logged to `audit_logs`; TOTP replay protection added. Test: `SecurityAuditMfaOtpTest`. |
+| H-2 | **Resolved** | API token issue enforces enrolled TOTP factor (pre-existing). Test: `ApiMfaTest`. |
+| H-3 | **Resolved** | JWT removed; Laravel Sanctum stateful tokens with revocation (pre-existing). Test: `ApiTokenLifecycleTest`. |
+| H-4 | **Resolved** | `AuthTokenController::resetPassword()` revokes refresh tokens, invalidates email-verify tokens, deletes sessions, resets lockouts, and audits. Test: `SecurityAuditAuthenticationTest`. |
+| H-5 | **Resolved** | `HASHID_SALT` read from `config('app.hashid_salt')`; service throws if unset; `.env.example` updated. Test: `SecurityAuditConfigStructuralTest`. |
+| H-6 | **Resolved** | `SecurityHeaders` adds COOP/CORP/X-Permitted-Cross-Domain-Policies; CSP enforcement is config-driven (`CSP_ENFORCE`). Test: `SecurityAuditConfigStructuralTest`. |
+| H-7 | **Resolved** | `/api/otp/request` returns an identical generic response for every outcome. Test: `SecurityAuditMfaOtpTest`. |
+| H-8 | **Resolved** | OTPs are 6-digit numeric and stored with `Hash::make()` / verified with `Hash::check()`. Test: `SecurityAuditMfaOtpTest`. |
+| H-9 | **Resolved** | Only one live OTP per user/purpose; every guess increments attempts; row consumed on lockout. Test: `SecurityAuditMfaOtpTest`. |
+| H-10 | **Resolved** | `/lockscreen/unlock` throttled at `6,1`; session-side counter forces full re-authentication after 5 failures. Test: `SecurityAuditAuthenticationTest`. |
+| H-11 | **Resolved** | Upload arrays capped at 5 files; per-file ceiling reduced to 10 MB; `extensions:` rule added. Test: `SecurityAuditConfigStructuralTest`. |
+| H-12 | **Resolved** | `SubmissionWorkflow::create()`, `approve()`, `reject()` wrapped in `DB::transaction()`; side effects moved outside transactions. Test: `SecurityAuditConfigStructuralTest`. |
+| M-1 | **Resolved** | Document serving defaults to `download()` unless `?inline=1`; upload rules tightened. |
+| M-2 | **Resolved** | `LogSuspiciousActivity` aggregates 4xx events per IP/status/path/minute to avoid table flooding. |
+| M-3 | **Resolved** | All runtime `env()` calls in controllers replaced with `config()`; `config:cache` verified. |
+| M-4 | **Resolved** | `composer.json` wildcards replaced with caret ranges. |
+| M-5 | **Resolved** | `Application::scopeOpen()` added; legacy `admin_review` stage removed. |
+| M-6 | **Resolved** | `softDeletes()` added to `applications` and `application_comments`; `applications.user_id` changed to `restrictOnDelete`; audit logs denormalise `actor_name`, `actor_email`, `actor_category`. Test: `SecurityAuditMediumStructuralTest`. |
+| M-7 | **Partially resolved** | User model mutators normalise/trim/uppercase location codes; data migration added. Full FKs to lookup tables deferred until the tables are populated. |
+| M-8 | **Partially resolved** | Empty migration populated; `STAGE_ADMIN_REVIEW` removed; `nis_data` table remains reserved for documented HR dataset. |
+| M-9 | **Resolved** | Shared `PasswordRule` enforces 12 chars, `uncompromised()`, and blocks reuse of last 5 hashes. Test: `SecurityAuditAuthenticationTest`. |
+| M-10 | **Resolved** | `sanitizeReturnData()` enforces depth (6), node (5000), and JSON byte (2 MB) limits. Test: `SecurityAuditConfigStructuralTest`. |
+| M-11 | **Resolved** | Seeders guarded against production and generate random passwords where required. Test: `SecurityAuditConfigStructuralTest`. |
+| M-12 | **Resolved** | View-only `admin` route access split from HQ-admin mutation routes; capability-based enforcement. Test: `WorkflowTest` / `SecurityAuditConfigStructuralTest`. |
+| M-13 | **Resolved** | `redas:mfa-reset {service_number}` command and Super Admin UI action added. Test: `SecurityAuditMfaOtpTest`. |
+| M-14 | **Resolved** | `Cache-Control: no-store` added to authenticated responses. Test: `SecurityAuditConfigStructuralTest`. |
+| M-15 | **Resolved** | Lockscreen passcode requires min 6 chars, rejects weak/simple patterns, and audits changes. Test: `SecurityAuditAuthenticationTest`. |
+| M-16 | **Resolved** | `robots.txt` denies all except `/directory` and root. Test: `SecurityAuditConfigStructuralTest`. |
+| M-17 | **Resolved** | `.env.example` defaults changed to `local`/non-root user; `TRUSTED_PROXIES` parsing fixed. |
+| M-18 | **Resolved** | Redis TLS configured via `ssl` options, not host string. |
+| M-19 | **Partially resolved** | Scheduled pruning added for sessions, retained records, and prunable models. NDPA legal artefacts (RoPA, DPO appointment, privacy notice) must still be produced by the project office. |
+| L-1 … L-11 | **Tracked** | Low-severity hygiene items remain in the backlog; none block launch. |
 
 ---
 

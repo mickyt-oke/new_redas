@@ -12,6 +12,10 @@ class PrimaryLocationCodeSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         $now = now();
 
         $states = [

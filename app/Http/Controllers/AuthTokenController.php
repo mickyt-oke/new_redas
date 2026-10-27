@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuthToken;
+use App\Models\RefreshToken;
 use App\Models\User;
+use App\Services\AuditLogger;
 use App\Services\Messaging\ResendMailService;
+use App\Services\PasswordRule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -93,7 +97,7 @@ class AuthTokenController extends Controller
      */
     public function verifyEmail(string $token)
     {
-        $ttlSeconds = (int) env('AUTH_TOKEN_TTL_SECONDS', 3600); // 1 hour default (used only for request endpoints)
+        $ttlSeconds = config('auth.magic_link_ttl'); // 1 hour default (used only for request endpoints)
 
         $authToken = $this->consumeTokenOrFail($token, 'email_verify');
 
@@ -125,12 +129,12 @@ class AuthTokenController extends Controller
         $user = User::query()->where($field, $normalizedLogin)->first();
 
         if ($user && ! $user->email_verified_at) {
-            $ttlSeconds = (int) env('AUTH_TOKEN_TTL_SECONDS', 3600);
+            $ttlSeconds = config('auth.magic_link_ttl');
 
             $created = $this->createToken($user, 'email_verify', $ttlSeconds);
             $rawToken = (string) $created['raw_token'];
 
-            $frontendUrl = (string) env('APP_URL', 'http://localhost');
+            $frontendUrl = config('app.url');
             $magicLink = rtrim($frontendUrl, '/').'/verify-email/'.$rawToken;
 
             $this->sendMagicLink(
@@ -163,12 +167,12 @@ class AuthTokenController extends Controller
 
         // Avoid user enumeration: always return 200
         if ($user) {
-            $ttlSeconds = (int) env('AUTH_TOKEN_TTL_SECONDS', 3600);
+            $ttlSeconds = config('auth.magic_link_ttl');
 
             $created = $this->createToken($user, 'password_reset', $ttlSeconds);
             $rawToken = (string) $created['raw_token'];
 
-            $frontendUrl = (string) env('APP_URL', 'http://localhost');
+            $frontendUrl = config('app.url');
             $magicLink = rtrim($frontendUrl, '/').'/password/reset/'.$rawToken;
 
             $this->sendMagicLink(
@@ -225,16 +229,47 @@ class AuthTokenController extends Controller
      */
     public function resetPassword(Request $request, string $token)
     {
-        $validated = $request->validate([
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
-
         $authToken = $this->consumeTokenOrFail($token, 'password_reset');
         $user = User::query()->findOrFail($authToken->user_id);
 
-        $user->password = Hash::make($validated['password']);
-        $user->save();
+        $validated = $request->validate([
+            'password' => PasswordRule::rules($user, required: true, confirmed: true),
+        ]);
 
-        return redirect()->route('login')->with('status', 'Password reset successfully.');
+        DB::transaction(function () use ($user, $validated, $request) {
+            $user->forceFill([
+                'password' => Hash::make($validated['password']),
+                'failed_attempts' => 0,
+                'lockout_until' => null,
+                'otp_failed_attempts' => 0,
+                'otp_locked_until' => null,
+                'password_changed_at' => now(),
+                'password_history' => [],
+            ])->save();
+
+            RefreshToken::query()
+                ->where('user_id', $user->id)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
+
+            AuthToken::query()
+                ->where('user_id', $user->id)
+                ->where('type', 'email_verify')
+                ->whereNull('used_at')
+                ->update(['used_at' => now()]);
+
+            DB::table('sessions')->where('user_id', $user->id)->delete();
+
+            AuditLogger::log(
+                user: $user,
+                action: 'auth.password_reset',
+                status: 'success',
+                entityType: 'user',
+                entityId: $user->id,
+                details: ['ip' => $request->ip()],
+            );
+        });
+
+        return redirect()->route('login')->with('status', 'Password reset successfully. All other sessions have been signed out.');
     }
 }

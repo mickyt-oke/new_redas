@@ -24,6 +24,9 @@ class AuditLogger
     ): AuditLog {
         return AuditLog::create([
             'user_id' => $user?->id,
+            'actor_name' => $user?->name,
+            'actor_email' => $user?->email,
+            'actor_category' => $user?->user_category,
             'action' => $action,
             'entity_type' => $entityType,
             'entity_id' => $entityId !== null ? (string) $entityId : null,

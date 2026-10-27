@@ -220,11 +220,11 @@ class SubmissionReviewController extends Controller
         $disk = Storage::disk();
         abort_unless($disk->exists($path), 404);
 
-        if ($request->boolean('download')) {
-            return $disk->download($path, basename($path));
+        if ($request->boolean('inline')) {
+            return $disk->response($path, basename($path));
         }
 
-        return $disk->response($path, basename($path));
+        return $disk->download($path, basename($path));
     }
 
     /**
@@ -314,21 +314,35 @@ class SubmissionReviewController extends Controller
      */
     private function authorizeScope(Application $application, User $user): void
     {
+        if ($user->hasCategory('super_admin', 'hq_admin')) {
+            return;
+        }
+
+        if ($user->hasCategory('admin')) {
+            abort(403, 'This account is view-only and cannot act on returns.');
+        }
+
         $scopeCode = SubmissionWorkflow::scopeCodeForApprover($user);
 
-        if ($scopeCode !== null) {
-            $applicationScope = $application->scope_code;
+        abort_if(
+            $scopeCode === null,
+            403,
+            'Your account has no provisioned scope. Contact HQ to correct your access profile.'
+        );
 
-            if ($user->user_category === 'zonal_commander') {
-                $applicationScope = NisFormationService::normalizeZoneCode($application->zonal_code)
-                    ?: NisFormationService::normalizeZoneCode($application->scope_code)
-                    ?: $application->scope_code;
-            }
+        $applicationScope = $application->scope_code;
 
-            if ($applicationScope !== $scopeCode) {
-                abort(403, 'This submission is outside your provisioned scope.');
-            }
+        if ($user->user_category === 'zonal_commander') {
+            $applicationScope = NisFormationService::normalizeZoneCode($application->zonal_code)
+                ?: NisFormationService::normalizeZoneCode($application->scope_code)
+                ?: $application->scope_code;
         }
+
+        abort_if(
+            $applicationScope !== $scopeCode,
+            403,
+            'This submission is outside your provisioned scope.'
+        );
     }
 
     /**
@@ -340,7 +354,34 @@ class SubmissionReviewController extends Controller
 
         return $stage !== null
             && $application->workflow_stage === $stage
-            && ! in_array(strtolower((string) $application->status), ['approved', 'rejected'], true);
+            && $application->status === SubmissionWorkflow::STATUS_PENDING
+            && $this->scopeMatches($application, $user);
+    }
+
+    /**
+     * Return whether the application's scope matches the reviewer's provisioned scope.
+     */
+    private function scopeMatches(Application $application, User $user): bool
+    {
+        if ($user->hasCategory('super_admin', 'hq_admin')) {
+            return true;
+        }
+
+        $scopeCode = SubmissionWorkflow::scopeCodeForApprover($user);
+
+        if ($scopeCode === null) {
+            return false;
+        }
+
+        $applicationScope = $application->scope_code;
+
+        if ($user->user_category === 'zonal_commander') {
+            $applicationScope = NisFormationService::normalizeZoneCode($application->zonal_code)
+                ?: NisFormationService::normalizeZoneCode($application->scope_code)
+                ?: $application->scope_code;
+        }
+
+        return $applicationScope === $scopeCode;
     }
 
     /**

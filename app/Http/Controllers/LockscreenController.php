@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,12 +66,34 @@ class LockscreenController extends Controller
             : Hash::check($passcode, $user->password);
 
         if (! $isValid) {
+            $attempts = (int) $request->session()->get('lockscreen.failed', 0) + 1;
+            $request->session()->put('lockscreen.failed', $attempts);
+
+            if ($attempts >= 5) {
+                AuditLogger::logAuthAttempt(
+                    user: $user,
+                    status: 'failure',
+                    details: [
+                        'reason' => 'lockscreen_lockout',
+                        'attempts' => $attempts,
+                    ],
+                    ip: $request->ip() ?? '0.0.0.0',
+                );
+
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withErrors(['login' => 'Too many incorrect passcodes. Please sign in again.']);
+            }
+
             throw ValidationException::withMessages([
                 'passcode' => ['The provided passcode is incorrect.'],
             ]);
         }
 
-        $request->session()->forget('session.locked');
+        $request->session()->forget(['session.locked', 'lockscreen.failed']);
 
         return redirect()->intended($this->redirectUrlForUser($user));
     }

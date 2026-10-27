@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\AuditLogger;
 use App\Services\GeolocationService;
 use App\Services\MfaService;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -58,7 +59,21 @@ class MfaController extends Controller
         $user = $this->pendingUser($request);
         $code = (string) $request->input('code');
 
+        if ($this->mfaService->isLocked($user)) {
+            return back()->withErrors([
+                'code' => 'This account is temporarily locked. Please try again later.',
+            ]);
+        }
+
         if (! $this->mfaService->verifyCode($user, $code)) {
+            $this->mfaService->recordFailedAttempt($user);
+            AuditLogger::logAuthAttempt(
+                user: $user,
+                status: 'failure',
+                details: ['reason' => 'mfa_invalid_code', 'channel' => 'web'],
+                ip: $request->ip(),
+            );
+
             return back()->withErrors([
                 'code' => 'The verification code is invalid. Please try again.',
             ]);
@@ -70,6 +85,8 @@ class MfaController extends Controller
             'mfa_enabled' => true,
             'mfa_verified_at' => now(),
             'mfa_backup_codes' => $this->mfaService->hashBackupCodes($backupCodes),
+            'mfa_failed_attempts' => 0,
+            'mfa_locked_until' => null,
         ])->save();
 
         $request->session()->put('mfa.setup_verified', true);
@@ -127,7 +144,21 @@ class MfaController extends Controller
         $user = $this->pendingUser($request);
         $code = (string) $request->input('code');
 
+        if ($this->mfaService->isLocked($user)) {
+            return back()->withErrors([
+                'code' => 'This account is temporarily locked. Please try again later.',
+            ]);
+        }
+
         if (! $this->mfaService->verifyCode($user, $code)) {
+            $this->mfaService->recordFailedAttempt($user);
+            AuditLogger::logAuthAttempt(
+                user: $user,
+                status: 'failure',
+                details: ['reason' => 'mfa_invalid_code', 'channel' => 'web'],
+                ip: $request->ip(),
+            );
+
             return back()->withErrors([
                 'code' => 'The authentication code is invalid. Please try again.',
             ]);
@@ -169,7 +200,21 @@ class MfaController extends Controller
         $user = $this->pendingUser($request);
         $code = (string) $request->input('code');
 
+        if ($this->mfaService->isLocked($user)) {
+            return back()->withErrors([
+                'code' => 'This account is temporarily locked. Please try again later.',
+            ]);
+        }
+
         if (! $this->mfaService->verifyCode($user, $code)) {
+            $this->mfaService->recordFailedAttempt($user);
+            AuditLogger::logAuthAttempt(
+                user: $user,
+                status: 'failure',
+                details: ['reason' => 'mfa_invalid_code', 'channel' => 'web'],
+                ip: $request->ip(),
+            );
+
             return back()->withErrors([
                 'code' => 'The recovery code is invalid or has already been used.',
             ]);

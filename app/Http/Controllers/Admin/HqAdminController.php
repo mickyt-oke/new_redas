@@ -38,7 +38,6 @@ class HqAdminController extends Controller
         SubmissionWorkflow::STAGE_ZONAL_REVIEW => 'Zonal Review',
         SubmissionWorkflow::STAGE_DIRECTORATE_REVIEW => 'Directorate Admin Review',
         SubmissionWorkflow::STAGE_HQ_REVIEW => 'HQ Admin Review',
-        SubmissionWorkflow::STAGE_ADMIN_REVIEW => 'Final Approval',
         SubmissionWorkflow::STAGE_APPROVED => 'Approved',
     ];
 
@@ -48,10 +47,9 @@ class HqAdminController extends Controller
 
         $stats = Application::query()
             ->selectRaw("count(*) as total", [])
-            ->selectRaw("count(case when workflow_stage = ? and status not in (?, ?) then 1 end) as awaiting_hq", [
+            ->selectRaw("count(case when workflow_stage = ? and status = ? then 1 end) as awaiting_hq", [
                 SubmissionWorkflow::STAGE_HQ_REVIEW,
-                SubmissionWorkflow::STATUS_APPROVED,
-                SubmissionWorkflow::STATUS_REJECTED,
+                SubmissionWorkflow::STATUS_PENDING,
             ])
             ->selectRaw("count(case when status = ? then 1 end) as approved", [SubmissionWorkflow::STATUS_APPROVED])
             ->selectRaw("count(case when status = ? then 1 end) as returned", [SubmissionWorkflow::STATUS_RETURNED])

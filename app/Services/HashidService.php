@@ -12,7 +12,12 @@ final class HashidService
     private static function hashids(): Hashids
     {
         if (self::$hashids === null) {
-            $salt = config('app.hashid_salt', 'default_redas_salt_2026');
+            $salt = (string) config('app.hashid_salt');
+
+            if ($salt === '') {
+                throw new \RuntimeException('HASHID_SALT is not configured.');
+            }
+
             $minHashLength = 8;
 
             self::$hashids = new Hashids($salt, $minHashLength);

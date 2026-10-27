@@ -20,3 +20,11 @@ Schedule::command('model:prune', [
         RefreshToken::class,
     ],
 ])->dailyAt('02:17');
+
+Schedule::command('model:prune')->dailyAt('02:27');
+
+Schedule::command('auth:clear-resets')->dailyAt('02:37');
+
+Schedule::command('session:prune')->dailyAt('02:47');
+
+Schedule::command('redas:prune-retained-records')->dailyAt('03:00');

@@ -20,6 +20,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
+        $password = Hash::make(\Illuminate\Support\Str::password(16));
+
         // Zone User
         User::firstOrCreate(
             ['email' => 'zone.user@nis.gov.ng'],
@@ -30,7 +36,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'officer',
                 'primary_location_type' => 'zonal',
                 'primary_location_code' => 'ZONE-A',
-                'password' => Hash::make('password'),
+                'password' => $password,
                 'is_enabled' => true,
                 'access_level' => 0,
             ]
@@ -46,7 +52,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'zonal',
                 'primary_location_type' => 'zonal',
                 'primary_location_code' => 'ZONE-A',
-                'password' => Hash::make('password'),
+                'password' => $password,
                 'is_enabled' => true,
                 'access_level' => 4,
             ]
@@ -62,7 +68,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'officer',
                 'primary_location_type' => 'state',
                 'primary_location_code' => 'SEME',
-                'password' => Hash::make('password'),
+                'password' => $password,
                 'is_enabled' => true,
                 'access_level' => 0,
             ]

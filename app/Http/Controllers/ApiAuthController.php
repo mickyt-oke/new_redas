@@ -66,11 +66,10 @@ class ApiAuthController extends Controller
             ], 403);
         }
 
-        $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300);
+        $ttlSeconds = config('auth.otp.ttl_seconds');
 
-        $codeInt = random_int(0, 9999);
-        $otp = str_pad((string) $codeInt, 4, '0', STR_PAD_LEFT);
-        $codeHash = hash('sha256', $otp);
+        $otp = (string) random_int(100000, 999999);
+        $codeHash = Hash::make($otp);
 
         OtpCode::create([
             'user_id' => $user->id,

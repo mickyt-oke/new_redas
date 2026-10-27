@@ -17,8 +17,12 @@ class NewSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         $now = now();
-        $password = Hash::make('password123');
+        $password = Hash::make(\Illuminate\Support\Str::password(16));
 
         $states = [
             ['code' => 'AB', 'name' => 'Abia'],
@@ -297,7 +301,7 @@ class NewSeeder extends Seeder
     {
         $user = User::firstOrNew(['service_number' => $data['service_number']]);
         $user->forceFill($data + [
-            'password' => Hash::make('password123'),
+            'password' => Hash::make(\Illuminate\Support\Str::password(16)),
             'email_verified_at' => now(),
         ]);
         $user->save();

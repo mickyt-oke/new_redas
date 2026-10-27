@@ -6,6 +6,7 @@ use App\Models\EmailTemplate;
 use App\Models\OtpCode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -55,7 +56,7 @@ class OtpApiTest extends TestCase
         ]);
 
         $res->assertStatus(200);
-        $res->assertJsonPath('message', 'OTP sent successfully.');
+        $res->assertJsonPath('message', 'If the account exists, a verification code has been sent.');
 
         $this->assertDatabaseHas('otp_codes', [
             'user_id' => $user->id,
@@ -72,11 +73,11 @@ class OtpApiTest extends TestCase
         $user = $this->createUser();
         $this->seedOtpTemplates();
 
-        $knownOtp = '1234';
+        $knownOtp = '123456';
         OtpCode::query()->create([
             'user_id' => $user->id,
             'purpose' => 'login',
-            'code_hash' => hash('sha256', $knownOtp),
+            'code_hash' => Hash::make($knownOtp),
             'expires_at' => now()->addMinutes(5),
             'attempts' => 0,
             'consumed_at' => null,
@@ -99,16 +100,9 @@ class OtpApiTest extends TestCase
             'name' => 'api-access',
         ]);
 
-        $this->assertDatabaseHas('otp_codes', [
-            'user_id' => $user->id,
-            'purpose' => 'login',
-            'code_hash' => hash('sha256', $knownOtp),
-        ]);
-
         $otp = OtpCode::query()
             ->where('user_id', $user->id)
             ->where('purpose', 'login')
-            ->where('code_hash', hash('sha256', $knownOtp))
             ->orderByDesc('created_at')
             ->first();
 
@@ -121,34 +115,33 @@ class OtpApiTest extends TestCase
         $user = $this->createUser();
         $this->seedOtpTemplates();
 
-        $knownOtp = '1234';
+        $knownOtp = '123456';
         OtpCode::query()->create([
             'user_id' => $user->id,
             'purpose' => 'login',
-            'code_hash' => hash('sha256', $knownOtp),
+            'code_hash' => Hash::make($knownOtp),
             'expires_at' => now()->addMinutes(5),
             'attempts' => 0,
             'consumed_at' => null,
         ]);
 
-        $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
+        $maxAttempts = config('auth.otp.max_attempts');
 
         for ($i = 0; $i < $maxAttempts - 1; $i++) {
             $this->postJson('/api/otp/verify', [
                 'login' => $user->email,
                 'purpose' => 'login',
-                'otp' => '0000',
+                'otp' => '000000',
             ])->assertStatus(401);
         }
 
         $lockoutResponse = $this->postJson('/api/otp/verify', [
             'login' => $user->email,
             'purpose' => 'login',
-            'otp' => '0000',
+            'otp' => '000000',
         ]);
         $lockoutResponse->assertStatus(403);
-        $lockoutResponse->assertJsonPath('message', 'Account temporarily locked due to too many failed verification attempts.');
-        $lockoutResponse->assertJsonPath('retry_after_seconds', fn (int $seconds) => $seconds > 0);
+        $lockoutResponse->assertJsonPath('message', 'OTP_MAX_ATTEMPTS_EXCEEDED');
 
         $user->refresh();
         $this->assertNotNull($user->otp_locked_until);
@@ -161,6 +154,7 @@ class OtpApiTest extends TestCase
             'service_number' => 'NIS/AA/1234',
             'role' => 'officer',
             'email' => 'user@example.com',
+            'email_verified_at' => now(),
             'otp_locked_until' => now()->addMinutes(15),
         ]);
         $this->seedOtpTemplates();
@@ -170,7 +164,8 @@ class OtpApiTest extends TestCase
             'purpose' => 'login',
         ]);
 
-        $response->assertStatus(403);
-        $response->assertJsonPath('message', 'Account temporarily locked due to too many failed verification attempts.');
+        // H-7: identical generic response for locked accounts too.
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'If the account exists, a verification code has been sent.');
     }
 }

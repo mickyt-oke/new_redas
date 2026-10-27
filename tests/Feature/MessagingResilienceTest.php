@@ -60,11 +60,12 @@ class MessagingResilienceTest extends TestCase
         ]);
     }
 
-    public function test_otp_request_returns_friendly_error_instead_of_500_when_email_delivery_fails(): void
+    public function test_otp_request_returns_identical_response_when_email_delivery_fails(): void
     {
         $user = User::factory()->create([
             'service_number' => 'NIS/AA/9999',
             'email' => 'otpuser@example.com',
+            'email_verified_at' => now(),
         ]);
 
         // Intentionally do not seed 'otp_login' template so the mailer throws.
@@ -73,8 +74,9 @@ class MessagingResilienceTest extends TestCase
             'purpose' => 'login',
         ]);
 
-        $response->assertStatus(502);
-        $response->assertJsonPath('message', 'We could not send your verification code right now. Please try again shortly.');
+        // H-7: identical generic response regardless of delivery outcome.
+        $response->assertStatus(200);
+        $response->assertJsonPath('message', 'If the account exists, a verification code has been sent.');
 
         // The OTP row is still created even though delivery failed.
         $this->assertDatabaseHas('otp_codes', [

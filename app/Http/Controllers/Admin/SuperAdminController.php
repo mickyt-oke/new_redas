@@ -41,15 +41,18 @@ class SuperAdminController extends Controller
         SubmissionWorkflow::STAGE_DIRECTORATE_REVIEW => 'Directorate Admin Review',
         SubmissionWorkflow::STAGE_CGIS_DESK_REVIEW => 'CGIS Desk Review',
         SubmissionWorkflow::STAGE_HQ_REVIEW => 'HQ Admin Review',
-        SubmissionWorkflow::STAGE_ADMIN_REVIEW => 'Final Approval',
         SubmissionWorkflow::STAGE_APPROVED => 'Approved',
     ];
 
     public function dashboard(): View
     {
-        abort_unless(auth()->user()?->hasCategory('super_admin', 'admin', 'cgis_unit_user', 'cgis_desk_admin'), 403);
+        $viewer = auth()->user();
 
-        $statusCounts = Application::query()
+        abort_unless($viewer instanceof User && $viewer->hasCategory('super_admin', 'admin', 'cgis_unit_user', 'cgis_desk_admin'), 403);
+
+        $baseQuery = SubmissionWorkflow::scopeQueryForViewer(Application::query(), $viewer);
+
+        $statusCounts = (clone $baseQuery)
             ->selectRaw('status, count(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
@@ -71,7 +74,7 @@ class SuperAdminController extends Controller
             ],
         ];
 
-        $categoryCounts = Application::query()
+        $categoryCounts = (clone $baseQuery)
             ->selectRaw('category, count(*) as aggregate')
             ->groupBy('category')
             ->pluck('aggregate', 'category');
@@ -85,7 +88,7 @@ class SuperAdminController extends Controller
             ],
         ];
 
-        $perDirectorate = Application::query()
+        $perDirectorate = (clone $baseQuery)
             ->selectRaw('scope_code, count(*) as aggregate')
             ->where('category', SubmissionWorkflow::CATEGORY_DIRECTORATE)
             ->groupBy('scope_code')
@@ -98,7 +101,7 @@ class SuperAdminController extends Controller
                 ->all(),
         ];
 
-        $zoneCounts = Application::query()
+        $zoneCounts = (clone $baseQuery)
             ->selectRaw('zonal_code, count(*) as aggregate')
             ->whereNotNull('zonal_code')
             ->where('zonal_code', '!=', '')
@@ -111,7 +114,7 @@ class SuperAdminController extends Controller
             'data' => $zoneCounts->map(fn ($count) => (int) $count)->values()->all(),
         ];
 
-        $stateCounts = Application::query()
+        $stateCounts = (clone $baseQuery)
             ->selectRaw('scope_code, count(*) as aggregate')
             ->where('category', SubmissionWorkflow::CATEGORY_STATE)
             ->whereNotNull('scope_code')
@@ -133,18 +136,18 @@ class SuperAdminController extends Controller
         for ($i = 11; $i >= 0; $i--) {
             $month = now()->subMonths($i);
             $trendLabels[] = $month->format('M Y');
-            $submissions[] = Application::query()
+            $submissions[] = (clone $baseQuery)
                 ->whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->count();
-            $approvals[] = Application::query()
+            $approvals[] = (clone $baseQuery)
                 ->where('status', 'approved')
                 ->whereYear('updated_at', $month->year)
                 ->whereMonth('updated_at', $month->month)
                 ->count();
         }
 
-        $latestApproved = Application::query()
+        $latestApproved = SubmissionWorkflow::scopeQueryForViewer(Application::query(), $viewer)
             ->select(['id', 'user_id', 'category', 'return_data', 'updated_at'])
             ->with('user:id,name,service_number,assigned_cgis_unit_code')
             ->where('status', 'approved')
@@ -184,7 +187,9 @@ class SuperAdminController extends Controller
      */
     public function dataExplorer(Request $request, ReturnDataExplorerService $service): View|Response
     {
-        abort_unless(auth()->user()?->hasCategory('super_admin', 'admin', 'cgis_unit_user', 'cgis_desk_admin'), 403);
+        $viewer = auth()->user();
+
+        abort_unless($viewer instanceof User && $viewer->hasCategory('super_admin', 'admin', 'cgis_unit_user', 'cgis_desk_admin'), 403);
 
         $filters = $request->validate([
             'category' => ['nullable', 'in:state,directorate,cgis,zonal'],
@@ -224,7 +229,7 @@ class SuperAdminController extends Controller
         $scoreLabel = $dictionaryEntry['label'] ?? $scorePath;
 
         if ($request->input('export') === 'csv' || $request->input('export') === 'excel') {
-            $records = $service->fetchForExport($filters);
+            $records = $service->fetchForExport($filters, 1000, $viewer);
             $scorecard = $scorePath !== '' ? $service->scorecard($records, $scorePath, $scoreLabel) : null;
             $extension = $request->input('export') === 'excel' ? 'xls' : 'csv';
             $filename = 'return-data-explorer-' . now()->format('Y-m-d-His') . '.' . $extension;
@@ -235,7 +240,7 @@ class SuperAdminController extends Controller
             ]);
         }
 
-        $result = $service->search($filters);
+        $result = $service->search($filters, 20, $viewer);
         $summary = $service->summarise($result['records'], $result['filters']['group_by']);
         $aggregations = $service->aggregate(
             $result['records'],
@@ -366,7 +371,12 @@ class SuperAdminController extends Controller
     {
         $durations = [];
 
-        foreach (Application::query()->select(['id', 'workflow_path'])->where('status', 'approved')->whereNotNull('workflow_path')->cursor() as $application) {
+        $viewer = auth()->user();
+
+        foreach (SubmissionWorkflow::scopeQueryForViewer(
+            Application::query()->select(['id', 'workflow_path']),
+            $viewer instanceof User ? $viewer : auth()->user()
+        )->where('status', 'approved')->whereNotNull('workflow_path')->cursor() as $application) {
             $entries = collect($application->workflow_path ?? []);
             $first = $entries->first()['at'] ?? null;
             $last = $entries->last()['at'] ?? null;

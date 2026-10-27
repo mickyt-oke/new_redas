@@ -236,11 +236,11 @@ class ZonalUserController extends Controller
         $disk = Storage::disk();
         abort_unless($disk->exists($path), 404);
 
-        if ($request->boolean('download')) {
-            return $disk->download($path, basename($path));
+        if ($request->boolean('inline')) {
+            return $disk->response($path, basename($path));
         }
 
-        return $disk->response($path, basename($path));
+        return $disk->download($path, basename($path));
     }
 
     public function destroySubmission(string $applicationHash): RedirectResponse
@@ -250,21 +250,6 @@ class ZonalUserController extends Controller
         $user = Auth::user();
 
         abort_unless($user !== null && SubmissionWorkflow::deletableBy($application, $user), 403);
-
-        $data = is_array($application->return_data) ? $application->return_data : [];
-
-        foreach ((array) ($data['attachments'] ?? []) as $path) {
-            if (! is_string($path) || $path === '') {
-                continue;
-            }
-            try {
-                if (Storage::disk()->exists($path)) {
-                    Storage::disk()->delete($path);
-                }
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
 
         $application->delete();
 
@@ -280,8 +265,8 @@ class ZonalUserController extends Controller
             'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
-            'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240', 'extensions:pdf,doc,docx,jpg,jpeg,png'],
         ]);
     }
 

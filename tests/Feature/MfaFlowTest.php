@@ -240,7 +240,7 @@ class MfaFlowTest extends TestCase
 
         $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/challenge');
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 8; $i++) {
             $this->post('/mfa/challenge', ['code' => '000000']);
         }
 

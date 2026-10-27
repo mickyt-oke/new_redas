@@ -130,6 +130,7 @@ class DeskAdminSubmissionToolsTest extends TestCase
                 'applicationHash' => \App\Services\HashidService::encode($application->id),
                 'collection' => 'supporting',
                 'index' => 0,
+                'inline' => 1,
             ]));
         $viewResponse->assertOk();
         $this->assertStringContainsString('inline', $viewResponse->headers->get('content-disposition'));

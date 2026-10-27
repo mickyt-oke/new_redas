@@ -150,7 +150,7 @@ class AuthLoginTest extends TestCase
     {
         $user = $this->createUser([
             'failed_attempts' => 3,
-            'lockout_until' => now()->addMinutes(5),
+            'lockout_until' => null,
         ]);
 
         $this->post('/login', $this->loginPayload($user))->assertRedirect('/mfa/setup');

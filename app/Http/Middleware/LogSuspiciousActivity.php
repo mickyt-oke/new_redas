@@ -23,20 +23,40 @@ class LogSuspiciousActivity
         $status = $response->getStatusCode();
 
         if (in_array($status, self::WATCHED_STATUSES, true)) {
-            AuditLogger::log(
-                user: $request->user(),
-                action: 'security.suspicious_response',
-                status: 'blocked',
-                entityType: 'http_request',
-                details: [
-                    'status' => $status,
-                    'path' => $request->path(),
-                    'method' => $request->method(),
-                ],
-                ip: $request->ip() ?? '0.0.0.0',
-            );
+            $this->logOncePerWindow($request, $status);
         }
 
         return $response;
+    }
+
+    /**
+     * Aggregate suspicious responses so the audit log cannot be flooded by
+     * an unauthenticated attacker probing random paths. One entry per minute
+     * per IP + status + path is enough for detection while keeping cost bounded.
+     */
+    private function logOncePerWindow(Request $request, int $status): void
+    {
+        $ip = $request->ip() ?? '0.0.0.0';
+        $path = $request->path();
+        $key = 'audit:suspicious:'.hash('sha256', $ip.'|'.$status.'|'.$path);
+
+        if (\Illuminate\Support\Facades\Cache::has($key)) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\Cache::put($key, true, now()->addMinute());
+
+        AuditLogger::log(
+            user: $request->user(),
+            action: 'security.suspicious_response',
+            status: 'blocked',
+            entityType: 'http_request',
+            details: [
+                'status' => $status,
+                'path' => $path,
+                'method' => $request->method(),
+            ],
+            ip: $ip,
+        );
     }
 }

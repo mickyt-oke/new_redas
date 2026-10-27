@@ -272,8 +272,8 @@ class CgisUnitWorkflowTest extends TestCase
             'primary_location_code' => 'epms',
             'assigned_cgis_unit_code' => 'epms',
             'email' => 'epms.officer@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
         ])->assertRedirect(route('admin.users'));
 
         $unitOfficer = User::query()->where('email', 'epms.officer@example.com')->first();
@@ -300,8 +300,8 @@ class CgisUnitWorkflowTest extends TestCase
             'primary_location_code' => 'HQ',
             'assigned_cgis_unit_code' => 'epms',
             'email' => 'bad.combo@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
         ])->assertSessionHasErrors('user_category');
     }
 }

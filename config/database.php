@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Str;
 
-$redisHost = (string) env('REDIS_HOST', '127.0.0.1');
+$redisHost = (string) env('REDIS_HOST', '');
 $redisUrl = (string) env('REDIS_URL');
 
 // Auto-enable TLS for Upstash-style hosts or when explicitly requested.
@@ -12,9 +12,10 @@ $redisUsesTls = str_starts_with($redisHost, 'tls://')
     || env('REDIS_SSL', false)
     || str_contains($redisHost, 'upstash.io');
 
-if ($redisUsesTls && ! str_starts_with($redisHost, 'tls://')) {
-    $redisHost = 'tls://' . ltrim($redisHost, '/');
-}
+// Never embed the scheme in the host string; Predis/PhpRedis read TLS from
+// a dedicated 'scheme' option and an 'ssl' context instead.
+$redisHost = ltrim($redisHost, 'tls://');
+$redisHost = ltrim($redisHost, 'redis://');
 
 $redisSslOptions = [];
 if ($redisUsesTls) {
@@ -31,6 +32,7 @@ if ($redisUsesTls) {
 
 $redisConnection = [
     'url' => $redisUrl !== '' ? $redisUrl : null,
+    'scheme' => $redisUsesTls ? 'tls' : 'tcp',
     'host' => $redisHost,
     'username' => env('REDIS_USERNAME'),
     'password' => env('REDIS_PASSWORD'),
@@ -111,7 +113,7 @@ return [
             'url' => env('DB_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3307'),
-            'database' => env('DB_DATABASE', 'redas_new'),
+            'database' => env('DB_DATABASE', 'redas_backup'),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),

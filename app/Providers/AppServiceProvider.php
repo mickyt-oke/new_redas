@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\RateLimiter;
@@ -39,5 +40,10 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('database', function (Request $request) {
             return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
+
+        if (! $this->app->isProduction()) {
+            Model::preventSilentlyDiscardingAttributes();
+            Model::preventLazyLoading();
+        }
     }
 }

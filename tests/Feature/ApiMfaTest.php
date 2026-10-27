@@ -46,12 +46,12 @@ class ApiMfaTest extends TestCase
         ]);
     }
 
-    private function createOtp(User $user, string $code = '1234'): void
+    private function createOtp(User $user, string $code = '123456'): void
     {
         OtpCode::query()->create([
             'user_id' => $user->id,
             'purpose' => 'login',
-            'code_hash' => hash('sha256', $code),
+            'code_hash' => Hash::make($code),
             'expires_at' => now()->addMinutes(5),
             'attempts' => 0,
             'consumed_at' => null,
@@ -75,7 +75,7 @@ class ApiMfaTest extends TestCase
         $response = $this->postJson('/api/otp/verify', [
             'login' => $user->email,
             'purpose' => 'login',
-            'otp' => '1234',
+            'otp' => '123456',
         ]);
 
         $response->assertOk();
@@ -92,7 +92,7 @@ class ApiMfaTest extends TestCase
         $response = $this->postJson('/api/otp/verify', [
             'login' => $user->email,
             'purpose' => 'login',
-            'otp' => '1234',
+            'otp' => '123456',
         ]);
 
         $response->assertStatus(401);
@@ -110,7 +110,7 @@ class ApiMfaTest extends TestCase
         $response = $this->postJson('/api/otp/verify', [
             'login' => $user->email,
             'purpose' => 'login',
-            'otp' => '1234',
+            'otp' => '123456',
             'totp' => '000000',
         ]);
 
@@ -132,7 +132,7 @@ class ApiMfaTest extends TestCase
         $response = $this->postJson('/api/otp/verify', [
             'login' => $user->email,
             'purpose' => 'login',
-            'otp' => '1234',
+            'otp' => '123456',
             'totp' => $validTotp,
         ]);
 
@@ -150,7 +150,7 @@ class ApiMfaTest extends TestCase
         $response = $this->postJson('/api/otp/verify', [
             'login' => $user->email,
             'purpose' => 'login',
-            'otp' => '1234',
+            'otp' => '123456',
             'totp' => 'ABCD1234',
         ]);
 

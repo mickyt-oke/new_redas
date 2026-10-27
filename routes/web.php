@@ -77,7 +77,7 @@ Route::middleware('guest')->group(function () {
 // Lockscreen Routes
 Route::middleware([Authenticate::class])->group(function () {
     Route::get('/lockscreen', [LockscreenController::class, 'show'])->name('lockscreen.show');
-    Route::post('/lockscreen/unlock', [LockscreenController::class, 'unlock'])->name('lockscreen.unlock');
+    Route::post('/lockscreen/unlock', [LockscreenController::class, 'unlock'])->middleware('throttle:6,1')->name('lockscreen.unlock');
     Route::post('/lockscreen/lock', [LockscreenController::class, 'lock'])->name('lockscreen.lock');
 });
 
@@ -105,8 +105,8 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
             'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
-            'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240', 'extensions:pdf,doc,docx,jpg,jpeg,png'],
         ]);
 
         $user = Auth::user();
@@ -118,7 +118,8 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
             ]);
         }
 
-        $returnData = (new DashboardController)->sanitizeReturnData(
+        $controller = new DashboardController;
+        $returnData = $controller->sanitizeReturnData(
             $request->except(['_token', 'data_consent', 'attachments', 'workflow_path', 'status'])
         );
         $returnData['report_period'] = $request->input('period');
@@ -127,6 +128,7 @@ Route::middleware([Authenticate::class, 'access:category=state_user,location=sta
         $returnData['command_name'] = DashboardController::commandNameForUser($user) ?? $request->input('command_name');
         $returnData['reporting_officer'] = $user?->name ?? $request->input('reporting_officer');
         $returnData['data_consent'] = $request->boolean('data_consent');
+        $controller->enforceReturnDataLimits($returnData);
 
         $paths = [];
         foreach ((array) $request->file('attachments', []) as $file) {
@@ -188,8 +190,8 @@ Route::middleware([Authenticate::class, 'abac.geo'])->group(function () {
         $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'doc_type' => ['required', 'string', 'max:50'],
-            'documents' => ['nullable', 'array'],
-            'documents.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:20480'],
+            'documents' => ['nullable', 'array', 'max:5'],
+            'documents.*' => ['file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png', 'max:10240', 'extensions:pdf,doc,docx,xls,xlsx,jpg,jpeg,png'],
             'data_consent' => ['required', 'accepted'],
         ]);
 
@@ -345,7 +347,7 @@ Route::middleware([Authenticate::class, 'access:category=super_admin,location=he
 });
 
 // CGIS executive dashboard — shared view with Super Admin
-Route::middleware([Authenticate::class, 'access:category=cgis_unit_user|cgis_desk_admin|super_admin|admin,location=unit|headquarters,role=unit_officer|unit_admin|admin|super_admin|minLevel=0', 'abac.geo'])->group(function () {
+Route::middleware([Authenticate::class, 'role:unit_admin,admin,super_admin', 'access:category=cgis_unit_user|cgis_desk_admin|super_admin|admin,location=unit|headquarters,role=unit_admin|admin|super_admin,minLevel=2', 'abac.geo'])->group(function () {
     Route::get('/cgis/executive-dashboard', [SuperAdminController::class, 'executiveDashboard'])->name('cgis.executive.dashboard');
     Route::get('/cgis/data-explorer', [SuperAdminController::class, 'cgisDataExplorer'])->name('cgis.data-explorer');
 });
@@ -381,13 +383,13 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin|admin,location
     Route::get('/admin/hq/archive', [HqAdminController::class, 'archive'])->name('admin.hq.archive');
     Route::get('/admin/hq/analytics', [HqAdminController::class, 'analytics'])->name('admin.hq.analytics');
     Route::get('/admin/hq/reports', [HqAdminController::class, 'reports'])->name('admin.hq.reports');
-    Route::post('/admin/hq/reports/generate', [HqAdminController::class, 'generateReport'])->middleware('throttle:database')->name('admin.hq.reports.generate');
 
     Route::get('/admin/consolidation', [ConsolidationController::class, 'index'])->name('admin.consolidation');
 });
 
-// HQ admin only — final review actions and platform administration
-Route::middleware([Authenticate::class, 'access:category=hq_admin,location=headquarters,role=admin|minLevel=5', 'abac.geo'])->group(function () {
+// HQ admin / Super admin only — final review actions and platform administration.
+// View-only national admins (category=admin) are intentionally excluded.
+Route::middleware([Authenticate::class, 'access:category=hq_admin|super_admin,location=headquarters,role=admin|super_admin|minLevel=5', 'abac.geo'])->group(function () {
     Route::get('/admin/submissions', [SubmissionReviewController::class, 'index'])->name('admin.submissions');
     Route::patch('/admin/submissions/{applicationHash}/approve', [SubmissionReviewController::class, 'approve'])->middleware(['signed', 'throttle:database'])->name('admin.submissions.approve');
     Route::patch('/admin/submissions/{applicationHash}/reject', [SubmissionReviewController::class, 'reject'])->middleware(['signed', 'throttle:database'])->name('admin.submissions.reject');
@@ -397,23 +399,26 @@ Route::middleware([Authenticate::class, 'access:category=hq_admin,location=headq
 
     Route::get('/admin/audit-log', [AdminAuditLogController::class, 'index'])->name('admin.audit-log.index');
 
+    Route::post('/admin/hq/reports/generate', [HqAdminController::class, 'generateReport'])->middleware('throttle:database')->name('admin.hq.reports.generate');
+
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users');
     Route::get('/admin/users/create', [UserManagementController::class, 'create'])->name('admin.users.create');
     Route::post('/admin/users', [UserManagementController::class, 'store'])->middleware('throttle:database')->name('admin.users.store');
     Route::get('/admin/users/{userHash}/edit', [UserManagementController::class, 'edit'])->name('admin.users.edit');
     Route::patch('/admin/users/{userHash}', [UserManagementController::class, 'update'])->middleware(['signed', 'throttle:database'])->name('admin.users.update');
     Route::patch('/admin/users/{userHash}/toggle-status', [UserManagementController::class, 'toggleStatus'])->middleware(['signed', 'throttle:database'])->name('admin.users.toggle_status');
+    Route::post('/admin/users/{userHash}/reset-mfa', [UserManagementController::class, 'resetMfa'])->middleware(['signed', 'throttle:database'])->name('admin.users.reset_mfa');
 });
 
 // MFA challenge routes (pending login stage)
 // Throttle TOTP/backup-code verification to slow brute-force attacks.
-Route::middleware(['mfa.pending'])->group(function () {
+Route::middleware(['mfa.pending', 'throttle:8,1'])->group(function () {
     Route::get('/mfa/setup', [MfaController::class, 'setup'])->name('mfa.setup');
-    Route::post('/mfa/setup', [MfaController::class, 'verifySetup'])->middleware('throttle:5,1')->name('mfa.setup.verify');
+    Route::post('/mfa/setup', [MfaController::class, 'verifySetup'])->name('mfa.setup.verify');
     Route::get('/mfa/challenge', [MfaController::class, 'challenge'])->name('mfa.challenge');
-    Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])->middleware('throttle:5,1')->name('mfa.challenge.verify');
+    Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])->name('mfa.challenge.verify');
     Route::get('/mfa/recovery', [MfaController::class, 'recovery'])->name('mfa.recovery');
-    Route::post('/mfa/recovery', [MfaController::class, 'verifyRecovery'])->middleware('throttle:5,1')->name('mfa.recovery.verify');
+    Route::post('/mfa/recovery', [MfaController::class, 'verifyRecovery'])->name('mfa.recovery.verify');
     Route::post('/mfa/complete', [MfaController::class, 'complete'])->name('mfa.complete');
     Route::post('/mfa/cancel', [MfaController::class, 'cancel'])->name('mfa.cancel');
 });

@@ -99,6 +99,14 @@ return [
 
     'key' => env('APP_KEY'),
 
+    'hashid_salt' => env('HASHID_SALT'),
+
+    'magic_link_ttl' => (int) env('AUTH_TOKEN_TTL_SECONDS', 3600),
+
+    'trusted_proxies' => array_values(array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', ''))))),
+
+    'csp_enforce' => (bool) env('CSP_ENFORCE', false),
+
     'previous_keys' => [
         ...array_filter(
             explode(',', (string) env('APP_PREVIOUS_KEYS', ''))

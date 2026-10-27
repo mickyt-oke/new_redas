@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\GeolocationService;
 use App\Services\Messaging\ResendMailService;
+use App\Services\PasswordRule;
 use App\Services\SettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,8 @@ class AuthController extends Controller
     private const MAX_LOGIN_ATTEMPTS = 5;
 
     private const LOCKOUT_SECONDS = 60;
+
+    public const LOCKOUT_MINUTES = 15;
 
     /**
      * Register a new user.
@@ -52,7 +55,7 @@ class AuthController extends Controller
             'primary_location_code' => 'nullable|string|max:50',
             'geo_state' => 'nullable|string|max:10',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => PasswordRule::rules(required: true, confirmed: true),
             'terms' => 'accepted',
         ], [
             'service_number.regex' => 'Service number must be in the format NIS/XX/1234.',
@@ -85,7 +88,7 @@ class AuthController extends Controller
         ]);
 
         // Send email verification magic link
-        $ttlSeconds = (int) env('AUTH_TOKEN_TTL_SECONDS', 3600);
+        $ttlSeconds = config('auth.magic_link_ttl');
         $rawToken = Str::random(64);
         $tokenHash = hash('sha256', $rawToken);
 
@@ -97,7 +100,7 @@ class AuthController extends Controller
             'used_at' => null,
         ]);
 
-        $frontendUrl = (string) env('APP_URL', 'http://localhost');
+        $frontendUrl = config('app.url');
         $magicLink = rtrim($frontendUrl, '/').'/verify-email/'.$rawToken;
 
         try {
@@ -178,10 +181,10 @@ class AuthController extends Controller
             if ($user) {
                 $user->increment('failed_attempts');
                 if ($user->failed_attempts >= self::MAX_LOGIN_ATTEMPTS) {
-                    $user->update([
-                        'lockout_until' => now()->addMinutes(15),
+                    $user->forceFill([
                         'failed_attempts' => 0,
-                    ]);
+                        'lockout_until' => now()->addMinutes(self::LOCKOUT_MINUTES),
+                    ])->save();
                 }
             }
 

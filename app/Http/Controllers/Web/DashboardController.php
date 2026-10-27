@@ -271,10 +271,10 @@ class DashboardController extends Controller
             'report_period' => ['required', 'date_format:Y-m'],
             'reporting_officer' => ['required', 'string', 'max:120'],
             'data_consent' => ['required', 'accepted'],
-            'supporting_documents' => ['nullable', 'array'],
-            'supporting_documents.*' => ['file', 'mimes:pdf,xls,xlsx,png,jpg,jpeg', 'max:20480'],
-            'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+            'supporting_documents' => ['nullable', 'array', 'max:5'],
+            'supporting_documents.*' => ['file', 'mimes:pdf,xls,xlsx,png,jpg,jpeg', 'max:10240', 'extensions:pdf,xls,xlsx,png,jpg,jpeg'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240', 'extensions:pdf,doc,docx,jpg,jpeg,png'],
         ];
     }
 
@@ -292,20 +292,33 @@ class DashboardController extends Controller
             'data_consent.accepted' => 'Please tick the declaration and consent box before submitting.',
             'supporting_documents.*.file' => 'One of the supporting documents could not be uploaded. Please try again.',
             'supporting_documents.*.mimes' => 'Supporting documents must be PDF, Excel (xls/xlsx), or image (png/jpg/jpeg) files.',
-            'supporting_documents.*.max' => 'Each supporting document must not be larger than 20 MB.',
+            'supporting_documents.*.max' => 'Each supporting document must not be larger than 10 MB.',
+            'supporting_documents.*.extensions' => 'Supporting documents must have a valid extension (pdf, xls, xlsx, png, jpg, jpeg).',
             'attachments.*.file' => 'One of the attachments could not be uploaded. Please try again.',
             'attachments.*.mimes' => 'Attachments must be PDF, Word (doc/docx), or image (jpg/jpeg/png) files.',
-            'attachments.*.max' => 'Each attachment must not be larger than 20 MB.',
+            'attachments.*.max' => 'Each attachment must not be larger than 10 MB.',
+            'attachments.*.extensions' => 'Attachments must have a valid extension (pdf, doc, docx, jpg, jpeg, png).',
         ];
     }
+
+    private const MAX_RETURN_DATA_DEPTH = 6;
+    private const MAX_RETURN_DATA_NODES = 5000;
+    private const MAX_RETURN_DATA_BYTES = 2_097_152; // 2 MB
 
     /**
      * Recursively sanitize user-submitted return data before persistence.
      * Removes workflow keys, trims strings, casts numeric strings, strips tags
      * and drops empty leaf values to reduce injection / mass-assignment risk.
+     * Enforces depth, node-count and JSON-size ceilings to prevent storage abuse.
      */
-    public function sanitizeReturnData(array $data): array
+    public function sanitizeReturnData(array $data, int $depth = 0): array
     {
+        if ($depth > self::MAX_RETURN_DATA_DEPTH) {
+            throw ValidationException::withMessages([
+                'form' => ['This return exceeds the maximum permitted nesting depth.'],
+            ]);
+        }
+
         $forbiddenKeys = ['_token', '_method', 'data_consent', 'workflow_path', 'status'];
         $clean = [];
 
@@ -315,7 +328,7 @@ class DashboardController extends Controller
             }
 
             if (is_array($value)) {
-                $nested = $this->sanitizeReturnData($value);
+                $nested = $this->sanitizeReturnData($value, $depth + 1);
                 if ($nested !== []) {
                     $clean[$key] = $nested;
                 }
@@ -333,6 +346,39 @@ class DashboardController extends Controller
         }
 
         return $clean;
+    }
+
+    /**
+     * Enforce global size limits on return_data before it is persisted.
+     */
+    public function enforceReturnDataLimits(array $data): void
+    {
+        $nodeCount = $this->countNodes($data);
+        if ($nodeCount > self::MAX_RETURN_DATA_NODES) {
+            throw ValidationException::withMessages([
+                'form' => ['This return exceeds the maximum permitted size. Please split it or contact support.'],
+            ]);
+        }
+
+        $json = json_encode($data);
+        if ($json === false || strlen($json) > self::MAX_RETURN_DATA_BYTES) {
+            throw ValidationException::withMessages([
+                'form' => ['This return exceeds the maximum permitted size. Please split it or contact support.'],
+            ]);
+        }
+    }
+
+    private function countNodes(array $data): int
+    {
+        $count = 0;
+        foreach ($data as $value) {
+            $count++;
+            if (is_array($value)) {
+                $count += $this->countNodes($value);
+            }
+        }
+
+        return $count;
     }
 
     public function storeDirectorate(Request $request, string $slug): RedirectResponse
@@ -361,7 +407,7 @@ class DashboardController extends Controller
         }
 
         try {
-            SubmissionWorkflow::create($user, array_merge(
+            $returnData = array_merge(
                 $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'supporting_documents', 'attachments'])),
                 [
                     'directorate_slug' => $slug,
@@ -370,7 +416,9 @@ class DashboardController extends Controller
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
                     'data_consent' => (bool) $validated['data_consent'],
                 ]
-            ));
+            );
+            $this->enforceReturnDataLimits($returnData);
+            SubmissionWorkflow::create($user, $returnData);
         } catch (\Throwable $e) {
             report($e);
 
@@ -500,7 +548,7 @@ class DashboardController extends Controller
         }
 
         try {
-            SubmissionWorkflow::create($user, array_merge(
+            $returnData = array_merge(
                 $this->sanitizeReturnData($request->except(['_token', 'data_consent', 'supporting_documents', 'attachments'])),
                 [
                     'cgis_unit_slug' => $slug,
@@ -509,7 +557,9 @@ class DashboardController extends Controller
                     'attachments' => $this->storeUploadedFiles($request, 'attachments', $slug),
                     'data_consent' => (bool) $validated['data_consent'],
                 ]
-            ));
+            );
+            $this->enforceReturnDataLimits($returnData);
+            SubmissionWorkflow::create($user, $returnData);
         } catch (\Throwable $e) {
             report($e);
 
@@ -687,7 +737,7 @@ class DashboardController extends Controller
 
     /**
      * Stream one of a submission's uploaded documents to its owner
-     * (inline for preview, or as a download with ?download=1).
+     * (download by default, or inline with ?inline=1).
      */
     public function submissionDocument(Request $request, string $applicationHash, string $collection, int $index)
     {
@@ -708,11 +758,11 @@ class DashboardController extends Controller
         $disk = Storage::disk();
         abort_unless($disk->exists($path), 404);
 
-        if ($request->boolean('download')) {
-            return $disk->download($path, basename($path));
+        if ($request->boolean('inline')) {
+            return $disk->response($path, basename($path));
         }
 
-        return $disk->response($path, basename($path));
+        return $disk->download($path, basename($path));
     }
 
     /**
@@ -827,8 +877,8 @@ class DashboardController extends Controller
                 'return_type' => ['required', 'in:monthly,quarterly,biannual,annual,special'],
                 'reporting_officer' => ['required', 'string', 'max:120'],
                 'data_consent' => ['required', 'accepted'],
-                'attachments' => ['nullable', 'array'],
-                'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:20480'],
+                'attachments' => ['nullable', 'array', 'max:5'],
+                'attachments.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:10240', 'extensions:pdf,doc,docx,jpg,jpeg,png'],
             ]);
 
             $returnData = array_merge(
@@ -862,6 +912,8 @@ class DashboardController extends Controller
                 ]
             );
         }
+
+        $this->enforceReturnDataLimits($returnData);
 
         // Mirror the initial-stage logic of SubmissionWorkflow::create() so the
         // updated return re-enters the workflow where a fresh submission would.
@@ -907,8 +959,9 @@ class DashboardController extends Controller
     }
 
     /**
-     * Delete a submission owned by the user, together with its uploaded files.
-     * Only allowed while the return has not been finally approved.
+     * Soft-delete a submission owned by the user. Only allowed while the return
+     * has not been finally approved. Uploaded files are retained until the
+     * retention period expires and a scheduled cleanup removes them.
      */
     public function destroySubmission(string $applicationHash): RedirectResponse
     {
@@ -917,28 +970,7 @@ class DashboardController extends Controller
 
         abort_unless($user !== null && SubmissionWorkflow::deletableBy($application, $user), 403);
 
-        $data = is_array($application->return_data) ? $application->return_data : [];
-
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk();
-
-        foreach (['supporting_documents', 'attachments'] as $key) {
-            foreach ((array) ($data[$key] ?? []) as $path) {
-                if (! is_string($path) || $path === '') {
-                    continue;
-                }
-
-                try {
-                    if ($disk->exists($path)) {
-                        $disk->delete($path);
-                    }
-                } catch (\Throwable $e) {
-                    report($e);
-                }
-            }
-        }
-
-        $application->delete(true);
+        $application->delete();
 
         $redirect = match ($user->user_category) {
             'cgis_unit_user' => redirect()->route('user.cgis-units.dashboard'),

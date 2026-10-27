@@ -12,6 +12,10 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         $defaults = [
             'abac_enabled' => ['value' => true, 'type' => 'boolean', 'description' => 'Master switch for attribute-based access control.'],
             'abac_location_enforcement' => ['value' => true, 'type' => 'boolean', 'description' => 'Block login and requests from outside the user\'s registered state.'],

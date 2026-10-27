@@ -33,12 +33,12 @@ class ReturnDataExplorerTest extends TestCase
     public function test_cgis_user_can_view_data_explorer(): void
     {
         $cgisUser = User::factory()->create([
-            'user_category' => 'cgis_unit_user',
-            'role' => 'unit_officer',
+            'user_category' => 'cgis_desk_admin',
+            'role' => 'unit_admin',
             'primary_location_type' => 'unit',
             'primary_location_code' => 'actu',
             'assigned_cgis_unit_code' => 'actu',
-            'access_level' => 0,
+            'access_level' => 2,
             'is_enabled' => true,
             'email_verified_at' => now(),
         ]);

@@ -11,6 +11,8 @@ use App\Services\TokenService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -49,30 +51,39 @@ class ApiOtpController extends Controller
             ->where([$field => $normalizedLogin])
             ->first();
 
-        if (! $user) {
-            throw ValidationException::withMessages([
-                'login' => ['Account not found.'],
-            ]);
+        if ($user && $user->is_enabled && $user->email_verified_at) {
+            $this->issueAndSendOtp($user, $purpose, $request->ip());
         }
 
+        return response()->json([
+            'message' => 'If the account exists, a verification code has been sent.',
+        ], 200);
+    }
+
+    private function issueAndSendOtp(User $user, string $purpose, ?string $ip): void
+    {
         if ($this->otpLockedUntil($user)?->isFuture()) {
-            return $this->otpLockedResponse($user);
+            return;
         }
 
-        $ttlSeconds = (int) env('OTP_TTL_SECONDS', 300); // 5 minutes default
+        $ttlSeconds = config('auth.otp.ttl_seconds');
+        $code = (string) random_int(100000, 999999);
 
-        $codeInt = random_int(0, 9999);
-        $code = str_pad((string) $codeInt, 4, '0', STR_PAD_LEFT);
-        $codeHash = hash('sha256', $code);
+        DB::transaction(function () use ($user, $purpose, $ttlSeconds, $code) {
+            OtpCode::where('user_id', $user->id)
+                ->where('purpose', $purpose)
+                ->whereNull('consumed_at')
+                ->update(['consumed_at' => now()]);
 
-        OtpCode::create([
-            'user_id' => $user->id,
-            'purpose' => $purpose,
-            'code_hash' => $codeHash,
-            'expires_at' => Carbon::now()->addSeconds($ttlSeconds),
-            'attempts' => 0,
-            'consumed_at' => null,
-        ]);
+            OtpCode::create([
+                'user_id' => $user->id,
+                'purpose' => $purpose,
+                'code_hash' => Hash::make($code),
+                'expires_at' => Carbon::now()->addSeconds($ttlSeconds),
+                'attempts' => 0,
+                'consumed_at' => null,
+            ]);
+        });
 
         $templateKey = $purpose === 'verify_email'
             ? 'otp_verify_email'
@@ -95,18 +106,10 @@ class ApiOtpController extends Controller
                 'user_id' => $user->id,
                 'purpose' => $purpose,
                 'template' => $templateKey,
+                'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
-
-            return response()->json([
-                'message' => 'We could not send your verification code right now. Please try again shortly.',
-            ], 502);
         }
-
-        return response()->json([
-            'message' => 'OTP sent successfully.',
-            'expires_at' => Carbon::now()->addSeconds($ttlSeconds)->toIso8601String(),
-        ], 200);
     }
 
     public function verify(Request $request)
@@ -114,7 +117,7 @@ class ApiOtpController extends Controller
         $validator = Validator::make($request->all(), [
             'login' => ['required', 'string', 'max:255'],
             'purpose' => ['required', 'string', 'in:login,verify_email'],
-            'otp' => ['required', 'string', 'regex:/^\d{4}$/'],
+            'otp' => ['required', 'string', 'regex:/^\d{6}$/'],
             'totp' => ['nullable', 'string', 'max:32'],
         ]);
 
@@ -146,31 +149,30 @@ class ApiOtpController extends Controller
             return $this->otpLockedResponse($user);
         }
 
-        $codeHash = hash('sha256', $otpInput);
-
         /** @var OtpCode|null $otp */
-        $otp = OtpCode::query()
-            ->where('user_id', $user->id)
+        $otp = OtpCode::where('user_id', $user->id)
             ->where('purpose', $purpose)
-            ->where('code_hash', $codeHash)
             ->whereNull('consumed_at')
             ->where('expires_at', '>', now())
             ->orderByDesc('created_at')
             ->first();
 
         if (! $otp) {
-            $latest = OtpCode::query()
-                ->where('user_id', $user->id)
-                ->where('purpose', $purpose)
-                ->whereNull('consumed_at')
-                ->where('expires_at', '>', now())
-                ->orderByDesc('created_at')
-                ->first();
+            return response()->json(['message' => 'OTP_INVALID'], 401);
+        }
 
-            if ($latest) {
-                $latest->increment('attempts');
-            }
+        $otp->increment('attempts');
 
+        $maxAttempts = config('auth.otp.max_attempts');
+
+        if ((int) $otp->attempts >= $maxAttempts) {
+            $otp->forceFill(['consumed_at' => now()])->save();
+            $this->recordFailedOtpAttempt($user, $purpose, $request->ip());
+
+            return response()->json(['message' => 'OTP_MAX_ATTEMPTS_EXCEEDED'], 403);
+        }
+
+        if (! Hash::check($otpInput, $otp->code_hash)) {
             $this->recordFailedOtpAttempt($user, $purpose, $request->ip());
 
             if ($this->otpLockedUntil($user)?->isFuture()) {
@@ -180,20 +182,9 @@ class ApiOtpController extends Controller
             return response()->json(['message' => 'OTP_INVALID'], 401);
         }
 
-        $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
-        if ((int) $otp->attempts >= $maxAttempts) {
-            Log::warning('OTP max attempts exceeded', [
-                'user_id' => $user->id,
-                'purpose' => $purpose,
-                'ip' => $request->ip(),
-            ]);
-
-            return response()->json(['message' => 'OTP_MAX_ATTEMPTS_EXCEEDED'], 403);
-        }
-
-        $otp->consumed_at = now();
-        $otp->attempts = (int) $otp->attempts + 1;
-        $otp->save();
+        $otp->forceFill([
+            'consumed_at' => now(),
+        ])->save();
 
         $this->resetOtpLockout($user);
 
@@ -251,8 +242,8 @@ class ApiOtpController extends Controller
 
     private function recordFailedOtpAttempt(User $user, string $purpose, ?string $ip): void
     {
-        $maxAttempts = (int) env('OTP_MAX_ATTEMPTS', 5);
-        $lockoutMinutes = (int) env('OTP_LOCKOUT_MINUTES', 15);
+        $maxAttempts = config('auth.otp.max_attempts');
+        $lockoutMinutes = config('auth.otp.lockout_minutes');
 
         $attempts = (int) $user->otp_failed_attempts + 1;
 

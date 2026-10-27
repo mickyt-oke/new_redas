@@ -12,6 +12,10 @@ class NisDirectorySeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         NisDirectory::truncate();
 
         $data = array_merge(

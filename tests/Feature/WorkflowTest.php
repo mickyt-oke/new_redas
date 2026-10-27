@@ -256,10 +256,10 @@ class WorkflowTest extends TestCase
             ->delete($this->signedApplicationRoute('user.directorates.submissions.destroy', $application))
             ->assertForbidden();
 
-        // Owner can delete while pending
+        // Owner can delete while pending (soft delete)
         $this->actingAs($user)
             ->delete($this->signedApplicationRoute('user.directorates.submissions.destroy', $application));
-        $this->assertDatabaseMissing('applications', ['id' => $application->id]);
+        $this->assertSoftDeleted('applications', ['id' => $application->id]);
 
         // Approved returns are locked
         $locked = SubmissionWorkflow::create($user, ['report_period' => '2025-06']);

@@ -11,6 +11,12 @@ use PragmaRX\Google2FA\Google2FA;
 
 class MfaService
 {
+    private const MAX_FAILED_ATTEMPTS = 5;
+
+    private const LOCKOUT_MINUTES = 15;
+
+    private const TIMESTEP_SECONDS = 30;
+
     public function __construct(private Google2FA $google2fa) {}
 
     /**
@@ -93,6 +99,10 @@ class MfaService
             return false;
         }
 
+        if ($this->isLocked($user)) {
+            return false;
+        }
+
         $secret = $user->mfa_secret;
 
         if (empty($secret)) {
@@ -102,13 +112,23 @@ class MfaService
         // Standard 6-digit TOTP codes are numeric; backup codes are alphanumeric.
         if (ctype_digit($code) && strlen($code) === 6) {
             if ($this->google2fa->verifyKey($secret, $code, 1)) {
+                if ($this->isTimestepReplay($user)) {
+                    return false;
+                }
+
                 $this->recordUse($user);
 
                 return true;
             }
         }
 
-        return $this->verifyBackupCode($user, $code);
+        if ($this->verifyBackupCode($user, $code)) {
+            $this->recordUse($user);
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -143,8 +163,6 @@ class MfaService
             'mfa_backup_codes' => $codes === [] ? null : $codes,
         ])->save();
 
-        $this->recordUse($user);
-
         return true;
     }
 
@@ -155,6 +173,77 @@ class MfaService
     {
         $user->forceFill([
             'mfa_last_used_at' => now(),
+            'mfa_last_timestep' => $this->currentTimestep(),
+            'mfa_failed_attempts' => 0,
+            'mfa_locked_until' => null,
         ])->save();
+    }
+
+    /**
+     * Record a failed MFA attempt and lock the account after the threshold.
+     */
+    public function recordFailedAttempt(User $user): void
+    {
+        $attempts = (int) $user->mfa_failed_attempts + 1;
+
+        if ($attempts >= self::MAX_FAILED_ATTEMPTS) {
+            $user->forceFill([
+                'mfa_failed_attempts' => 0,
+                'mfa_locked_until' => now()->addMinutes(self::LOCKOUT_MINUTES),
+            ])->save();
+
+            return;
+        }
+
+        $user->forceFill([
+            'mfa_failed_attempts' => $attempts,
+        ])->save();
+    }
+
+    /**
+     * Reset the MFA lockout counters for the account.
+     */
+    public function resetLockout(User $user): void
+    {
+        if ($user->mfa_failed_attempts !== 0
+            || $user->mfa_locked_until !== null
+            || $user->mfa_last_timestep !== null) {
+            $user->forceFill([
+                'mfa_failed_attempts' => 0,
+                'mfa_locked_until' => null,
+                'mfa_last_timestep' => null,
+            ])->save();
+        }
+    }
+
+    /**
+     * Whether the account is currently locked out from MFA verification.
+     */
+    public function isLocked(User $user): bool
+    {
+        return $user->mfa_locked_until !== null
+            && $user->mfa_locked_until->isFuture();
+    }
+
+    /**
+     * Whether the current TOTP timestep has already been used for this account.
+     */
+    private function isTimestepReplay(User $user): bool
+    {
+        $lastTimestep = $user->mfa_last_timestep;
+
+        if ($lastTimestep === null) {
+            return false;
+        }
+
+        return $this->currentTimestep() <= $lastTimestep;
+    }
+
+    /**
+     * The current TOTP timestep for the system clock.
+     */
+    private function currentTimestep(): int
+    {
+        return (int) floor(time() / self::TIMESTEP_SECONDS);
     }
 }

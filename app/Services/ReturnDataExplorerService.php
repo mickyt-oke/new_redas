@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Application;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -46,12 +47,15 @@ class ReturnDataExplorerService
      *
      * @return array{paginator: LengthAwarePaginator, records: Collection, filters: array}
      */
-    public function search(array $filters, int $perPage = 20): array
+    public function search(array $filters, int $perPage = 20, ?User $viewer = null): array
     {
         $filters = $this->normaliseFilters($filters);
 
-        $query = Application::query()
-            ->select(['id', 'user_id', 'category', 'scope_code', 'zonal_code', 'status', 'return_data', 'created_at', 'updated_at'])
+        $query = $viewer === null
+            ? Application::query()
+            : SubmissionWorkflow::scopeQueryForViewer(Application::query(), $viewer);
+
+        $query->select(['id', 'user_id', 'category', 'scope_code', 'zonal_code', 'status', 'return_data', 'created_at', 'updated_at'])
             ->with('user:id,name,service_number,assigned_cgis_unit_code');
 
         $this->applyColumnFilters($query, $filters);
@@ -84,12 +88,15 @@ class ReturnDataExplorerService
      * Fetch a raw collection for aggregation/export, capped to avoid memory
      * exhaustion on very large JSON datasets.
      */
-    public function fetchForExport(array $filters, int $limit = self::CSV_LIMIT): Collection
+    public function fetchForExport(array $filters, int $limit = self::CSV_LIMIT, ?User $viewer = null): Collection
     {
         $filters = $this->normaliseFilters($filters);
 
-        $query = Application::query()
-            ->select(['id', 'user_id', 'category', 'scope_code', 'zonal_code', 'status', 'return_data', 'created_at', 'updated_at'])
+        $query = $viewer === null
+            ? Application::query()
+            : SubmissionWorkflow::scopeQueryForViewer(Application::query(), $viewer);
+
+        $query->select(['id', 'user_id', 'category', 'scope_code', 'zonal_code', 'status', 'return_data', 'created_at', 'updated_at'])
             ->with('user:id,name,service_number,assigned_cgis_unit_code');
 
         $this->applyColumnFilters($query, $filters);

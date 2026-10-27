@@ -44,8 +44,15 @@ class User extends Authenticatable
         'mfa_verified_at',
         'mfa_backup_codes',
         'mfa_last_used_at',
+        'mfa_failed_attempts',
+        'mfa_locked_until',
+        'mfa_last_timestep',
         'otp_failed_attempts',
         'otp_locked_until',
+        'failed_attempts',
+        'lockout_until',
+        'password_changed_at',
+        'password_history',
     ];
 
     /**
@@ -74,11 +81,75 @@ class User extends Authenticatable
         'mfa_enabled' => 'boolean',
         'mfa_verified_at' => 'datetime',
         'mfa_last_used_at' => 'datetime',
+        'mfa_failed_attempts' => 'integer',
+        'mfa_locked_until' => 'datetime',
+        'mfa_last_timestep' => 'integer',
         'mfa_secret' => 'encrypted',
         'mfa_backup_codes' => 'encrypted:array',
         'otp_failed_attempts' => 'integer',
         'otp_locked_until' => 'datetime',
+        'failed_attempts' => 'integer',
+        'lockout_until' => 'datetime',
+        'password_changed_at' => 'datetime',
+        'password_history' => 'array',
     ];
+
+    /**
+     * Normalise location and scope codes to trimmed uppercase values on write
+     * so that routing and scope comparisons are case-consistent (M-7).
+     */
+    protected function primaryLocationCode(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $this->normaliseCode($value)
+        );
+    }
+
+    protected function assignedStateCode(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $this->normaliseCode($value)
+        );
+    }
+
+    protected function assignedZonalCommandCode(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $this->normaliseCode($value)
+        );
+    }
+
+    protected function assignedCgisUnitCode(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $this->normaliseCode($value)
+        );
+    }
+
+    protected function assignedDirectorateCode(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $this->normaliseCode($value)
+        );
+    }
+
+    protected function geoState(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $this->normaliseCode($value)
+        );
+    }
+
+    private function normaliseCode(?string $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? null : strtoupper($value);
+    }
 
     public const ACCESS_CATEGORIES = [
         'state_user',

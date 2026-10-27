@@ -12,6 +12,10 @@ class EmailTemplateSeeder extends Seeder
      */
     public function run(): void
     {
+        if (app()->isProduction()) {
+            throw new \RuntimeException('This seeder must never run in production.');
+        }
+
         EmailTemplate::updateOrCreate(
             ['key' => 'verify_email_magic_link'],
             [
@@ -23,8 +27,7 @@ class EmailTemplateSeeder extends Seeder
 <p>Your NIS-REDAS account has been created successfully.</p>
 <p>Please verify your email by clicking the link below:</p>
 <p><a href="{{ magic_link }}">Verify Email</a></p>
-<p> Your default password is: password123</p>
-<p> Please ensure to change your password after logging in for the first time.</p>
+<p> Please use the password provided to you by your administrator and change it after your first login.</p>
 
 <p>This link expires in {{ expires_in_minutes }} minutes.</p>
 <p>If you did not initiate this request, please ignore this email.</p>
