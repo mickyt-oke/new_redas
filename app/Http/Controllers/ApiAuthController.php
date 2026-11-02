@@ -41,7 +41,7 @@ class ApiAuthController extends Controller
 
         $loginInput = trim((string) $request->input('login'));
         $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
-        $normalizedLogin = $field === 'email' ? Str::lower($loginInput) : $loginInput;
+        $normalizedLogin = $field === 'email' ? Str::lower($loginInput) : Str::upper($loginInput);
 
         /** @var User|null $user */
         $user = User::query()

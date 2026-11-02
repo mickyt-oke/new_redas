@@ -44,7 +44,7 @@ class ApiOtpController extends Controller
         $purpose = (string) $request->input('purpose');
 
         $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
-        $normalizedLogin = $field === 'email' ? strtolower($loginInput) : $loginInput;
+        $normalizedLogin = $field === 'email' ? strtolower($loginInput) : strtoupper($loginInput);
 
         /** @var User|null $user */
         $user = User::query()
@@ -70,7 +70,8 @@ class ApiOtpController extends Controller
         $code = (string) random_int(100000, 999999);
 
         DB::transaction(function () use ($user, $purpose, $ttlSeconds, $code) {
-            OtpCode::where('user_id', $user->id)
+            OtpCode::query()
+                ->where('user_id', $user->id)
                 ->where('purpose', $purpose)
                 ->whereNull('consumed_at')
                 ->update(['consumed_at' => now()]);
@@ -133,7 +134,7 @@ class ApiOtpController extends Controller
         $otpInput = (string) $request->input('otp');
 
         $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'service_number';
-        $normalizedLogin = $field === 'email' ? strtolower($loginInput) : $loginInput;
+        $normalizedLogin = $field === 'email' ? strtolower($loginInput) : strtoupper($loginInput);
 
         /** @var User|null $user */
         $user = User::query()->where([$field => $normalizedLogin])->first();
@@ -150,7 +151,8 @@ class ApiOtpController extends Controller
         }
 
         /** @var OtpCode|null $otp */
-        $otp = OtpCode::where('user_id', $user->id)
+        $otp = OtpCode::query()
+            ->where('user_id', $user->id)
             ->where('purpose', $purpose)
             ->whereNull('consumed_at')
             ->where('expires_at', '>', now())
@@ -161,7 +163,7 @@ class ApiOtpController extends Controller
             return response()->json(['message' => 'OTP_INVALID'], 401);
         }
 
-        $otp->increment('attempts');
+        $otp->increment('attempts', 1, []);
 
         $maxAttempts = config('auth.otp.max_attempts');
 

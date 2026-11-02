@@ -7,7 +7,9 @@ use App\Models\OtpCode;
 use App\Models\User;
 use App\Services\MfaService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
 use Tests\TestCase;
 
@@ -44,6 +46,60 @@ class ApiMfaTest extends TestCase
             'mfa_secret' => $secret,
             'mfa_backup_codes' => $mfaEnabled ? $this->hashBackupCodes(['ABCD1234', 'EFGH5678']) : null,
         ]);
+    }
+
+    public function test_api_login_accepts_case_insensitive_service_number_and_returns_otp_required(): void
+    {
+        $user = $this->createUser();
+        $this->seedOtpTemplate();
+        Config::set('services.resend.key', 're_test_key');
+        Mail::fake();
+
+        $response = $this->postJson('/api/login', [
+            'login' => strtolower($user->service_number),
+            'password' => $this->password,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('message', 'OTP_REQUIRED');
+        $this->assertDatabaseHas('otp_codes', [
+            'user_id' => $user->id,
+            'purpose' => 'login',
+            'consumed_at' => null,
+        ]);
+    }
+
+    public function test_api_login_rejects_disabled_user_even_with_valid_credentials(): void
+    {
+        $user = $this->createUser();
+        $user->update(['is_enabled' => false]);
+
+        $response = $this->postJson('/api/login', [
+            'login' => $user->service_number,
+            'password' => $this->password,
+        ]);
+
+        $response->assertForbidden();
+        $response->assertJsonPath('message', 'ACCOUNT_DISABLED');
+        $this->assertDatabaseMissing('otp_codes', [
+            'user_id' => $user->id,
+            'purpose' => 'login',
+        ]);
+    }
+
+    public function test_otp_verification_accepts_case_insensitive_service_number(): void
+    {
+        $user = $this->createUser();
+        $this->createOtp($user);
+
+        $response = $this->postJson('/api/otp/verify', [
+            'login' => strtolower($user->service_number),
+            'purpose' => 'login',
+            'otp' => '123456',
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('token_type', 'bearer');
     }
 
     private function createOtp(User $user, string $code = '123456'): void
