@@ -159,9 +159,20 @@ class ApiAuthController extends Controller
 
         // Rotation: revoke the old refresh token and issue a new one.
         $newRefresh = $this->tokenService->rotateRefreshToken($rt, $request);
+        if ($newRefresh === null) {
+            $this->tokenService->revokeAllRefreshTokens($user);
+
+            return response()->json([
+                'message' => 'SECURITY_BREACH_DETECTED',
+            ], 401)
+                ->withCookie(AuthCookie::forget('access_token'))
+                ->withCookie(AuthCookie::forget('refresh_token'));
+        }
+
         $access = $this->tokenService->issueAccessToken($user);
 
         return $this->tokenResponse(
+            $request,
             $user,
             $access['plainTextToken'],
             $newRefresh['plainTextToken'],
@@ -198,6 +209,7 @@ class ApiAuthController extends Controller
      * Build a consistent token-issuing JSON response with Secure/HttpOnly cookies.
      */
     private function tokenResponse(
+        Request $request,
         User $user,
         string $accessToken,
         string $refreshToken,
@@ -207,13 +219,18 @@ class ApiAuthController extends Controller
         $accessTtlMinutes = (int) ceil($accessExpiresAt->getTimestamp() - now()->getTimestamp()) / 60;
         $refreshTtlMinutes = (int) ceil($refreshExpiresAt->getTimestamp() - now()->getTimestamp()) / 60;
 
-        return response()->json([
-            'access_token' => $accessToken,
+        $payload = [
             'token_type' => 'bearer',
             'expires_in' => max(0, $accessExpiresAt->getTimestamp() - now()->getTimestamp()),
             'refresh_expires_in' => max(0, $refreshExpiresAt->getTimestamp() - now()->getTimestamp()),
             'refresh_expires_at' => $refreshExpiresAt->format('Y-m-d H:i:s'),
-        ])
+        ];
+
+        if (! $request->headers->has('Origin')) {
+            $payload['access_token'] = $accessToken;
+        }
+
+        return response()->json($payload)
             ->withCookie(AuthCookie::make('access_token', $accessToken, max(1, $accessTtlMinutes)))
             ->withCookie(AuthCookie::make('refresh_token', $refreshToken, max(1, $refreshTtlMinutes)));
     }

@@ -26,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'session.fingerprint' => \App\Http\Middleware\ValidateSessionFingerprint::class,
         ]);
 
+        $middleware->appendToGroup('api', \App\Http\Middleware\VerifyApiCookieOrigin::class);
+
         // AuthenticateSession requires a password hash in the session, which is
         // only present after a real login. Enable it in production/staging but
         // keep it optional in local/testing environments where actingAs() is used.

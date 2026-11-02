@@ -252,6 +252,8 @@ class AuthTokenController extends Controller
                 ->whereNull('revoked_at')
                 ->update(['revoked_at' => now()]);
 
+            $user->tokens()->delete();
+
             AuthToken::query()
                 ->where('user_id', $user->id)
                 ->where('type', 'email_verify')

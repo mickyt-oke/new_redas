@@ -1,6 +1,8 @@
 import 'bootstrap';
+import './bootstrap';
 import Chart from 'chart.js/auto';
 import '@fortawesome/fontawesome-free/css/all.css';
+import axios from 'axios';
 
 /* ============================================================
    NIS REDAS — Main Application JS v2.0
@@ -639,7 +641,11 @@ function showToast(message, type = 'info') {
         animation:fadeInUp .3s ease;
         max-width:320px;
     `;
-    toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${message}</span>`;
+    const icon = document.createElement('i');
+    icon.className = `fas ${icons[type] || icons.info}`;
+    const text = document.createElement('span');
+    text.textContent = String(message);
+    toast.append(icon, text);
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; setTimeout(() => toast.remove(), 300); }, 4000);
 }
@@ -657,16 +663,6 @@ const EXPIRE_TIMEOUT = 15 * 60 * 1000;           // 15 minutes → full logout
 const WARNING_TIMEOUT = LOCK_TIMEOUT - 60 * 1000; // 4 minutes  → show warning
 const LOCK_POLL_INTERVAL = 1000;
 
-function sessionExpiryMs() {
-    try {
-        const refreshExpiresAt = parseInt(sessionStorage.getItem('redas_refresh_expires_at') || '0', 10);
-        if (refreshExpiresAt > Date.now()) {
-            return refreshExpiresAt - Date.now();
-        }
-    } catch (e) {}
-    return EXPIRE_TIMEOUT - LOCK_TIMEOUT;
-}
-
 const LOCKS_URL = '/lockscreen';
 const LOCK_URL = '/lockscreen/lock';
 const LOGOUT_URL = '/logout';
@@ -674,6 +670,7 @@ const KEEP_ALIVE_URL = '/session/keep-alive';
 
 let lastActivity = Date.now();
 let isLocking = false;
+let isLoggingOut = false;
 let warningModal = null;
 let warningTimer = null;
 
@@ -844,10 +841,9 @@ function lockSession() {
         window.REDAS_AUTH.clearToken();
     }
 
-    // Remember when the full session will expire so the lockscreen can count down.
-    // If the PWA has a valid refresh token, keep the session alive until it expires.
+    // Keep the lockscreen deadline tied to inactivity, not refresh-token expiry.
     try {
-        sessionStorage.setItem('redas_session_expires_at', String(Date.now() + sessionExpiryMs()));
+        sessionStorage.setItem('redas_session_expires_at', String(lastActivity + EXPIRE_TIMEOUT));
     } catch (e) {}
 
     fetch(LOCK_URL, {
@@ -865,7 +861,8 @@ function lockSession() {
 }
 
 function logoutSession() {
-    if (onLockscreenPage()) return;
+    if (onLockscreenPage() || isLoggingOut) return;
+    isLoggingOut = true;
 
     const form = document.createElement('form');
     form.method = 'POST';
@@ -880,6 +877,14 @@ function logoutSession() {
     document.body.appendChild(form);
     form.submit();
 }
+
+document.querySelectorAll('form[action="/lockscreen/lock"]').forEach(form => {
+    form.addEventListener('submit', () => {
+        try {
+            sessionStorage.setItem('redas_session_expires_at', String(Date.now() + EXPIRE_TIMEOUT));
+        } catch (e) {}
+    });
+});
 
 setInterval(() => {
     if (! idleTimerActive()) return;

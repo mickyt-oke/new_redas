@@ -6,6 +6,7 @@ use App\Models\RefreshToken;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\NewAccessToken;
 
@@ -33,8 +34,8 @@ class TokenService
     public static function fromConfig(): self
     {
         return new self(
-            accessTtlSeconds: (int) config('sanctum.access_ttl', env('SANCTUM_ACCESS_TTL', 900)),
-            refreshTtlSeconds: (int) config('sanctum.refresh_ttl', env('SANCTUM_REFRESH_TTL', 2592000)),
+            accessTtlSeconds: (int) config('sanctum.access_ttl', 900),
+            refreshTtlSeconds: (int) config('sanctum.refresh_ttl', 2592000),
         );
     }
 
@@ -82,6 +83,7 @@ class TokenService
             return;
         }
 
+        /** @var \Laravel\Sanctum\PersonalAccessToken|null $accessToken */
         $accessToken = $user->tokens()->find($id);
 
         if ($accessToken && hash_equals($accessToken->token, hash('sha256', $token))) {
@@ -122,12 +124,22 @@ class TokenService
      *
      * @return array{plainTextToken: string, refreshToken: RefreshToken, expiresAt: Carbon}
      */
-    public function rotateRefreshToken(RefreshToken $oldToken, Request $request): array
+    public function rotateRefreshToken(RefreshToken $oldToken, Request $request): ?array
     {
-        $oldToken->revoked_at = Carbon::now();
-        $oldToken->save();
+        return DB::transaction(function () use ($oldToken, $request): ?array {
+            $lockedToken = RefreshToken::query()
+                ->whereKey($oldToken->getKey())
+                ->lockForUpdate()
+                ->first();
 
-        return $this->issueRefreshToken($oldToken->user, $request);
+            if (! $lockedToken || $lockedToken->revoked_at || $lockedToken->expires_at->isPast()) {
+                return null;
+            }
+
+            $lockedToken->forceFill(['revoked_at' => Carbon::now()])->save();
+
+            return $this->issueRefreshToken($lockedToken->user, $request);
+        });
     }
 
     /**
@@ -139,6 +151,8 @@ class TokenService
             ->where('user_id', $user->id)
             ->whereNull('revoked_at')
             ->update(['revoked_at' => Carbon::now()]);
+
+        $user->tokens()->delete();
     }
 
     /**

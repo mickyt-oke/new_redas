@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RefreshToken;
 use App\Services\AuditLogger;
 use App\Services\PasswordRule;
 use Illuminate\Http\Request;
@@ -51,6 +52,12 @@ class ProfileController extends Controller
             $user->password_changed_at = now();
             $user->must_change_password = false;
             $messages[] = 'password';
+
+            RefreshToken::query()
+                ->where('user_id', $user->id)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
+            $user->tokens()->delete();
 
             AuditLogger::logCrud($user, 'security.password_changed', 'user', $user->id);
         }

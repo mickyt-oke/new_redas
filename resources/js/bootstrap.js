@@ -19,6 +19,7 @@ const REFRESH_URL = '/api/refresh';
 const REFRESH_EXPIRY_KEY = 'redas_refresh_expires_at';
 
 let accessToken = null;
+let refreshAvailable = false;
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -38,6 +39,12 @@ function clearRefreshExpiry() {
     try {
         sessionStorage.removeItem(REFRESH_EXPIRY_KEY);
     } catch (e) {}
+}
+
+function redirectToLogin() {
+    if (!document.body.classList.contains('auth-page')) {
+        window.location.href = '/login';
+    }
 }
 
 const processQueue = (error, token = null) => {
@@ -69,8 +76,8 @@ window.axios.interceptors.response.use(
 
         if (originalRequest.url === REFRESH_URL) {
             accessToken = null;
+            refreshAvailable = false;
             clearRefreshExpiry();
-            window.location.href = '/login';
             return Promise.reject(error);
         }
 
@@ -87,6 +94,7 @@ window.axios.interceptors.response.use(
 
         try {
             const { data } = await window.axios.post(REFRESH_URL);
+            refreshAvailable = true;
 
             if (data.access_token && !hasAccessCookie()) {
                 accessToken = data.access_token;
@@ -100,8 +108,9 @@ window.axios.interceptors.response.use(
         } catch (refreshError) {
             processQueue(refreshError, null);
             accessToken = null;
+            refreshAvailable = false;
             clearRefreshExpiry();
-            window.location.href = '/login';
+            redirectToLogin();
             return Promise.reject(refreshError);
         } finally {
             isRefreshing = false;
@@ -112,6 +121,7 @@ window.axios.interceptors.response.use(
 function restoreSession() {
     return window.axios.post(REFRESH_URL)
         .then(({ data }) => {
+            refreshAvailable = true;
             if (data.access_token && !hasAccessCookie()) {
                 accessToken = data.access_token;
                 window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
@@ -121,6 +131,7 @@ function restoreSession() {
         })
         .catch(error => {
             accessToken = null;
+            refreshAvailable = false;
             clearRefreshExpiry();
             return Promise.reject(error);
         });
@@ -132,7 +143,8 @@ const proactiveRefreshMs = Math.max(30 * 1000, accessTokenTtlMs - 60 * 1000);
 
 function scheduleProactiveRefresh() {
     setInterval(() => {
-        if (!accessToken && !hasAccessCookie()) return;
+        if (!refreshAvailable) return;
+
         window.axios.post(REFRESH_URL)
             .then(({ data }) => {
                 if (data.access_token && !hasAccessCookie()) {
@@ -143,6 +155,7 @@ function scheduleProactiveRefresh() {
             })
             .catch(() => {
                 accessToken = null;
+                refreshAvailable = false;
                 clearRefreshExpiry();
             });
     }, proactiveRefreshMs);
@@ -154,12 +167,13 @@ window.REDAS_AUTH = {
     getToken: () => accessToken,
     clearToken: () => {
         accessToken = null;
+        refreshAvailable = false;
         clearRefreshExpiry();
     },
 };
 
-if (document.cookie.includes('refresh_token=')) {
-    restoreSession().catch(() => {});
-}
+// Authentication cookies are HttpOnly, so JavaScript cannot test their
+// presence. Attempt restoration and let the server decide whether one exists.
+restoreSession().catch(() => {});
 
 scheduleProactiveRefresh();

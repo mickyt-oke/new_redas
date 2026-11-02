@@ -20,14 +20,19 @@ class SecurityAuditConfigStructuralTest extends TestCase
 {
     use RefreshDatabase;
     #[Test]
-    public function hashid_service_throws_when_salt_is_empty(): void
+    public function hashid_service_falls_back_to_the_application_key_when_salt_is_empty(): void
     {
         $reflection = new \ReflectionClass(HashidService::class);
         $property = $reflection->getProperty('hashids');
         $property->setValue(null, null);
 
         Config::set('app.hashid_salt', '');
+        Config::set('app.key', 'stable-test-application-key');
 
+        $this->assertNotSame('', HashidService::encode(1));
+
+        $property->setValue(null, null);
+        Config::set('app.key', '');
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('HASHID_SALT is not configured.');
 

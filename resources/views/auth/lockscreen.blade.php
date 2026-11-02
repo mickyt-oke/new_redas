@@ -93,12 +93,12 @@
                         <i class="fas fa-lock me-1 text-nis"></i> Passcode
                     </label>
                     <div class="auth-input-wrap">
-                        <input type="password" 
-                               class="auth-input @error('passcode') is-invalid @enderror" 
-                               id="passcode" 
-                               name="passcode" 
-                               placeholder="Enter lockscreen passcode" 
-                               required 
+                        <input type="password"
+                               class="auth-input @error('passcode') is-invalid @enderror"
+                               id="passcode"
+                               name="passcode"
+                               placeholder="Enter lockscreen passcode"
+                               required
                                autofocus>
                         <span class="auth-input-icon"><i class="fas fa-key"></i></span>
                         <button type="button" class="pw-toggle" aria-label="Toggle passcode visibility">
@@ -122,15 +122,11 @@
         (function () {
             const sessionKey = 'redas_session_expires_at';
             const refreshKey = 'redas_refresh_expires_at';
-            let expiresAt = parseInt(sessionStorage.getItem(sessionKey) || '0', 10);
-
-            if (!expiresAt) {
-                const refreshExpiresAt = parseInt(sessionStorage.getItem(refreshKey) || '0', 10);
-                if (refreshExpiresAt > Date.now()) {
-                    expiresAt = refreshExpiresAt;
-                    try { sessionStorage.setItem(sessionKey, String(expiresAt)); } catch (e) {}
-                }
-            }
+            let expiresAt = 0;
+            try {
+                expiresAt = parseInt(sessionStorage.getItem(sessionKey) || '0', 10);
+            } catch (e) {}
+            if (!expiresAt) expiresAt = Date.now() + (15 * 60 * 1000);
 
             const container = document.getElementById('lockscreen-expiry');
             const textEl = document.getElementById('lockscreen-expiry-text');
@@ -154,8 +150,10 @@
 
                 if (remaining <= 0) {
                     clearInterval(timer);
-                    sessionStorage.removeItem(sessionKey);
-                    sessionStorage.removeItem(refreshKey);
+                    try {
+                        sessionStorage.removeItem(sessionKey);
+                        sessionStorage.removeItem(refreshKey);
+                    } catch (e) {}
                     // Auto-logout when the full session window elapses.
                     const form = document.createElement('form');
                     form.method = 'POST';

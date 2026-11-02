@@ -206,15 +206,20 @@ class ApiOtpController extends Controller
             $accessTtlMinutes = (int) ceil($access['expiresAt']->diffInSeconds(now()) / 60);
             $refreshTtlMinutes = (int) ceil($refresh['expiresAt']->diffInSeconds(now()) / 60);
 
-            return response()->json([
+            $payload = [
                 'message' => 'OTP verified successfully.',
                 'user_id' => $user->id,
-                'access_token' => $access['plainTextToken'],
                 'token_type' => 'bearer',
                 'expires_in' => max(0, $access['expiresAt']->diffInSeconds(now())),
                 'refresh_expires_in' => max(0, $refresh['expiresAt']->diffInSeconds(now())),
                 'refresh_expires_at' => $refresh['expiresAt']->toDateTimeString(),
-            ], 200)
+            ];
+
+            if (! $request->headers->has('Origin')) {
+                $payload['access_token'] = $access['plainTextToken'];
+            }
+
+            return response()->json($payload, 200)
                 ->withCookie(AuthCookie::make('access_token', $access['plainTextToken'], max(1, $accessTtlMinutes)))
                 ->withCookie(AuthCookie::make('refresh_token', $refresh['plainTextToken'], max(1, $refreshTtlMinutes)));
         }

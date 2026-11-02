@@ -62,8 +62,8 @@ The final approval gate is also weaker than it reads. The national approval auth
 | H-1 | MFA challenge has no throttling, lockout, or audit trail | High | `routes/web.php`, `MfaController` |
 | H-2 | ~~API login bypasses the enrolled TOTP factor entirely~~ **Resolved** — MFA now enforced on API token issue | High | `ApiAuthController` / `ApiOtpController` |
 | H-3 | ~~JWT access tokens cannot be revoked; issuer unverified; dev secret fallback~~ **Resolved** — replaced by Laravel Sanctum stateful tokens | High | `TokenService`, `ApiAccessTokenMiddleware` |
-| H-4 | Password reset does not terminate existing sessions | High | `AuthTokenController` |
-| H-5 | Hashid salt is a hard-coded constant (config key does not exist) | High | `HashidService`, `config/app.php` |
+| H-4 | ~~Password reset does not terminate existing sessions~~ **Resolved** — password reset deletes web sessions, revokes refresh tokens, and deletes Sanctum access tokens; password changes revoke API tokens too | High | `AuthTokenController`, `ProfileController` |
+| H-5 | ~~Hashid salt is a hard-coded constant (config key does not exist)~~ **Resolved** — configured `HASHID_SALT` is preferred, with `APP_KEY` fallback and a clear failure only when both are absent | High | `HashidService`, `config/app.php` |
 | H-6 | CSP is Report-Only and never enforced; cache headers absent | High | `SecurityHeaders` |
 | H-7 | Account enumeration on `/api/otp/request` | High | `ApiOtpController` |
 | H-8 | OTP stored as unsalted SHA-256 over a 4-digit space | High | `ApiOtpController` |

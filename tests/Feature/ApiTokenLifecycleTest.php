@@ -143,6 +143,44 @@ class ApiTokenLifecycleTest extends TestCase
             ->assertJsonPath('message', 'SECURITY_BREACH_DETECTED');
 
         $this->assertCount(0, RefreshToken::query()->where('user_id', $user->id)->whereNull('revoked_at')->get());
+        $this->assertCount(0, PersonalAccessToken::query()->where('tokenable_id', $user->id)->get());
+    }
+
+    public function test_cross_origin_cookie_authenticated_refresh_is_rejected(): void
+    {
+        $user = $this->createUser();
+        $tokens = $this->issueTokens($user);
+
+        $this->call('POST', '/api/refresh', [], ['refresh_token' => $tokens['refresh_cookie']], [], [
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_ORIGIN' => 'https://attacker.example',
+            'HTTP_HOST' => 'localhost',
+        ])
+            ->assertForbidden();
+
+        $this->assertCount(1, RefreshToken::query()->where('user_id', $user->id)->whereNull('revoked_at')->get());
+    }
+
+    public function test_same_origin_browser_refresh_keeps_access_token_out_of_json(): void
+    {
+        $user = $this->createUser();
+        $tokens = $this->issueTokens($user);
+        $appOrigin = rtrim((string) config('app.url'), '/');
+        $originParts = parse_url($appOrigin);
+        $host = (string) ($originParts['host'] ?? 'localhost');
+        if (isset($originParts['port'])) {
+            $host .= ':'.$originParts['port'];
+        }
+
+        $response = $this->call('POST', '/api/refresh', [], ['refresh_token' => $tokens['refresh_cookie']], [], [
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_ORIGIN' => $appOrigin,
+            'HTTP_HOST' => $host,
+            'HTTPS' => ($originParts['scheme'] ?? 'http') === 'https' ? 'on' : 'off',
+        ])->assertOk();
+
+        $response->assertJsonMissingPath('access_token');
+        $this->assertNotNull($this->getCookie($response, 'access_token'));
     }
 
     public function test_logout_revokes_access_and_refresh_tokens(): void

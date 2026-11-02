@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Hashids\Hashids;
-use Illuminate\Support\Facades\Config;
 
 final class HashidService
 {
@@ -12,7 +11,7 @@ final class HashidService
     private static function hashids(): Hashids
     {
         if (self::$hashids === null) {
-            $salt = (string) config('app.hashid_salt');
+            $salt = (string) (config('app.hashid_salt') ?: config('app.key'));
 
             if ($salt === '') {
                 throw new \RuntimeException('HASHID_SALT is not configured.');

@@ -121,6 +121,36 @@ class SecurityAuditAuthenticationTest extends TestCase
         ]);
     }
 
+    public function test_web_logout_revokes_api_tokens_and_clears_auth_cookies(): void
+    {
+        $user = $this->createUser();
+        $refreshToken = RefreshToken::create([
+            'user_id' => $user->id,
+            'jti' => Str::random(32),
+            'token_hash' => hash('sha256', $refreshPlain = Str::random(64)),
+            'expires_at' => now()->addDays(30),
+            'revoked_at' => null,
+            'created_ip' => '127.0.0.1',
+            'user_agent' => 'PHPUnit',
+        ]);
+        $accessToken = $user->createToken('api-access', ['access']);
+
+        $response = $this->actingAs($user)->withCookie('refresh_token', $refreshPlain)
+            ->withCookie('access_token', $accessToken->plainTextToken)
+            ->post('/logout')
+            ->assertRedirect(route('home'));
+
+        $refreshToken->refresh();
+        $this->assertNotNull($refreshToken->revoked_at);
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $accessToken->accessToken->id]);
+
+        $clearedCookies = collect($response->headers->getCookies())->keyBy(fn ($cookie) => $cookie->getName());
+        $this->assertTrue($clearedCookies->has('access_token'));
+        $this->assertTrue($clearedCookies->has('refresh_token'));
+        $this->assertLessThan(0, $clearedCookies['access_token']->getExpiresTime() - now()->timestamp);
+        $this->assertLessThan(0, $clearedCookies['refresh_token']->getExpiresTime() - now()->timestamp);
+    }
+
     public function test_repeated_wrong_lockscreen_passcode_forces_reauthentication(): void
     {
         $user = $this->createUser([

@@ -6,10 +6,12 @@ use App\Http\Middleware\ValidateSessionFingerprint;
 use App\Models\AuthToken;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\AuthCookie;
 use App\Services\GeolocationService;
 use App\Services\Messaging\ResendMailService;
 use App\Services\PasswordRule;
 use App\Services\SettingService;
+use App\Services\TokenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -632,6 +634,21 @@ class AuthController extends Controller
 
         if ($user instanceof User) {
             AuditLogger::logLogout($user, $ip);
+
+            $tokenService = TokenService::fromConfig();
+            $refreshToken = (string) $request->cookie('refresh_token', '');
+            $accessToken = (string) $request->cookie('access_token', '');
+
+            if ($refreshToken !== '') {
+                $storedRefresh = $tokenService->findRefreshToken($refreshToken);
+                if ($storedRefresh && ! $storedRefresh->revoked_at) {
+                    $storedRefresh->forceFill(['revoked_at' => now()])->save();
+                }
+            }
+
+            if ($accessToken !== '') {
+                $tokenService->revokeAccessTokenByPlainText($user, $accessToken);
+            }
         }
 
         Auth::logout();
@@ -639,6 +656,9 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('status', 'Logged out successfully.');
+        return redirect()->route('home')
+            ->with('status', 'Logged out successfully.')
+            ->withCookie(AuthCookie::forget('access_token'))
+            ->withCookie(AuthCookie::forget('refresh_token'));
     }
 }

@@ -42,7 +42,12 @@ function initializeSidebarToggle() {
     }
 
     // Restore sidebar state on page load
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    let sidebarCollapsed = false;
+    try {
+        sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    } catch (e) {
+        console.warn('Could not restore sidebar state:', e);
+    }
     if (sidebarCollapsed) {
         sidebar.classList.add('collapsed');
     }
@@ -368,7 +373,7 @@ function clearDraftData() {
         el.dispatchEvent(new Event('change', { bubbles: true }));
         el.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    
+
     try {
         localStorage.removeItem('fa-dashboard-draft');
         localStorage.removeItem('fa-dashboard-draft-timestamp');
@@ -624,12 +629,20 @@ function showNotification(message, type = 'info') {
         max-width: 300px;
         animation: slideInRight 0.3s ease-out;
     `;
-    notification.innerHTML = `
-        <div class="d-flex align-items-center">
-            <span>${message}</span>
-            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-    `;
+    const content = document.createElement('div');
+    content.className = 'd-flex align-items-center';
+
+    const text = document.createElement('span');
+    text.textContent = String(message);
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'btn-close ms-auto';
+    closeButton.setAttribute('aria-label', 'Dismiss notification');
+    closeButton.addEventListener('click', () => notification.remove());
+
+    content.append(text, closeButton);
+    notification.appendChild(content);
 
     document.body.appendChild(notification);
 
