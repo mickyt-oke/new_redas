@@ -21,7 +21,25 @@ const REFRESH_EXPIRY_KEY = 'redas_refresh_expires_at';
 let accessToken = null;
 let refreshAvailable = false;
 let isRefreshing = false;
+let refreshPromise = null;
 let failedQueue = [];
+
+function refreshSession() {
+    if (refreshPromise) {
+        return refreshPromise;
+    }
+
+    const requestRefresh = () => window.axios.post(REFRESH_URL);
+    const refreshRequest = navigator.locks?.request
+        ? navigator.locks.request('redas-refresh-token', requestRefresh)
+        : requestRefresh();
+
+    refreshPromise = refreshRequest.finally(() => {
+        refreshPromise = null;
+    });
+
+    return refreshPromise;
+}
 
 function hasAccessCookie() {
     return document.cookie.split(';').some(c => c.trim().startsWith('access_token='));
@@ -93,7 +111,7 @@ window.axios.interceptors.response.use(
         isRefreshing = true;
 
         try {
-            const { data } = await window.axios.post(REFRESH_URL);
+            const { data } = await refreshSession();
             refreshAvailable = true;
 
             if (data.access_token && !hasAccessCookie()) {
@@ -119,7 +137,7 @@ window.axios.interceptors.response.use(
 );
 
 function restoreSession() {
-    return window.axios.post(REFRESH_URL)
+    return refreshSession()
         .then(({ data }) => {
             refreshAvailable = true;
             if (data.access_token && !hasAccessCookie()) {
@@ -145,7 +163,7 @@ function scheduleProactiveRefresh() {
     setInterval(() => {
         if (!refreshAvailable) return;
 
-        window.axios.post(REFRESH_URL)
+        refreshSession()
             .then(({ data }) => {
                 if (data.access_token && !hasAccessCookie()) {
                     accessToken = data.access_token;

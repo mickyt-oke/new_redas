@@ -872,6 +872,10 @@ token can be presented is theft or replay — hence the full-session revocation 
 detection. Detection is global for the user, not per-device, so a breach logs the account
 out everywhere.
 
+The browser client serializes refresh requests within a tab and, where supported, across
+tabs with the Web Locks API. This prevents startup restoration, 401 recovery, and proactive
+refresh from rotating the shared cookie concurrently and triggering false reuse detection.
+
 ### 8.6 `POST /api/logout`
 
 Revokes both artefacts:
